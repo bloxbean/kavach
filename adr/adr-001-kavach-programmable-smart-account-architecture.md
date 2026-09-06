@@ -47,7 +47,7 @@ This ADR remains **Proposed**. Requirements below define the intended protocol; 
 We will specify **Kavach** as a programmable smart-account protocol and implement its first version with JuLC, consisting of:
 
 1. a stable wallet/account core;
-2. a canonical `WalletState`;
+2. a canonical `AccountState`;
 3. a unique state-thread NFT identifying that state;
 4. replaceable authorization modules;
 5. signed semantic Kavach intents;
@@ -113,9 +113,9 @@ This separation allows Kavach to evolve independently and potentially become reu
 
 ### 4.1 Account identity is independent of credentials
 
-A Kavach account has a permanent `WalletId` / `AccountId`.
+A Kavach account has a permanent `AccountId`.
 
-The protocol standardizes on `AccountId`; `WalletId` is only an explanatory alias in earlier material. `WalletState` remains the state type name in this ADR.
+The protocol standardizes on `AccountId`, `AccountState`, `AccountStateValidator` and `AccountAssetValidator`. Earlier wallet-oriented names are not wire-schema aliases.
 
 `AccountId` MUST be the full state-thread NFT asset identifier: policy ID plus asset-name bytes. An asset name alone is not unique.
 
@@ -128,7 +128,7 @@ Kavach AccountId
 State Thread NFT
        │
        ▼
-Canonical WalletState
+Canonical AccountState
 ```
 
 Keys are authorization credentials associated with this identity.
@@ -149,30 +149,30 @@ Replacing a credential does not replace the Kavach account.
 
 ---
 
-### 4.2 WalletState MUST be authenticated by a state-thread NFT
+### 4.2 AccountState MUST be authenticated by a state-thread NFT
 
-A `walletId` or `accountId` datum field alone is insufficient because an attacker could construct another UTxO containing the same identifier and malicious credentials.
+An `accountId` datum field alone is insufficient because an attacker could construct another UTxO containing the same identifier and malicious credentials.
 
 Each Kavach account MUST therefore mint a unique one-shot NFT during account creation.
 
-Exactly one valid `WalletState` MUST contain this NFT.
+Exactly one valid `AccountState` MUST contain this NFT.
 
 Normal spends MUST locate the canonical state in reference inputs. State transitions MUST instead consume its current UTxO and validate exactly one successor; they cannot authorize against a lookalike or successor datum. NFT quantity, state address and schema checks are mandatory in both cases.
 
 Conceptually:
 
 ```text
-Kavach WalletState
+Kavach AccountState
 ────────────────────────
 State NFT        ✓
-stateVersion     42
-authModuleHash   ...
-authConfig       ...
-recoveryState    ...
-mode             Normal
+stateVersion             42
+authModule.scriptHash    ...
+authConfig               ...
+recoverySequence         ...
+mode                     Normal
 ```
 
-The Kavach validator MUST reject lookalike WalletState UTxOs that do not contain the expected state NFT.
+The Kavach validator MUST reject lookalike AccountState UTxOs that do not contain the expected state NFT.
 
 ---
 
@@ -182,7 +182,7 @@ The Kavach core SHOULD remain deliberately small and stable.
 
 Its responsibilities include:
 
-* identifying the canonical `WalletState`;
+* identifying the canonical `AccountState`;
 * validating the state-thread NFT;
 * enforcing account lifecycle rules;
 * enforcing intent semantics;
@@ -201,13 +201,13 @@ Conceptually:
                          │
            ┌─────────────┴─────────────┐
            │                           │
-   WalletAssetValidator       WalletStateValidator
+   AccountAssetValidator       AccountStateValidator
            │                           │
            └─────────────┬─────────────┘
                          │
-                   WalletState
+                   AccountState
                          │
-                  authModuleHash
+                authModule.scriptHash
                          │
                          ▼
                   Auth Module
@@ -215,13 +215,13 @@ Conceptually:
 
 ---
 
-## 6. Canonical WalletState
+## 6. Canonical AccountState
 
 A conceptual state representation is:
 
 ```java
 // Conceptual schema, not compiled Java or a frozen wire format.
-record WalletState(
+record AccountState(
     BigInteger schemaVersion,
     AccountId accountId,
     DeploymentDomain deploymentDomain,
@@ -231,17 +231,19 @@ record WalletState(
     PlutusData authConfig,
     BigInteger recoverySequence,
     BigInteger recoveryDelayMillis,
+    BigInteger recoveryCooldownMillis,
+    BigInteger recoveryNotBefore,
     AccountMode mode
 ) {}
 ```
 
-The exact implementation MUST follow the supported JuLC Java subset and ledger-data encoding.
+The exact implementation MUST follow the supported JuLC Java subset and ledger-data encoding. `AuthModuleRef` contains `scriptHash` and `abiVersion`; dotted field names elsewhere refer to this record, not extra top-level state fields. `DeploymentDomain deploymentDomain` is the same typed value in state, parameters and intent domains.
 
 `authConfig` is intentionally opaque to the stable Kavach core.
 
 The currently active authorization module owns interpretation of this data, including distinct spend, administration, freeze, unfreeze, recovery-initiation and recovery-cancellation policies. Opaqueness is a trust boundary: the core can enforce operation separation, but cannot prove that arbitrary module code actually uses independent authorities. Module conformance and review are therefore security-critical.
 
-`AccountMode` is a tagged union of `Normal`, `Frozen`, and `RecoveryPending`, avoiding contradictory booleans. Pending recovery carries a proposal commitment, attempt sequence, target configuration, and execution deadline. `CoreBinding` authenticates the asset validator and checkpoint; exact schema tags and lengths are a Phase 0 deliverable.
+`AccountMode` is a tagged union of `Normal`, `Frozen`, and `RecoveryPending`, avoiding contradictory booleans. Pending recovery carries a proposal commitment, target configuration and execution deadline. The top-level `recoverySequence` is the sole authoritative attempt number; it is committed into the proposal but is not duplicated in the pending-state encoding. `recoveryNotBefore` is the earliest next initiation time; section 26 specifies its monotonic update rules. `CoreBinding` authenticates the asset validator and checkpoint; exact schema tags and lengths are a Phase 0 deliverable.
 
 This allows future authorization modules to introduce new credential and policy types without requiring the Kavach core to understand them.
 
@@ -280,7 +282,7 @@ Examples:
 
 ```text
 phone
-hardware wallet
+hardware wallet (deferred; signing interface must be qualified)
 remote signer
 guardian
 enterprise HSM
@@ -299,7 +301,7 @@ AuthEvidence
     signature
 ```
 
-The active Kavach authorization module resolves `credentialId` against authenticated configuration from the canonical `WalletState`.
+The active Kavach authorization module resolves `credentialId` against authenticated configuration from the canonical `AccountState`.
 
 ---
 
@@ -336,7 +338,7 @@ This enables off-chain authentication mechanisms such as:
 * magic links;
 * custom identity providers.
 
-The Kavach protocol remains independent of those systems.
+The Kavach protocol remains independent of those systems. In the reference profile, a remote service is an additional factor (for example, `AllOf(UserDevice, RemoteSigner)`), never a standalone alternative to user authority. `AnyOf(UserDevice, RemoteSigner)` grants the service unilateral spending power and is outside that reference profile. Machine signers must decode and validate the typed envelope, not blindly sign a digest supplied by a client.
 
 ---
 
@@ -364,7 +366,7 @@ SpendingLimit
 Role
 ```
 
-Example:
+Roadmap example (hardware credentials are deferred, not V1):
 
 ```text
 Spend =
@@ -462,12 +464,12 @@ AuthV2
   New policy types
 ```
 
-The upgrade consumes and recreates `WalletState` with:
+The upgrade consumes and recreates `AccountState` with:
 
 ```text
 stateVersion + 1
-new authModuleHash
-new authModuleVersion
+new authModule.scriptHash
+new authModule.abiVersion
 new authConfig
 ```
 
@@ -506,7 +508,7 @@ FreezeIntent
 CredentialChangeIntent
 PolicyChangeIntent
 AuthModuleUpgradeIntent
-SessionIntent
+SessionIntent (deferred, not V1)
 ```
 
 Conceptual V1 shape (wire tags and concrete JuLC types remain to be specified):
@@ -532,7 +534,7 @@ Conceptually:
 ```text
 IntentDomain {
     protocolVersion,
-    chainDomain,
+    deploymentDomain,
     accountId,
     coreBinding,
     stateVersion
@@ -546,7 +548,7 @@ KAVACH_INTENT
 ||
 protocolVersion
 ||
-chainDomain
+deploymentDomain
 ||
 accountId
 ||
@@ -557,7 +559,7 @@ stateVersion
 canonicalIntent
 ```
 
-The `KAVACH_INTENT` domain separator distinguishes this signing protocol. The diagram is conceptual, not an ambiguous byte-concatenation specification. `chainDomain` MUST include an explicit deployment discriminator, not only the mainnet/testnet network tag. The expected domain is authenticated in deployment parameters/state; a relayer-supplied network label is insufficient. Test deployments MUST use distinct domains. Identical cloned ledger histories cannot be distinguished by intent fields alone.
+The `KAVACH_INTENT` domain separator distinguishes this signing protocol. The diagram is conceptual, not an ambiguous byte-concatenation specification. `deploymentDomain` MUST include an explicit deployment discriminator, not only the mainnet/testnet network tag. The expected domain is authenticated in deployment parameters/state; a relayer-supplied network label is insufficient. Test deployments MUST use distinct domains. Identical cloned ledger histories cannot be distinguished by intent fields alone.
 
 ---
 
@@ -633,7 +635,7 @@ Once those UTxOs are consumed, the intent cannot be replayed.
 
 ---
 
-### 14.2 Anchor Intent
+### 14.2 Anchor Intent (deferred, not V1)
 
 For better relayer flexibility, an intent may require one account anchor UTxO:
 
@@ -649,13 +651,13 @@ After successful execution the anchor no longer exists, preventing replay.
 
 ### 14.3 State Version
 
-Every Kavach Intent MUST bind the current `WalletState.stateVersion`.
+Every Kavach Intent MUST bind the current `AccountState.stateVersion`.
 
 For example:
 
 ```text
 intent.stateVersion = 42
-WalletState.version = 42
+AccountState.stateVersion = 42
 ```
 
 After:
@@ -671,7 +673,7 @@ authorization module upgrade
 the state becomes:
 
 ```text
-WalletState.version = 43
+AccountState.version = 43
 ```
 
 Outstanding intents bound to version 42 become invalid.
@@ -694,7 +696,7 @@ Starting each recovery attempt increments the sequence, including attempts subse
 
 `stateVersion` and `recoverySequence` have distinct roles:
 
-* `stateVersion` invalidates authorization following any security-relevant WalletState mutation;
+* `stateVersion` invalidates authorization following any security-relevant AccountState mutation;
 * `recoverySequence` orders recovery attempts and prevents recovery-specific authorization reuse.
 
 ---
@@ -721,25 +723,47 @@ V1 also rejects transactions consuming assets or state from multiple Kavach acco
 
 Repeating expensive authorization logic for every account input is undesirable.
 
-Kavach proposes a stable transaction checkpoint and a separate replaceable authorization module, both invoked through zero-valued script withdrawals. This is a **Phase 0 feasibility gate**, not an established cost or safety claim. The known withdrawal pattern is described in [CIP-112](https://cips.cardano.org/cip/CIP-0112); its proposed new Observe purpose is not a V1 dependency.
+Kavach proposes a stable transaction checkpoint and a separate replaceable authorization module, both invoked through script withdrawals. Zero is the normal amount when their reward accounts are empty; it is not an authorization invariant. This is a **Phase 0 feasibility gate**, not an established cost or safety claim. The known withdrawal pattern is described in [CIP-112](https://cips.cardano.org/cip/CIP-0112); its proposed new Observe purpose is not a V1 dependency.
 
 ```text
 Account asset inputs
     │ each requires the fixed core checkpoint + same intent digest
     ▼
-Stable core checkpoint (zero withdrawal)
+Stable core checkpoint (rewarding-purpose withdrawal)
     │ authenticates state; checks lifecycle, intent, replay, value
     │ requires the configured module's exact withdrawal and redeemer binding
     ▼
-Replaceable auth module (separate zero withdrawal)
+Replaceable auth module (separate rewarding-purpose withdrawal)
       authenticates old/current state and operation; verifies policy/evidence
 ```
 
-The core MUST NOT delegate value conservation, replay or lifecycle safety to replaceable code. The module decides authorization only. Merely including module bytes or a reference script does not execute it. The caller MUST require the expected script credential in withdrawals with amount zero, locate its rewarding-purpose redeemer, and bind it to the account, current state version, operation and core-derived intent digest. The module MUST validate the same tuple against authenticated state/configuration; it must not trust a caller-supplied digest disconnected from the typed intent.
+The core MUST NOT delegate value conservation, replay or lifecycle safety to replaceable code. The module decides authorization only. Merely including module bytes or a reference script does not execute it. The caller MUST require the expected script credential in withdrawals with a ledger-valid nonnegative amount, locate its rewarding-purpose redeemer, and bind it to the account, current state version, operation and core-derived intent digest. The module MUST validate the same tuple against authenticated state/configuration; it must not trust a caller-supplied digest disconnected from the typed intent.
 
-State transitions perform their mandatory checks in `WalletStateValidator`, using the consumed old state, and require old-module authorization where appropriate. Recovery completion follows section 26. V1 forbids combining a state transition with normal asset spending.
+State transitions perform their mandatory checks in `AccountStateValidator`, using the consumed old state, and require old-module authorization where appropriate. Recovery completion follows section 26. V1 forbids combining a state transition with normal asset spending.
 
-Phase 0 MUST validate script registration/deposits, zero withdrawals, distinct script hashes, purpose/redeemer lookup, transaction assembly and execution budgets against the target ledger. Any registration authority and deregistration behavior must be specified so a third party cannot disable required checkpoints. Reference-script publication/removal is an availability concern, not authorization. See [CIP-33](https://cips.cardano.org/cip/CIP-0033).
+### 16.1 Reward balances and withdrawal disposition
+
+A withdrawal must satisfy the target ledger's account/balance rules. The reviewed [Conway ledger implementation](https://github.com/IntersectMBO/cardano-ledger/blob/master/eras/conway/impl/src/Cardano/Ledger/Conway/Rules/Ledger.hs) calls the [incomplete/missing withdrawal checks](https://github.com/IntersectMBO/cardano-ledger/blob/master/eras/shelley/impl/src/Cardano/Ledger/Shelley/Rules/Ledger.hs), including draining the account. Requiring zero forever can therefore disable execution if a reward balance becomes positive. Phase 0 must pin the ledger revision/protocol version and test that scenario; scripts cannot read the current reward balance directly from the Plutus transaction context.
+
+Required Kavach checkpoints/modules MUST allow a ledger-valid positive withdrawal during an otherwise fully authorized operation. No value of the withdrawal may bypass intent, role, state, replay or accounting checks. There is no permissionless operation-approval or maintenance-spend branch.
+
+The proposed V1 disposition is an immutable `rewardSink` full key address parameter for each shared checkpoint/module deployment, disclosed in its deployment manifest. Unsolicited reward-account credits are not an individual account's deposits or staking earnings. They are forwarded to this sink; its key has no Kavach account authority and its signature is not needed to receive them. This is not a general account-staking feature.
+
+For each positive required withdrawal, the operation redeemer identifies a distinct reward-receipt output at that script's fixed sink with lovelace at least equal to the full withdrawn amount, no native assets, no datum and no reference script. External funding supplies any minimum-ADA top-up. Receipt indices are unique across required credentials and disjoint from signed recipient, account-change and state-successor allocations. Both calling core and called module must validate the applicable receipt bindings; ABI/deployment manifests expose the immutable disposition needed for composition. Do not allow one receipt to satisfy two withdrawals. Zero withdrawals need no receipt.
+
+Account input conservation remains unchanged: reward withdrawals and receipt outputs are excluded from account input/recipient/change totals and cannot substitute for account change or subsidize an account-funded fee calculation. Any relayer-selected disposition inconsistent with immutable parameters fails. A stale balance may require rebuilding a transaction; any changed signed fields require reauthorization. Phase 0 must prove positive-balance spending and recovery, multiple receipts sharing a sink, top-ups and double-counting rejection.
+
+### 16.2 Script purposes and registration lifecycle
+
+All scripts MUST dispatch explicitly on ledger purpose. Spending, minting, voting, proposing and unrelated certifying uses cannot succeed through rewarding logic. The sole proposed certifying exception for checkpoint/module scripts is a narrow registration branch for their own credential with the target era's required deposit, no delegation or refund. It grants no account authorization. Deregistration, delegation and combined registration/delegation certificates are rejected in V1; registration deposits are not refundable under this profile.
+
+Registration is not universally witness-free: the reviewed [Conway certificate code](https://github.com/IntersectMBO/cardano-ledger/blob/master/eras/conway/impl/src/Cardano/Ledger/Conway/TxCert.hs) distinguishes legacy registration without an explicit deposit from deposit-bearing registration requiring a credential witness. Phase 0 must test both applicable forms, register-then-withdraw ordering, already-registered failure, and permissionless re-registration after deregistration in a controlled ledger fixture. Any re-registration proof must identify its exact certificate form and era. Do not rely on an assumed universal registration/deregistration witness asymmetry.
+
+The deployed JuLC wrappers, not just helper methods, must reject unsupported purposes. If required registration needs a certifying handler, compile an explicit supported multi-purpose script rather than a rewarding-only validator that accidentally accepts other contexts. The reference deployment blocks deregistration; the re-registration test measures recovery behavior if ledger state is reset/changed or a future design permits it, not an ordinary V1 action.
+
+### 16.3 Reference-script availability
+
+Publish redundant reference-script UTxOs under a verified always-fails spending script and retain the exact compiled bytes in reproducible release artifacts. Discover copies by expected script hash; do not freeze one reference UTxO into account identity. Test rebuilding after a reference becomes unavailable. When transaction-size limits permit, supplying the script as a normal witness is a fallback; otherwise republish a matching reference before submission. A spent reference may interrupt service but does not alone permanently brick accounts whose script bytes remain available. [CIP-33](https://cips.cardano.org/cip/CIP-0033) defines reference scripts as an alternative script source.
 
 If two checkpoints are impractical, retain direct core checks and a proven authorization path, even at higher cost. Do not collapse core invariants into an upgradeable module merely to save execution units.
 
@@ -777,7 +801,7 @@ Any excess value not explicitly authorized for recipients or bounded fees MUST r
 
 Recovery is a first-class Kavach operation.
 
-Possible recovery authorities include:
+Possible recovery authorities across the roadmap include (hardware integration is deferred, not V1):
 
 ```text
 backup device
@@ -817,7 +841,7 @@ guardians authorize
 recovery delay
        │
        ▼
-WalletState updated
+AccountState updated
 ```
 
 The same Kavach AccountId and assets remain.
@@ -893,8 +917,8 @@ Potential credentials include:
 iPhone
     Secure Enclave / P-256
 
-Hardware wallet
-    Ed25519
+Hardware wallet (deferred)
+    signing scheme and firmware integration must be qualified
 
 Remote HSM/KMS
     Ed25519
@@ -913,16 +937,18 @@ The initial proposal describes a broader roadmap than the first deployable proto
 | --- | --- | --- |
 | Account identity | One-shot state NFT; immutable core binding | Closure, NFT burn, core migration |
 | Spending | One account, one intent, exact nonempty account-input set; ADA/native-asset transfers | Anchor selection, multiple accounts/intents, arbitrary dApp calls |
-| Authentication | Ed25519 intent signatures; distinct role policies with unique credentials and bounded thresholds | Direct passkeys/P-256, BLS, new curves, arbitrary policy trees |
+| Authentication | Dedicated Ed25519 intent signers; distinct bounded role policies | CIP-30/CIP-8 and hardware-wallet intent credentials; direct passkeys/P-256, BLS, arbitrary policy trees |
 | Administration | Credential/configuration rotation and compatible auth-module replacement | Automatic upgrade registry or protocol-wide administrator |
 | Safety | Freeze/unfreeze and delayed recovery | Session keys, recurring payments, cumulative spending limits |
 | State access | Read-only canonical state for spend; consume/recreate for mutation | Sharded or optimistic mutable state |
-| Ledger actions | Transfers plus required checkpoint setup/zero withdrawals | Account staking, rewards, governance, token issuance/burning |
-| Integrations | Java SDK and reference Yano flow; CIP-113 compatibility prototype before core freeze | Full CIP-113 support per ADR-002; full wallet/dApp compatibility layer |
+| Ledger actions | Transfers plus specified checkpoint registration and withdrawal invocation | Account staking, rewards, governance, token issuance/burning |
+| Integrations | Java SDK and reference Yano flow; explicit CIP-113 gate decision before core freeze | Full CIP-113 support per ADR-002; full wallet/dApp compatibility layer |
 
-Unsupported operations MUST fail closed. Mint/burn fields and certificates/governance actions are rejected in normal V1 spends; initialization permits only the explicitly specified NFT mint and necessary checkpoint setup. Exact input binding restricts **account** inputs, allowing independent sponsor fee inputs. No protocol administrator, hosted service or Yano component receives implicit authority over accounts.
+Unsupported operations MUST fail closed. Mint/burn fields and certificates/governance actions are rejected in normal V1 spends; initialization permits only the explicitly specified NFT mint and necessary checkpoint setup. Exact input binding restricts **account** inputs, allowing independent sponsor fee inputs. Every transaction that executes Kavach Plutus scripts needs externally key-controlled collateral; section 23.4 specifies the V1 model. No protocol administrator, hosted service or Yano component receives implicit authority over accounts.
 
 Ed25519 signing of a Kavach intent and a Cardano transaction witness are different authorization schemes. `TxInfo.signatories` is not evidence of a detached intent signature. A future transaction-witness module needs its own scheme identifier and tests, and must preserve all core intent checks.
+
+CIP-30 `signData` uses a CIP-8/COSE `Sig_structure`, not a raw signature over the Kavach digest. Stripping a COSE wrapper does not convert that signature. V1 uses dedicated signers implementing the specified raw Ed25519 scheme. CIP-30/CIP-8 intent authentication is deferred to a separately identified COSE-aware module that reconstructs and validates the signed structure, protected headers, key/address binding and exact payload. Hardware support is interface/firmware-specific; neither the Ed25519 curve nor availability of transaction signing proves support. Hardware wallets may still provide ordinary sponsor transaction witnesses when supported. See [CIP-30 signing](https://cips.cardano.org/cip/CIP-0030) and [CIP-8](https://cips.cardano.org/cip/CIP-8).
 
 Cumulative limits cannot be enforced by reading immutable reference state alone: concurrent spends could each pass the same check. Such policies require consumed budget state or capabilities and a separate concurrency design. Per-transaction limits are different and may be expressed by the signed transfer itself.
 
@@ -930,7 +956,7 @@ Cumulative limits cannot be enforced by reading immutable reference state alone:
 
 [ADR-002](adr-002-kavach-cip113-interoperability.md) specifies a separate account-specific owner adapter for tokens held under a CIP-113 payment script. The ordinary account address and accounting rules in this ADR remain the ordinary-transfer profile; they do not automatically cover externally held programmable tokens. The adapter must enforce equivalent Kavach safety checks for its own custody domain.
 
-Before production core scripts and state encoding are frozen, prove adapter deployment against an existing account without changing its `AccountId` or ordinary/state core hashes. Freeze a typed, operation-specific authorization boundary; never add unrestricted external-script approval. A compatible auth-module upgrade may be needed to enable the later operation. Full integration is deferred until ADR-002's gates pass.
+Before production core scripts and state encoding are frozen, record one of two outcomes: prove adapter deployment against an existing account without changing its `AccountId` or ordinary/state core hashes; or explicitly withdraw that compatibility promise for V1 and accept that future integration may require a new core deployment and asset migration. Freeze a typed, operation-specific authorization boundary; never add unrestricted external-script approval. A compatible auth-module upgrade may be needed to enable the later operation. Full integration is deferred until ADR-002's gates pass.
 
 Use the Cardano Foundation platform as the interoperability reference and cardano-client-lib PR #657 as the Java SDK integration candidate, qualified against their exact contract artifacts as recorded in ADR-002. The candidate upstream implementation has separate transfer/third-party/restructuring delegates and mutable protocol parameters; stable custody addresses do not remove upstream governance or issuer risks.
 
@@ -940,22 +966,22 @@ Use the Cardano Foundation platform as the interoperability reference and cardan
 
 Avoid circular script-hash parameterization. A candidate deployment order is:
 
-1. Compile the generic state validator and stable core checkpoint.
+1. Compile the generic state validator and stable core checkpoint, applying immutable reward-disposition parameters where required before deriving hashes.
 2. Parameterize the one-shot minting policy with a consumed seed `TxOutRef`, the state-validator hash and deployment domain. Fix its single asset name; derive `AccountId` from the applied policy hash and name.
 3. Parameterize the asset validator with `AccountId`, the state-validator hash, core checkpoint hash and deployment domain. Derive its enterprise script address (no stake credential in V1).
 4. Build the initial state containing those bindings and the independently compiled initial auth module/configuration. The minting policy authenticates this exact initial-state commitment and designated creator authorization through its specified creation redeemer. Consuming the seed also requires its ledger spending authorization.
 
 The policy MUST verify the derived asset binding using a proven construction or an explicit creator-authorized commitment; it must not accept a relayer-selected address. Final parameter application, creator authorization and hash derivation are Phase 0 specifications, with golden deployment vectors. No script may require a hash which recursively depends on its own hash.
 
-A shared state-validator address is possible because the NFT identifies each state. The asset validator is account-specific so ownership does not rely on a depositor-supplied datum. Authentication changes preserve this address. A new core script changes the address and requires a separately designed asset migration.
+A shared state-validator address is possible because the NFT identifies each state. The asset validator is account-specific so ownership does not rely on a depositor-supplied datum. Authentication changes preserve this address. A new core script changes the address and requires a separately designed asset migration. V1 deliberately retains the immutable enterprise address. Adding a stake credential to these holdings later is not a state-only update: it changes the receive/change address and the accepted core rules. Moving existing holdings into a staking-capable custody profile requires an explicitly designed migration, potentially involving a new account identity. A separate DRep identity is a different feature and does not automatically require asset movement; account-integrated governance is nevertheless unsupported in V1. ADR-002 uses the stake position at a different CIP-113 custody address for ownership, not delegation of ordinary V1 assets.
 
 ### 23.2 Mint and continuation invariants
 
-Creation MUST consume the unique seed and mint exactly one unit of the fixed asset name, with no other names under that policy. It MUST create exactly one output at the expected state validator containing that NFT and a well-formed initial inline datum: version and recovery sequence zero, `Normal` mode, valid core/domain binding, valid role configuration and bounded recovery delay. Initial configuration validation must execute under the selected module; opaque bytes cannot be assumed valid. Further minting and all burning are forbidden in V1.
+Creation MUST consume the unique seed and mint exactly one unit of the fixed asset name, with no other names under that policy. It MUST create exactly one output at the expected state validator containing that NFT and a well-formed initial inline datum: version, recovery sequence and recovery-not-before zero, `Normal` mode, valid core/domain binding, valid role configuration and bounded recovery delay/cooldown. Initial configuration validation must execute under the selected module; opaque bytes cannot be assumed valid. Further minting and all burning are forbidden in V1.
 
 Every state transition MUST consume exactly one authenticated state input and create exactly one successor at the same full state address. It preserves the NFT, account identity, deployment domain and core binding, increments `stateVersion` by exactly one, and rejects unsupported schema versions, invalid counters and unauthorized field changes. The state NFT may never become ordinary account change or a recipient asset.
 
-The state UTxO is reserved for its NFT and lovelace deposit. Transitions preserve or increase its lovelace; fees and datum-growth top-ups come from external funding. Normal account assets reside at the asset validator. An output at the state address without the NFT is not state. Unsolicited assets accidentally sent there have no promised recovery path in V1; clients must expose the asset address for deposits.
+The state UTxO is reserved for its NFT and lovelace deposit. Transitions preserve or increase its lovelace; fees and datum-growth top-ups come from external funding. Normal account assets reside at the asset validator. An output at the state address without an authentic state NFT is rejected by every V1 spending branch: there is no NFT-less sweep or rescue path. Assets in such outputs are unspendable under the deployed V1 rules, even if an authentic state is included elsewhere in the transaction; the validator authenticates its own consumed input. The shared state address cannot establish who should receive a refund. Clients must expose only the asset address for deposits and warn when a state address is entered.
 
 Inline state data is required for deterministic discovery and decoding; ledger output-size/minimum-ADA rules still apply. [CIP-32](https://cips.cardano.org/cip/CIP-0032) describes inline datums. Referencing state does not execute its spending validator, so each consuming authorization path must authenticate the NFT and state binding itself. [CIP-31](https://cips.cardano.org/cip/CIP-0031) specifies this reference-input behavior.
 
@@ -965,6 +991,25 @@ Disjoint asset spends can reference one state concurrently. State mutation consu
 
 State lookup/indexers are discovery services, not authorities. Resolve the complete NFT identity and verify the returned UTxO and datum before signing. Anyone may deposit to the asset address; deposit acceptance does not execute the validator. The asset validator must support spending such outputs without requiring a depositor-controlled datum schema. Account change uses the full canonical address and the V1 output form (no datum or reference script); other output shapes must not be credited as safe change.
 
+
+### 23.4 Collateral, fees and recovery bootstrap
+
+Transactions executing Kavach Plutus scripts require key-controlled collateral under the target ledger rules; merely receiving an ordinary deposit does not execute Kavach and needs no such provider. Account-funded fee allowance does not replace collateral. See the [ledger collateral checks](https://cardano-ledger.cardano.intersectmbo.org/cardano-ledger-alonzo/Cardano-Ledger-Alonzo-Rules.html#v:validateScriptsNotPaidUTxO) and [CIP-40 collateral return](https://cips.cardano.org/cip/CIP-0040).
+
+The V1 reference wallet maintains a small, separately key-controlled operational balance for fees, deposits and collateral. This is outside Kavach recovery protection and must be clearly displayed as such. A replaceable external sponsor interface is also required: a guardian or independent provider can fund/sign collateral and fees without gaining any account-operation authority. No fixed relayer or provider key is a core parameter.
+
+Creation/setup must fund the operational balance or arrange sponsorship before promising first-spend readiness. A newly received account deposit alone does not make the smart account operational. After total device loss, a guardian/provider may supply fees and collateral from a new key account; recovery must not depend on the lost device's collateral key. If no funded provider is available, freeze, cancellation and recovery transactions cannot execute. Sponsor unavailability is an explicit liveness risk, not an authorization bypass.
+
+The sponsor validates the complete transaction body, collateral amount and return address before signing. Ordinary account UTxOs and the state NFT must never be collateral. On successful validation collateral is not an ordinary account debit; on script failure the provider bears the ledger-defined loss. Recovery/admin transactions retain externally funded fees and state-deposit top-ups.
+
+### 23.5 Discovery after device loss
+
+A portable **account-locator backup** is a required V1 recovery artifact. It contains the full state NFT asset identifier, deployment/network domain, expected state/core hashes and creation transaction reference, plus a schema version and checksum. It contains no private keys and confers no authority, but exposes account linkage and should be shared privately. Export it before onboarding is considered complete and provide redundant copies to the user and selected guardians.
+
+Recovery tooling must import this locator on a clean device, find the current NFT-bearing UTxO through a replaceable chain provider and authenticate its state. Never treat a backed-up state UTxO reference as permanently current. Guardians keep the locator independently of their signing material; a service may retain an encrypted copy but is not the sole discovery path. Phase 2 includes restoration with the original device and primary service unavailable.
+
+Knowing only guardian identities is not a guaranteed V1 discovery mechanism. Credential-index queries may assist but are neither unique nor authoritative. Loss of every locator copy may prevent discovery and is an explicit recovery limitation. No personal identifiers or secret locator material are published in transaction metadata.
+
 ## 24. Exact Spending and Value Accounting
 
 The V1 core MUST establish all of the following independently of module approval:
@@ -972,7 +1017,7 @@ The V1 core MUST establish all of the following independently of module approval
 1. The canonical referenced state is `Normal`; its version and immutable bindings equal the intent domain.
 2. The signed input list is nonempty, duplicate-free and canonically ordered. It equals the complete set of consumed inputs with this account's asset payment credential, not merely a subset. Every such input points to the same checkpoint intent digest.
 3. The transaction validity interval is finite, nonempty and wholly contained in the signed validity interval. Inclusive/exclusive boundaries must be specified and tested; interval overlap is insufficient.
-4. Each signed recipient allocation identifies a unique output index, exact full address, exact multi-asset value, and required datum/reference-script form. V1 plain transfers require no datum or reference script. Self-transfers use a separate future operation; recipient outputs cannot also count as account change.
+4. Each signed recipient allocation identifies a unique output index, exact full address, exact multi-asset value, and required datum/reference-script form. V1 plain transfers require no datum or reference script. Recipient outputs cannot also count as account change. Consolidation is allowed with an empty recipient list, a nonempty exact input set, and all account value returned as change except the signed fee contribution; it uses the same spend authorization and replay checks. A nominal recipient pointing back to the source account is rejected; express that amount as change.
 5. Every account-change output uses the immutable full account address and supported output form. Return to the same payment hash with an unexpected stake credential is not acceptable change.
 6. No state NFT is spent as an ordinary asset. Unsupported ledger operations and other Kavach account spends are rejected.
 
@@ -985,7 +1030,7 @@ For lovelace:             I[ADA] = R[ADA] + C[ADA] + F
                          F <= transaction fee
 ```
 
-Every quantity and fee bound must be nonnegative. Compare the complete asset maps, including assets absent from the intent; do not check only named tokens. Reference-input value and state deposits are excluded. Recipient min-ADA must be included in the signed allocation. The sponsor pays the remaining fee; V1 has no implicit relayer tip. Any future service charge must be an explicit signed recipient allocation.
+Every quantity and fee bound must be nonnegative. Compare the complete asset maps, including assets absent from the intent; do not check only named tokens. Reference-input value, state deposits and section 16.1 reward withdrawals/receipts are excluded. Recipient min-ADA must be included in the signed allocation. The sponsor pays the remaining fee; V1 has no implicit relayer tip. Any future service charge must be an explicit signed recipient allocation.
 
 Because assets are fungible, this defines a bound on net account debit; it cannot prove which physical lovelace paid a network fee when sponsor inputs coexist. The stated invariant is that all account debit beyond exact recipients and safe change is at most the authorized fee contribution. Output indices are signed in V1, sacrificing relayer output-order flexibility for unambiguous allocation.
 
@@ -993,7 +1038,7 @@ External sponsor inputs, their change and collateral require their own ledger au
 
 ## 25. Language-Independent Wire Format and Conformance
 
-The protocol specification MUST be defined independently of Java records, JuLC implementation details, or any future Aiken data declarations. Source-language types are implementations of the schema, not its authority. Before producing signing or deployment artifacts, publish a versioned normative schema for:
+The protocol specification MUST be defined independently of Java records, JuLC implementation details, or any future Aiken data declarations. Source-language types are implementations of the schema, not its authority. Before producing signing or deployment artifacts, publish a versioned normative **CDDL schema for the CBOR encoding of Plutus Data**, supplemented by semantic constraints and canonical reserialization rules. CDDL alone does not define ordering, hashing, policy validity or all accepted encodings. Cover:
 
 - `AccountId`, deployment/core domain, state, mode, module reference and configuration envelope;
 - every intent variant, action tag, validity bound and replay binding;
@@ -1008,9 +1053,17 @@ Publish language-neutral fixtures containing typed field descriptions, encoded D
 
 Conformance means equivalent acceptance and rejection behavior under specified ledger conditions. It does **not** imply identical compiled script bytes, hashes or addresses. A differently compiled implementation represents a distinct deployment; migration and domain binding remain explicit.
 
+### 25.1 Deterministic intent rendering and signer verification
+
+Define a normative field-to-display model derived from the decoded canonical envelope, with golden fixtures. It must show operation, deployment/network, account and state version, full recipient addresses, asset policy/name and integer quantities, validity bounds, fee cap, exact input references, and all administrative/recovery targets and timing changes applicable to that operation. Human asset names/decimal formatting are supplementary untrusted metadata; raw identifiers and base quantities remain available. The complete digest is available for independent cross-check; it is not a substitute for inspecting fields.
+
+The signer, including a remote signing service, must independently decode the typed envelope, recompute its digest, validate its schema/domain and apply policy. It must never approve an opaque client-provided hash paired with unrelated display text. User signers render that same decoded object before consent; services evaluate its structured fields. Locale and layout may vary, but no security-relevant field may be omitted or relabeled ambiguously. Changed final transaction fields require fresh consent as specified by the signing flow.
+
+This reduces accidental mismatch and permits independent verification. It cannot make a fully compromised signing device display honest information. A separate trusted display or independent verification channel is needed to address that threat; Kavach does not claim the chain can verify what a user saw.
+
 ## 26. Recovery and Freeze State Machine
 
-V1 uses a single pending recovery proposal. Policies below are separate operation authorities, even if an account deliberately assigns some overlapping credentials. Distinct credential IDs must resolve to distinct authorized keys when counted toward a threshold; repeated evidence or aliases for the same key cannot multiply votes.
+V1 uses a single pending recovery proposal. Policies below are separate operation authorities. The V1 reference module requires the recovery-initiation key set to be disjoint from the cancellation and unfreeze key sets; these two defensive policies may overlap each other. Neither recovery authority nor the everyday spend key alone may satisfy either defensive policy. Configure separately retained defensive credentials before account creation; role names alone do not establish independence. Distinct credential IDs must resolve to distinct authorized keys when counted toward a threshold; repeated evidence or aliases for the same key cannot multiply votes.
 
 | Current mode | Operation | Required authority / condition | Successor mode |
 | --- | --- | --- | --- |
@@ -1018,21 +1071,34 @@ V1 uses a single pending recovery proposal. Policies below are separate operatio
 | Normal | Credential/policy/module change | Old AdminPolicy; valid successor configuration | Normal |
 | Normal | Freeze | FreezePolicy | Frozen |
 | Frozen | Unfreeze | Explicit UnfreezePolicy; stronger than everyday spend authority | Normal |
-| Normal or Frozen | StartRecovery | Current RecoveryPolicy threshold; exact target commitment | RecoveryPending |
+| Normal or Frozen | StartRecovery | Current RecoveryPolicy threshold; exact target commitment; cooldown elapsed | RecoveryPending |
 | RecoveryPending | CompleteRecovery | Stored proposal, delay elapsed, target proof of possession | Normal with committed replacement |
 | RecoveryPending | CancelRecovery | Explicit RecoveryCancelPolicy | Frozen |
 
-V1 configuration changes cannot disable recovery or reduce its configured delay; these are explicit core field constraints. Compatible modules must reject empty or invalid role policies and retain supported recovery behavior. Because module configuration is opaque, module review must establish that requirement.
+V1 configuration changes cannot disable recovery or reduce its configured delay or cooldown; these are explicit core field constraints. Compatible modules must reject empty or invalid role policies and retain supported recovery behavior. Because module configuration is opaque, module review must establish that requirement.
 
 All other transitions are rejected in V1. In particular, frozen/pending accounts cannot spend, install sessions, perform general configuration changes, or use ordinary unfreeze to bypass a pending recovery. V1 does not provide an underspecified “security-preserving admin” escape hatch.
 
-`StartRecovery` consumes the old state, increments both `stateVersion` and `recoverySequence`, and stores the new attempt number. The authorized proposal commits to the complete replacement configuration, the unchanged module reference in V1, old state version, account/domain and sequence. Recovery changes credentials within the installed module; replacement of the module during recovery is deferred. The delay comes from old authenticated state and cannot be lowered by the proposal.
+`StartRecovery` consumes the old state, increments both `stateVersion` and `recoverySequence`, and stores the new attempt number only in the top-level counter. The authorized proposal commits to the complete replacement configuration, the unchanged module reference in V1, old state version, account/domain and sequence. Recovery changes credentials within the installed module; replacement of the module during recovery is deferred. The delay comes from old authenticated state and cannot be lowered by the proposal.
 
-A validator cannot observe transaction inclusion time directly. Initiation therefore requires a bounded finite validity interval and sets `executeAfter = initiation upper bound + configured delay`. This conservatively starts the delay no earlier than any allowed initiation time. The permitted maximum interval width and delay range must be fixed and tested before V1.
+A validator cannot observe transaction inclusion time directly. Initiation therefore requires a bounded finite validity interval and sets `executeAfter = initiation upper bound + configured delay`. This conservatively starts the delay no earlier than any allowed initiation time. The permitted maximum interval width, delay and cooldown ranges must be fixed and tested before V1.
 
 `CompleteRecovery` requires a finite validity interval whose lower bound is at or after `executeAfter`, equality of the stored proposal commitment and supplied target, and an installed-module verification of target proof of possession for that exact proposal. It requires no fresh approval from the lost everyday credential. The old state already records recovery-threshold approval; target proof prevents installation of unusable or mistyped credentials. Finalization increments `stateVersion`, preserves the attempt sequence and clears the pending proposal. Validators must never allow target evidence to select a different replacement.
 
-Cancellation increments `stateVersion`, preserves the monotonically increasing attempt sequence, clears the proposal and remains frozen. A later attempt increments the sequence again. Numbering advances at initiation, including attempts later cancelled, so cancelled evidence cannot be reused. No automatic expiry silently unfreezes funds.
+Cancellation increments `stateVersion`, preserves the monotonically increasing attempt sequence, clears the proposal and remains frozen. It also extends the next-initiation deadline as specified below. A later attempt increments the sequence again. Numbering advances at initiation, including attempts later cancelled, so cancelled evidence cannot be reused. No automatic expiry silently unfreezes funds.
+
+### 26.1 Recovery abuse and cooldown
+
+Recovery initiation is threshold-authorized and incurs transaction fees, but those fees do not deter a compromised or colluding recovery threshold. V1 therefore enforces a positive core-managed `recoveryCooldownMillis` and a monotonic `recoveryNotBefore` timestamp:
+
+- Initialization sets `recoveryNotBefore = 0`.
+- Initiation requires the finite validity lower bound to be at or after `recoveryNotBefore`; its successor sets `recoveryNotBefore = max(old value, initiation upper bound + recoveryCooldownMillis)`.
+- Cancellation requires a finite bounded validity interval and sets `recoveryNotBefore = max(old value, cancellation upper bound + recoveryCooldownMillis)`.
+- Completion, unfreeze and all other state changes preserve the deadline. They cannot reset it, even if they change credentials or increase the cooldown.
+
+The cancellation deadline gives defenders a bounded opportunity to unfreeze and revoke compromised guardians or exit through an authorized spend before re-initiation is allowed. It does not guarantee transaction ordering or that defenders retain the necessary keys/provider. A per-window cap or slashed bond is not added to V1: caps can permanently disable legitimate recovery, and a fee/bond cannot establish honest guardians. Cooldown bounds and boundary/replay tests are mandatory Phase 0/2 deliverables.
+
+A compromised recovery threshold can start a malicious proposal and may take control after the delay if no independently authorized cancellation is confirmed. It is not an unconditional guaranteed takeover, but delay/freeze alone cannot prevent it. Lost defensive keys, unavailable monitors or sponsors, and collusion across roles remain serious risks. Device/guardian setup must disclose these tradeoffs; monitoring and cancellation readiness are part of the recovery procedure.
 
 The default first module must define explicit initiation, cancellation and unfreeze thresholds, configuration bounds, target-proof rules, and how its existing recovery configuration is retained or rotated. No timeout, administrator or service may bypass those policies. If an installed module is broken or all recovery authority is lost, this architecture may be unable to recover; independent recovery modules are a separate design decision, not an implied guarantee.
 
@@ -1049,6 +1115,9 @@ Adversaries may control relayers, transaction construction, dApp requests, index
 | Duplicate guardian votes | Unique keys and bounded threshold evaluation |
 | Old or foreign signature reused | Deployment/account/action domain, state version, consumed replay resource, validity bounds |
 | Recovery target substitution or early completion | Stored full proposal commitment and conservative interval checks |
+| Recovery-threshold compromise / guardian collusion | Independent cancellation/unfreeze keys, enforced cooldown and monitoring; takeover remains possible if no valid cancellation is confirmed |
+| Client renders different intent than it signs | Decode/render/hash the same envelope inside signer; independent trusted display needed against a compromised signer |
+| Lost locator or unavailable collateral provider | Redundant account-locator backup and replaceable sponsor path; recovery can be unavailable without them |
 | Primary-key compromise | Limited role authority and confirmed freeze; spending can still win the race |
 | Oversized datum/policy/evidence | Protocol size/count/depth bounds and worst-case budget tests |
 | Malicious authorized module upgrade | Old AdminPolicy plus explicit target commitment; module review remains necessary |
@@ -1056,7 +1125,7 @@ Adversaries may control relayers, transaction construction, dApp requests, index
 
 The core cannot inspect arbitrary module code to prove it is safe. A malicious module installed through valid administration can grant arbitrary spend authorization, even though core accounting still applies. A defective module may permanently lock an account, including recovery. Compatible module ABI versions, configuration validation and documented review are necessary; no global allowlist is assumed.
 
-Core code is immutable in V1. Updating `authModuleVersion` is a data change, not proof of compatible behavior. Upgrading JuLC, changing compiler flags, or rewriting in Aiken can change script hashes. An upgrade must not silently strand existing assets. Core migration, emergency escape routes and closure/burn require a new ADR with explicit authority, delay, identity and asset-movement rules.
+Core code is immutable in V1. Updating `authModule.abiVersion` is a data change, not proof of compatible behavior. Upgrading JuLC, changing compiler flags, or rewriting in Aiken can change script hashes. An upgrade must not silently strand existing assets. Core migration, emergency escape routes and closure/burn require a new ADR with explicit authority, delay, identity and asset-movement rules.
 
 All on-chain configuration, public keys, intents and recovery activity are public. Do not store personal identifiers, OAuth tokens or private authentication material in datums. Hashing low-entropy personal data does not ensure privacy.
 
@@ -1082,7 +1151,7 @@ Record compiler and dependency versions, parameter values, optimization settings
 
 ### Phase 0 — specification and feasibility, no real funds
 
-Freeze the wire schema and threat model; demonstrate acyclic parameterization, one-shot initialization, first-module signatures, purpose/redeemer binding and zero-withdrawal ledger acceptance. Specify numeric bounds for inputs, outputs, assets, configuration bytes, credentials, evidence, validity width and recovery delay. Measure worst-case CPU, memory, script/transaction size and minimum ADA against the chosen network's protocol parameters. If the checkpoint optimization does not pass, choose the simpler proven path. Complete ADR-002's bounded CIP-113 adapter compatibility prototype before freezing production core hashes or claiming later integration can preserve them.
+Freeze the wire schema and threat model; demonstrate acyclic parameterization, one-shot initialization, first-module signatures, purpose/redeemer binding and empty- and positive-balance withdrawal acceptance, reward disposition and explicit purpose/registration behavior on the target ledger. Specify numeric bounds for inputs, outputs, assets, configuration bytes, credentials, evidence, validity width, recovery delay and cooldown. Measure worst-case CPU, memory, script/transaction size and minimum ADA against the chosen network's protocol parameters. If the checkpoint optimization does not pass, choose the simpler proven path. Before freezing production core hashes, either pass ADR-002's bounded compatibility prototype or record an explicit V1 decision withdrawing hash-preserving CIP-113 compatibility and accepting potential future migration. Ordinary V1 need not wait indefinitely on an external alpha implementation; an unfinished prototype is not a compatibility claim.
 
 ### Phase 1 — minimal transfer protocol
 
@@ -1090,7 +1159,7 @@ Implement creation, exact-input spends, canonical Java encoding and the first mo
 
 ### Phase 2 — administration and recovery
 
-Implement all and only the state-machine transitions above. Test stale state, version/sequence boundaries, threshold duplicates, invalid successor configs, self-approved upgrades, forbidden field changes, cancelled-proposal replay, wrong target, exact delay boundaries and competing freeze/spend transactions. Model-based/property testing must show that accepted transition sequences preserve identity, NFT supply, role boundaries and value constraints.
+Implement all and only the state-machine transitions above. Test stale state, version/sequence boundaries, threshold duplicates, invalid successor configs, self-approved upgrades, forbidden field changes, cancelled-proposal replay, wrong target, exact delay/cooldown boundaries, colluding guardians, independent cancellation/unfreeze enforcement and competing freeze/spend transactions. Restore an account using only the locator backup, surviving authorities and a new collateral provider. Model-based/property testing must show that accepted transition sequences preserve identity, NFT supply, role boundaries and value constraints.
 
 ### Phase 3 — independent review and integration
 
@@ -1103,6 +1172,14 @@ No phase is complete merely because Java compiles or happy-path tests pass. Cont
 ## 30. Consequences, Alternatives and Open Decisions
 
 The split state/asset design permits concurrent disjoint spending and credential rotation without moving assets, but adds state discovery and stale-reference handling. Separate stable and replaceable checkpoints preserve the core trust boundary at the cost of more scripts and transaction assembly complexity. Exact input/output binding and a narrow V1 reduce ambiguity while limiting relayer flexibility and dApp composability.
+
+V1 consequences are explicit:
+
+- Ordinary holdings use an immutable enterprise address. Adding staking-capable custody later requires address/rule changes and asset migration; this ADR reserves no mutable stake-credential slot.
+- V1 provides no general dApp execution, delegation or account-integrated voting. A reference wallet that also offers those features needs a clearly separate ordinary key-account UX; the two balances do not share Kavach's security guarantees.
+- Closure and state-NFT burning are unsupported. The state deposit, including later top-ups, remains locked under V1 rules; do not promise its refund. NFT-less state-address deposits are also unspendable under those rules.
+- External collateral remains necessary for script execution even when account assets pay fees. Operational key balances are not recovered by rotating Kavach credentials.
+- Each distinct CIP-113 owner adapter needs its own reward-account registration/deposit where required by the target ledger. Do not charge it again per token or UTxO. Without an allowed deregistration path, no V1 deposit-refund promise is made.
 
 Alternatives considered:
 
@@ -1118,11 +1195,11 @@ Open decisions must be resolved with evidence before their dependent phase is co
 | --- | --- |
 | Final script parameter graph and creator-bound initialization protocol | Phase 0 deployment vectors and adversarial mint tests |
 | Exact wire tags, CBOR normalization, domain and signature scheme | Phase 0 cross-boundary golden vectors |
-| Checkpoint registration, setup cost, deregistration protection and fallback | Phase 0 ledger-valid prototype |
-| Numeric bounds and initial recovery/unfreeze/cancellation defaults | Phase 0 specification; Phase 2 adversarial enforcement |
+| Checkpoint reward sinks/receipts, registration, purpose guards and reference-script fallback | Phase 0 ledger-valid positive/zero-balance and wrong-purpose tests |
+| Numeric bounds, cooldown and independent recovery/cancellation/unfreeze configuration | Phase 0 specification; Phase 2 adversarial enforcement |
 | Exact module ABI and successor-config/target-possession validation | Phase 0 specification; Phase 2 upgrade and recovery tests |
 | Dependency versions, compiler flags and target protocol parameters | Phase 0 reproducibility and budget report |
-| CIP-113 owner-adapter ABI and preservation of existing core hashes | ADR-002 Phase 0 prototype; full integration deferred |
+| CIP-113 owner-adapter ABI and preservation of existing core hashes | Pass ADR-002 prototype or explicitly withdraw V1 compatibility promise and accept potential migration; full integration deferred |
 | Core migration, independent recovery modules, passkeys, staking and dApp operations | Separate ADRs; outside V1 |
 
 ### References and evidence status
@@ -1135,4 +1212,31 @@ External sources reviewed on 2026-09-06 describe tooling and ledger mechanisms, 
 - [CIP-31 — Reference inputs](https://cips.cardano.org/cip/CIP-0031): read-only state access and its validation limitations.
 - [CIP-32 — Inline datums](https://cips.cardano.org/cip/CIP-0032): state-data availability.
 - [CIP-33 — Reference scripts](https://cips.cardano.org/cip/CIP-0033): script distribution without treating references as authorization.
+- [CIP-30 — Wallet bridge](https://cips.cardano.org/cip/CIP-0030) and [CIP-8 — Message signing](https://cips.cardano.org/cip/CIP-8): COSE signing differs from the raw V1 intent scheme.
+- [CIP-40 — Collateral output](https://cips.cardano.org/cip/CIP-0040): collateral return and provider accounting.
 - [CIP-112 — Observe Script Type](https://cips.cardano.org/cip/CIP-0112): explanation of the zero-withdrawal pattern; the proposed Observe extension is not assumed available.
+
+
+### Review disposition — 2026-09-06
+
+The architecture review led to the following changes. These are specification updates; all implementation and ledger validation gates remain open.
+
+| Review finding | Resolution |
+| --- | --- |
+| T1.1 Enterprise address limits | Retain the narrow enterprise profile; sections 23.1/30 state migration consequences. Separate DRep identity is distinguished from staking existing assets. |
+| T1.2 External collateral dependency | Section 23.4 specifies operational key funds, replaceable sponsorship, first-spend readiness and lost-device recovery bootstrap. Receiving deposits is distinguished from script execution. |
+| T1.3 CIP-30/hardware signing | Sections 7.1/21/22 mark deferred support and separate COSE from raw intent signatures. No universal Ledger/Trezor capability claim is made without device/firmware qualification. |
+| T1.4 Recovery abuse | Section 26 adds a core cooldown and independent cancellation/unfreeze keys; section 27 adds guardian collusion. Initiation is not fee-free and takeover is not inevitable, but colluding recovery authority can defeat an unresponsive defender. |
+| T1.5 Discovery | Section 23.5 requires redundant account-locator backups and clean-device restoration tests. |
+| T1.6 Intent display | Section 25.1 requires deterministic field rendering and signer-side decode/hash/policy checks, with an explicit compromised-display limit. |
+| T1.7 Zero-only withdrawals | Section 16.1 allows valid positive withdrawals with immutable reward sinks and disjoint receipt accounting; ordinary account rewards/staking remain out of scope. |
+| T1.8 Script purposes/registration | Section 16.2 specifies explicit purpose guards and a narrow registration branch; witness rules and re-registration are tested for the target era rather than assumed. |
+| T2 Naming and field drift | Account-prefixed protocol types, `AuthModuleRef`, one top-level recovery sequence and `deploymentDomain` are used consistently in both ADRs. |
+| T2 Deferred examples | Anchor and session examples are marked deferred at their definition sites. |
+| T2 CIP-113 release gate | Both ADRs require a documented fork: prove compatibility or withdraw the V1 hash-preservation promise and accept potential migration. |
+| T2 Mistaken state deposits | Section 23.2 explicitly rejects NFT-less state inputs; no sweep branch exists. |
+| T2 Schema language | Section 25 names CDDL plus semantic/canonicalization constraints. |
+| T2 Reference scripts | Section 16.3 requires redundant always-fails reference outputs, retained bytes and tested witness/republishing fallbacks. Loss of one reference is not necessarily permanent loss of access. |
+| T2 Consolidation | Section 24 explicitly allows zero recipients with authorized exact inputs and change, subject to fees. |
+| T2 Remote signer | Section 7.2 makes the service an additional factor in the reference profile, not unilateral spend authority. |
+| T2 Economic/UX consequences | Section 30 states dual-account UX limits, locked state deposits and per-adapter registration costs. |

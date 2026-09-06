@@ -40,7 +40,7 @@ At this revision, the [base validator](https://github.com/cardano-foundation/cip
 
 ## 2. Decision: Plan Now, Deliver Later
 
-Specify and prove a narrow CIP-113 owner-adapter boundary before freezing the initial Kavach core scripts and wire schema. Full CIP-113 wallet functionality remains outside the initial ordinary-transfer release.
+Plan a narrow CIP-113 owner-adapter boundary now. Before freezing the initial Kavach core scripts and wire schema, either prove that boundary or explicitly withdraw the V1 hash-preservation promise and accept that later CIP-113 support may require core/address changes and asset migration. Full CIP-113 wallet functionality remains outside the initial ordinary-transfer release.
 
 The intended extension MUST:
 
@@ -51,7 +51,7 @@ The intended extension MUST:
 - Introduce no generic permission to invoke arbitrary scripts or sign arbitrary digests.
 - Remain language-independent; JuLC is the first Kavach implementation, and Aiken upstream contracts are external integration dependencies.
 
-Hash preservation is an **acceptance criterion**, not an unconditional promise. If the prototype requires changing a frozen state schema, core parameter, checkpoint or incompatible authorization ABI, resolve that design before production deployment. A future core change requires an explicit migration ADR.
+Hash preservation is an **acceptance criterion for the compatibility promise**, not an unconditional promise or an indefinite dependency on an upstream alpha. Record the selected outcome in ADR-001 and the release manifest: (A) validated compatibility for an exact supported profile, or (B) no compatibility guarantee for this V1 deployment, with potential future migration explicitly accepted. Outcome B defers integration without adding an unsafe extension hook. A future core change requires an explicit migration ADR; migration feasibility or preservation of account identity is not presumed.
 
 ## 3. Custody and Script Layout
 
@@ -68,7 +68,7 @@ Kavach asset validator                CIP-113 base/transfer validators
 Ordinary core checkpoint              Kavach CIP-113 owner adapter
         |                                  |
         +------ authenticate current ------+
-                 WalletState NFT
+                 AccountState NFT
                        |
               installed auth module
 ```
@@ -78,6 +78,8 @@ The diagram shows two separate transaction paths, not an initial mixed transacti
 The adapter's immutable parameters bind at least the full `AccountId`, expected state-validator hash, Kavach deployment/core domain, and the supported CIP-113 deployment identity. The latter must authenticate the base/transfer scripts and protocol-parameter/registry identities used by that deployment. Resolve the final representation and parameter graph in Phase 0.
 
 Do not put the adapter hash into an immutable core parameter that must already exist to derive `AccountId`; this risks circular derivation and prevents later deployment. The adapter is derived after account creation from existing immutable identifiers. Its own rewarding-purpose credential supplies its identity for intent binding.
+
+Each distinct adapter reward credential needs registration and its own deposit where required by the target ledger, not a deposit per asset or holding UTxO. Its own narrow registration handler, rejection of delegation/deregistration and positive-balance reward disposition follow ADR-001 section 16. Fix and disclose an adapter `rewardSink` before deriving its hash; this does not modify the account's existing core parameters.
 
 The adapter does not become the ordinary asset validator, state validator or current auth-module hash. Its stake-credential position is an ownership hook, not an expansion of Kavach's staking/reward/governance features.
 
@@ -91,14 +93,14 @@ It reads the currently installed authorization module from that state. Recovery 
 
 ### 4.2 Dedicated authorization operation
 
-Define a versioned `Cip113Transfer` intent and module request before freezing the protocol schema. The typed signing envelope must bind:
+For compatibility outcome A, define a versioned `Cip113Transfer` intent and module request before freezing the protocol schema. Under outcome B, this is deferred with the integration and carries no V1 compatibility promise. The typed signing envelope must bind:
 
 - Protocol/schema version, chain/deployment domain, `AccountId`, immutable core binding and current state version.
 - Operation tag, owner-adapter script hash and CIP-113 deployment identity.
 - Exact nonempty owned input references, exact recipient output allocations and validity interval.
 - Full asset quantities and supported output forms; initial account fee contribution is zero.
 
-The adapter derives the digest from this typed envelope. It requires the configured module's exact zero-valued withdrawal and rewarding redeemer for the same envelope. The module independently authenticates current state, checks operation support, verifies the complete signed envelope and applies the configured policy. Neither side accepts an independently supplied trusted digest.
+The adapter derives the digest from this typed envelope. It requires the configured module's exact rewarding-purpose withdrawal with ledger-valid nonnegative amount and ADR-001 section 16.1 reward disposition and rewarding redeemer for the same envelope. The module independently authenticates current state, checks operation support, verifies the complete signed envelope and applies the configured policy. Neither side accepts an independently supplied trusted digest.
 
 An ordinary `SpendIntent` cannot authorize this operation, and a `Cip113Transfer` signature cannot authorize ordinary spending, another adapter, another deployment or administration. Unknown operations fail closed. Phase 0 must choose a concrete typed ABI that supports this separation without changing existing state encoding.
 
@@ -114,13 +116,13 @@ Reusing a transaction checkpoint is optional only if the prototype proves its ex
 
 The first integration supports one source Kavach owner adapter, one CIP-113 deployment and one intent per transaction, with plain owner-authorized transfers. Receiving outputs may belong to another holder, including another Kavach account; the restriction concerns consumed source holdings, not recipients.
 
-It rejects ordinary Kavach asset inputs, state transitions, other owner adapters' inputs at the selected base script, mint/burn, administrative token actions, unsupported certificate/governance actions and unsupported output forms. Require external key-controlled sponsor inputs for fees and collateral. All required withdrawals have amount zero. Registration/setup is a separately specified transaction, not an exception hidden inside the spend path.
+It rejects ordinary Kavach asset inputs, state transitions, other owner adapters' inputs at the selected base script, mint/burn, administrative token actions, unsupported certificate/governance actions and unsupported output forms. Require external key-controlled sponsor inputs for fees and collateral. Kavach-owned adapter/module withdrawals follow ADR-001 section 16: credential/purpose/envelope binding, positive-balance handling and disjoint reward receipts. Upstream delegates must be qualified separately for positive balances; do not assume their amount/disposition rules match Kavach or impose a blanket zero check. Registration/setup is a separately specified transaction, not an exception hidden inside the spend path.
 
 The adapter scans the complete transaction. Owned inputs are identified by both the authenticated CIP-113 payment credential and this adapter's inline script stake credential. The exact signed list must equal that complete nonempty set. Invalid or pointer stake forms and attempts to invoke this adapter for another custody deployment are rejected under the specified transaction shape.
 
 The proposed initial output format uses exact full addresses, no datum and no reference script. Recipients and change occupy disjoint, unique indices. Change requires the same authenticated base script and owner adapter. Sending tokens to Kavach's ordinary enterprise address is not valid programmable-token change.
 
-For **every** asset, including lovelace and incidental non-programmable assets in consumed holdings:
+For **every** asset, including lovelace and incidental non-programmable assets in consumed holdings (excluding separately sourced reward withdrawals and their distinct settlement receipts):
 
 ```text
 owned inputs = exact signed recipient allocations + valid owned change
@@ -160,18 +162,20 @@ Adapter replacement does not update old holdings in place. It requires an explic
 
 ## 8. Delivery Plan and Acceptance Gates
 
-### Phase 0 — mandatory before freezing Kavach core
+### Phase 0 — compatibility proof or explicit deferral before core freeze
 
-1. Pin a compatible platform/core/CCL/substandard revision set, beginning with the PR #657 snapshot above and inspect actual deployment artifacts and schemas. Record commits, compiler versions, script hashes, parameters, network and registry identities; do not treat the platform frontend's configuration as trusted on-chain evidence.
+For outcome A, complete the following prototype. For outcome B, record the explicit deferral and its migration implications instead.
+
+1. Pin a compatible platform/core/CCL/substandard revision set, beginning with the PR #657 snapshot above, and inspect actual deployment artifacts and schemas. Record commits, compiler versions, script hashes, parameters, network and registry identities; do not treat the platform frontend's configuration as trusted on-chain evidence.
 2. Freeze the typed adapter authorization boundary and prove it works with the planned state schema and administration flow. Specify count/size/budget bounds and withdrawal/certificate handling.
 3. Create an account with the candidate ordinary-only deployment. Freeze its core artifacts and state encoding. Subsequently deploy the adapter and, if needed, upgrade only the authorization module through the existing flow.
 4. On a controlled ledger, receive and transfer a test programmable token, rotate credentials, freeze/unfreeze, and complete recovery. Prove expected rejection/acceptance and unchanged state NFT, ordinary/state core hashes and adapter address through credential changes.
-5. Exercise the platform's basic and freeze-and-seize substandards, including script-owner execution and all relevant non-holder paths. Confirm registration/deposits, zero withdrawals and deregistration protection for the exact implementation.
+5. Exercise the platform's basic and freeze-and-seize substandards, including script-owner execution and all relevant non-holder paths. Confirm registration/deposits, wrong-purpose rejection, zero/positive-balance withdrawals, reward receipts and re-registration behavior for the exact implementation. Include a fresh recovery collateral provider, cooldown boundaries and independent defensive authorities.
 6. Publish the result and revise this ADR if compatibility needs core changes. A schema sketch or fabricated script context alone does not satisfy this gate.
 
-This work is a bounded compatibility prototype, not full CIP-113 release support. Production core freeze is contingent on its outcome if later hash-preserving integration is promised.
+This work is a bounded compatibility prototype, not full CIP-113 release support. Production core freeze requires either a passing result if later hash-preserving integration is promised, or an explicit outcome B decision removing that promise. Lack of an upstream-ready prototype must not be reported as success.
 
-### Later implementation — after the boundary passes
+### Later implementation — after compatibility or migration design is validated
 
 Build the JuLC adapter and Java SDK support under `com.bloxbean.cardano.kavach`, using Gradle. Suggested optional modules are `kavach-cip113-contracts` and `kavach-cip113-sdk`; no modules are created by this ADR.
 
@@ -182,6 +186,8 @@ Require language-neutral fixtures and compiled-script conformance across the JuL
 ### CCL composition and signing requirements
 
 The inspected [CCL module README](https://github.com/bloxbean/cardano-client-lib/blob/cde967b6a64700942417b6afa8e7e787cc85cbcb/programmable-token/README.md) describes `ProgrammableTokenService`, a QuickTx extension, typed programmable-token intents and TxPlan codecs. Ordinary `payToAddress` does not route programmable tokens. Its [build extension](https://github.com/bloxbean/cardano-client-lib/blob/cde967b6a64700942417b6afa8e7e787cc85cbcb/programmable-token/src/main/java/com/bloxbean/cardano/client/programmabletoken/cip113/tx/Cip113BuildExtension.java) prepares inputs, finalizes indices before evaluation, re-finalizes after balancing and verifies stability. Kavach must integrate with that lifecycle, not append unchecked redeemers to its output.
+
+Signer rendering, locator restoration and sponsor handling inherit ADR-001 sections 23.4–23.5 and 25.1. The adapter-specific render includes custody deployment, owner hash and the selected token-control profile. Reference-script redundancy and recovery use the same release-artifact strategy as the core.
 
 The Kavach prototype must prove the following; these are requirements, not assertions of existing CCL support:
 
@@ -206,6 +212,7 @@ Before enabling real holdings, complete independent review of the adapter, autho
 | Ordinary spend signature reused for CIP-113, or reverse | Reject |
 | Evidence approves another adapter or altered recipient/amount | Reject |
 | Missing module/transfer/owner execution, wrong purpose or redeemer | Reject |
+| Nonzero reward balance, receipt reuse/diversion, unsupported registration/delegation | Preserve authorized operation and required reward disposition; reject malformed/purpose-confused cases |
 | Additional owned inputs, omitted incidental assets, reused recipient/change output | Reject |
 | Wrong owner change, tokens escape custody, sponsor extracts owned lovelace | Reject |
 | Multiple source owners, mixed ordinary spending, state mutation, unsupported mint/burn | Reject under the initial profile |
@@ -221,4 +228,4 @@ Putting CIP-113 tokens directly at the ordinary Kavach payment script conflicts 
 
 Still to resolve: complete platform/substandard/deployment qualification against the inspected CCL/core snapshot; concrete typed authorization ABI; adapter parameter encoding; registration lifecycle; supported token profiles and special paths; output/datum restrictions; protocol limits; SDK discovery and activation metadata. These are explicit prototype deliverables, not permission to deploy with unspecified behavior.
 
-The accepted planning direction is to resolve these boundaries now, retain a narrow ordinary V1, and ship full CIP-113 support only after its own validation gates pass.
+The planning direction is to make the compatibility-or-deferral decision before core freeze, retain a narrow ordinary V1, and ship full CIP-113 support only after its own validation gates pass. No upstream research implementation is an unconditional release dependency.
