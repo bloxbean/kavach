@@ -1,0 +1,8 @@
+{
+  "convertedFirstToken" : "01",
+  "scope" : "Confirmed defects in the pinned off-chain converter, not ledger/conformance success",
+  "ledgerCredentialOrder" : [ "1c1c1c1c1c1c1c1c1c1c1c1c1c1c1c1c1c1c1c1c1c1c1c1c1c1c1c1c", "2d2d2d2d2d2d2d2d2d2d2d2d2d2d2d2d2d2d2d2d2d2d2d2d2d2d2d2d" ],
+  "converterCredentialOrder" : [ "2d2d2d2d2d2d2d2d2d2d2d2d2d2d2d2d2d2d2d2d2d2d2d2d2d2d2d2d", "1c1c1c1c1c1c1c1c1c1c1c1c1c1c1c1c1c1c1c1c1c1c1c1c1c1c1c1c" ],
+  "ledgerFirstToken" : "00",
+  "rewardAddresses" : [ "stake_test17qwpc8qurswpc8qurswpc8qurswpc8qurswpc8qurswpc8qhjzmja", "stake_test17qkj6tfd95kj6tfd95kj6tfd95kj6tfd95kj6tfd95kj6tguhnfwl" ]
+}

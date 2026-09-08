@@ -1,0 +1,8 @@
+{
+  "scope" : "Threshold primitive maximum input-size case; opaque payload, not a valid full account operation",
+  "keyCount" : 8,
+  "signatureCount" : 8,
+  "serializedEnvelopeBytes" : 8192,
+  "cpu" : 1216685575,
+  "memory" : 2015633
+}

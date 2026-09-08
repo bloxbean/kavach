@@ -1,0 +1,55 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<testsuite name="com.bloxbean.cardano.kavach.demo.DemoServiceDevkitTest" tests="2" skipped="0" failures="0" errors="0" timestamp="2026-09-07T17:36:38.541Z" hostname="192.168.1.14" time="123.677">
+  <properties/>
+  <testcase name="[1] 1" classname="com.bloxbean.cardano.kavach.demo.DemoServiceDevkitTest" time="63.208"/>
+  <testcase name="[2] 2" classname="com.bloxbean.cardano.kavach.demo.DemoServiceDevkitTest" time="60.462"/>
+  <system-out><![CDATA[Create account · publish script 1 of 5 confirmed candidate 5259ae9b1b627edb87787470f14f01b1193e796f69a8a69369349f26e49b11cf
+Create account · publish script 2 of 5 confirmed candidate 0addb874a5da0d3f1da1ddbf43b43449c54de174a48781f0bef065d73822b553
+Create account · publish script 3 of 5 confirmed candidate f510db91b993aad04ad0678d9c1838edae0a63af99de8f31ce963261c49a93f6
+Create account · publish script 4 of 5 confirmed candidate f5c6dad69caac3512969fd17eee702211074266cdba56f72bbbc19f55664c302
+Create account · publish script 5 of 5 confirmed candidate 4a7f129d65065f093ad4bd086b5e8dc2e5320736e2b1e27c199064d50e225162
+Register authorization checkpoints confirmed candidate d0be3fb79d1076d6d59ee8bc19bfe5a84c316c982dd57074a755b30f83cc42c3
+Create account · approve genesis confirmed candidate 9a435e82f3d1d2ccb2fe3c7154b1301831492d28bc76da6827096e842081828e
+Send assets confirmed candidate 876be7528277a0b5fa08f315c488ab18fc79b367432ab7cfde09050fe1ae6897
+Send assets confirmed candidate 321349b6eaede78d9fe14a0120d0c515ae41b0e24e163293f3489dacd0622aa7
+Consolidate assets confirmed candidate 0451b229245befacb32db542922f9f2468222e37d60471bb0f2de5a12ad52f88
+Freeze account confirmed candidate 45b0235a778de7adcb34f5bf07526e7927ac86858e028175a09d0c60fc1abe58
+Unfreeze account confirmed candidate 9ae0ace48ccc4c6ccf157ab94a49bbe84224d25f28f4d3ad7ea599c3b2bc1431
+Rotate keys confirmed candidate 1b3f52b82fe5a8ebd8839a0fca31588c1a84acf359263b909c1c80ccd9c05c35
+Publish candidate module confirmed candidate 10dee9dd6b7642940da10dca35ea0664421e19d8ec16b2dd1b0527aeb993cdfe
+Register authorization checkpoints confirmed candidate 1a06313bd3f06c8f1f47eea491f96bff9d816ad63b09c8f01476d2f00c90e350
+Replace module confirmed candidate 1759ff9886d0552c7f52fb98966c1c99b01714a139915a648145544824ff2386
+Send assets confirmed candidate 79743b227ec2be0da2edca7296cdcc63dc7a406d24a55deeb574f377024a7065
+Start recovery confirmed candidate a8a4a66921c39d9e89427c6ebab42fb4e6e54b0b5bd44d0f1853f49863b85387
+Cancel recovery confirmed candidate 441d4fc7a35ff34c4af515ce392f9bac96d9003543b182a9c71e97739b27e05f
+Unfreeze account confirmed candidate 34490a57a98a797ce822b7460fe7ef40fc11a7ecc71c6247996c6a6146c7817c
+Send assets confirmed candidate a0b1555df010630c88fb2e6d54c99f11fac53748f5bf44c4734afc492b5f17db
+Demo API mode 1 creation, transfers, key rotation, cross-mode replacement and recovery cancellation passed
+Create account · publish script 1 of 5 confirmed candidate ca6d9be46480391c763a0782021cc37fcaf7a31127400679cb49d7a4748828b4
+Create account · publish script 2 of 5 confirmed candidate c4cde4b04ae82e63f6efb2a5de46a1c6343c7604e543780279f4f1aa3851488e
+Create account · publish script 3 of 5 confirmed candidate 93e8f4b189e18c323bbd86d7a09613ea68ac4c2c4a23bb4908d5c01684e042b4
+Create account · publish script 4 of 5 confirmed candidate 19d1be85d673e781f18f7a7dbd0f3535cca3c8e74bd8f9e74047e36d9b913a69
+Create account · publish script 5 of 5 confirmed candidate 45ae6cb9859fc3925a20984918d191d1b7860a8fabeddc590f4006d74113c554
+Register authorization checkpoints confirmed candidate 5b76b3e8c1bb4ccfd412a7dc0992197f25e143b01bf8681b3215743ffa12872e
+Create account · approve genesis confirmed candidate af868f79702666dcf1d629e6b5da26dbb7188df3a9205b7a008ed076889b44fa
+Send assets confirmed candidate 6b6f88c615074c542a31f8608530d3d3054f05c3a137336fbcdf39d06d2d10d0
+Send assets confirmed candidate 3e3fb12959b88c8f712c7891f83fe747fc69bc08ea24c45c3e600ff76c805e6c
+Consolidate assets confirmed candidate 83d4a9a7b76c6f95326c54e2fbbe3d5990c40675a4c083572adf128703fb8d26
+Freeze account confirmed candidate 1097cef3523d657c06c56493b4b060116393c5f2037db0c886db32216591e110
+Unfreeze account confirmed candidate a2ee7c89d5ff5a8d09bebe1538acde14b59bab2f922b6e8a5c7730d14eaffd19
+Rotate keys confirmed candidate c1743fb3e2fded34dcc5a455411d53fe3331276924d1f2d00d53db73579dc964
+Publish candidate module confirmed candidate 31d4871762fd27a382df3a50c4c140dddbd0c52e23643f649372aebe373bc95f
+Register authorization checkpoints confirmed candidate f3a461873d7596d1ffb7deebd21ba879e79ef77e21b15fac1bd4e266c77b8cf1
+Replace module confirmed candidate 6ed17ef1094493b5725097df66769227a28e77f434c5a18025bd88f510abad78
+Send assets confirmed candidate 8f2b4912fcc64fc4c81ef13c5e56b55d69819783fef1bedcc7b8d64fe05cf58d
+Start recovery confirmed candidate 699004fb8bd675281a6b4ea6123d277f2bddddb836114c1c8cabacd003854b44
+Cancel recovery confirmed candidate 14f96acdc2d42bf6852a8065c36dd89e4d98d7aaa7200a686b5db73bbb31f007
+Unfreeze account confirmed candidate 345aed59fa02a6d59d5e0820345f6f5bcaa696bd9e91af3afad23053408fa680
+Send assets confirmed candidate 6e15560561ddf61342a1bfbb64d59c2b131038c07a1ade666eb62e89c9a76d55
+Demo API mode 2 creation, transfers, key rotation, cross-mode replacement and recovery cancellation passed
+]]></system-out>
+  <system-err><![CDATA[SLF4J(W): No SLF4J providers were found.
+SLF4J(W): Defaulting to no-operation (NOP) logger implementation
+SLF4J(W): See https://www.slf4j.org/codes.html#noProviders for further details.
+]]></system-err>
+</testsuite>

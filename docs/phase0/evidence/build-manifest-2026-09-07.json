@@ -1,0 +1,98 @@
+{
+    "scope": "Phase 0 unapplied probe templates; not production deployment hashes",
+    "gradle": "9.2.0",
+    "javaRuntimeVersion": "25.0.2+12-LTS",
+    "jvmVersion": "25.0.2+12-LTS",
+    "javaVendor": "BellSoft Liberica",
+    "compilerArgs": [
+        
+    ],
+    "julcVersion": "0.1.0-pre17-1a46882-SNAPSHOT",
+    "cclVersion": "0.8.0-pre5",
+    "scripts": {
+        "BindingCheckpointProbe.plutus.json": {
+            "sha256": "60ce2748d6d0aee009c795dbd6844f8efb5435bbff56d855211bca2175ea2740",
+            "templateHash": "",
+            "cborBytes": 4504,
+            "params": "role:BigInteger,deploymentDomain:byte[],accountPolicy:byte[],stateVersion:BigInteger,publicKey:byte[],installedModule:byte[],rewardSink:Address,stateValidatorHash:byte[],creator:byte[],stateDomain:byte[]"
+        },
+        "ConfigurationPossessionProbe.plutus.json": {
+            "sha256": "6ac8d48e2bfdf24d3e0176ee329895e35d35e508e5c56d53ffae1b1da7bfbb2a",
+            "templateHash": "",
+            "cborBytes": 1969,
+            "params": "config:Config"
+        },
+        "DeregistrationFixture.plutus.json": {
+            "sha256": "2b3e59dd2b4afd41c9a17f2c675e7183a62e7f65af5e397d316674e0e4cf8eca",
+            "templateHash": "",
+            "cborBytes": 354,
+            "params": "authority:byte[]"
+        },
+        "OwnedAssetFixture.plutus.json": {
+            "sha256": "2d81c693429b12dc41adf3996d5eb3ccdd25b3c98c773a1c8d825db577334123",
+            "templateHash": "",
+            "cborBytes": 236,
+            "params": "authority:byte[]"
+        },
+        "RewardLifecycleProbe.plutus.json": {
+            "sha256": "74f9a2a16b1e43182d3923decc7e53c796a32c1aadafed026c04adf2d14fb217",
+            "templateHash": "",
+            "cborBytes": 3959,
+            "params": "authority:byte[],rewardSink:Address,registrationDeposit:BigInteger"
+        },
+        "SealedStateProbe.plutus.json": {
+            "sha256": "1e1df47cca25e7406ebbc82bfdcc1dbdf02af503f1cce450591989fc8163adbc",
+            "templateHash": "d7872284d77a2d6b2f719c939547e8042b04da8cebd781c9f65a3d30",
+            "cborBytes": 60,
+            "params": ""
+        },
+        "StateNftMintProbe.plutus.json": {
+            "sha256": "4699e4005f09844e333711de1d429a2c0d54de201e05e2cd06a6b3af4c6d37ed",
+            "templateHash": "",
+            "cborBytes": 2198,
+            "params": "seed:TxOutRef,creator:byte[],stateValidatorHash:byte[],domain:byte[]"
+        },
+        "StateReferenceProbe.plutus.json": {
+            "sha256": "13e61c7454f1cebde67e2b929a6dcbe77aa40cd0ebab293a06146136076fa3a4",
+            "templateHash": "",
+            "cborBytes": 2405,
+            "params": "nftPolicy:byte[],stateValidatorHash:byte[],domain:byte[],creator:byte[]"
+        },
+        "ThresholdWitnessProbe.plutus.json": {
+            "sha256": "f96bba382778c9ba944fe239e6d1fdce5696660d50c60e34b72e2b924abbba94",
+            "templateHash": "",
+            "cborBytes": 1967,
+            "params": "config:Config"
+        },
+        "ValidityWindowProbe.plutus.json": {
+            "sha256": "a2137cebec51aff2fa84b5ad5f4dd1104cb6c2d2774631692ebb82e9b9e3943c",
+            "templateHash": "",
+            "cborBytes": 977,
+            "params": "authority:byte[]"
+        },
+        "ValueAccountingProbe.plutus.json": {
+            "sha256": "cc1c45d3cd64dd532f8e79b1642718d804baec33b9244966ec57b4d64ad7411b",
+            "templateHash": "",
+            "cborBytes": 5913,
+            "params": "accountAddress:Address"
+        },
+        "WholeUtxoTransferProbe.plutus.json": {
+            "sha256": "38f4e20eb04ff1fb4cdf5ce64fcbb8784bd0088a6584babb5e712f356fb12e7b",
+            "templateHash": "",
+            "cborBytes": 3471,
+            "params": "accountAddress:Address"
+        },
+        "WireDigestProbe.plutus.json": {
+            "sha256": "e8ab1ae5c7c21efd23d69f42d63c3ec7fa6636ecf27e05c764197d3b0a03c501",
+            "templateHash": "87a738621dfbb99c00805a71d690b6db05885a2cb072933f94573136",
+            "cborBytes": 372,
+            "params": ""
+        },
+        "WithdrawalProbe.plutus.json": {
+            "sha256": "88031921b8beea10201f8c03fdc72813a5b3916cc6868196a735ac1e1b7c391b",
+            "templateHash": "",
+            "cborBytes": 700,
+            "params": "publicKey:byte[],deploymentDomain:byte[]"
+        }
+    }
+}

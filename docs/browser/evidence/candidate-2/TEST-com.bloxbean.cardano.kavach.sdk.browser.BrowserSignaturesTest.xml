@@ -1,0 +1,18 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<testsuite name="com.bloxbean.cardano.kavach.sdk.browser.BrowserSignaturesTest" tests="12" skipped="0" failures="0" errors="0" timestamp="2026-09-07T17:37:10.962Z" hostname="192.168.1.14" time="0.112">
+  <properties/>
+  <testcase name="acceptsExtendedAccountKeyUsedByYano()" classname="com.bloxbean.cardano.kavach.sdk.browser.BrowserSignaturesTest" time="0.078"/>
+  <testcase name="[1] 0" classname="com.bloxbean.cardano.kavach.sdk.browser.BrowserSignaturesTest" time="0.015"/>
+  <testcase name="[2] 2" classname="com.bloxbean.cardano.kavach.sdk.browser.BrowserSignaturesTest" time="0.005"/>
+  <testcase name="[3] 6" classname="com.bloxbean.cardano.kavach.sdk.browser.BrowserSignaturesTest" time="0.005"/>
+  <testcase name="rejectsEveryTruncationAndTrailingBytes()" classname="com.bloxbean.cardano.kavach.sdk.browser.BrowserSignaturesTest" time="0.002"/>
+  <testcase name="rejectsAlteredCclHeadersAndVariantSelectors()" classname="com.bloxbean.cardano.kavach.sdk.browser.BrowserSignaturesTest" time="0.002"/>
+  <testcase name="keyParserRejectsDuplicateExtraWrongCurveAndTrailingFields()" classname="com.bloxbean.cardano.kavach.sdk.browser.BrowserSignaturesTest" time="0.0"/>
+  <testcase name="rejectsUnsupportedAndAmbiguousHeaders()" classname="com.bloxbean.cardano.kavach.sdk.browser.BrowserSignaturesTest" time="0.001"/>
+  <testcase name="rejectsMismatchedPayloadKeyNetworkAndSignature()" classname="com.bloxbean.cardano.kavach.sdk.browser.BrowserSignaturesTest" time="0.001"/>
+  <testcase name="[1] 0" classname="com.bloxbean.cardano.kavach.sdk.browser.BrowserSignaturesTest" time="0.001"/>
+  <testcase name="[2] 2" classname="com.bloxbean.cardano.kavach.sdk.browser.BrowserSignaturesTest" time="0.001"/>
+  <testcase name="[3] 6" classname="com.bloxbean.cardano.kavach.sdk.browser.BrowserSignaturesTest" time="0.0"/>
+  <system-out><![CDATA[]]></system-out>
+  <system-err><![CDATA[]]></system-err>
+</testsuite>

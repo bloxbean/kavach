@@ -1,0 +1,3 @@
+rootProject.name = 'kavach'
+
+include 'demo:backend'

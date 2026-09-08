@@ -1,0 +1,51 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<testsuite name="com.bloxbean.cardano.kavach.contracts.BrowserWalletDevkitTest" tests="3" skipped="0" failures="0" errors="0" timestamp="2026-09-07T17:35:34.052Z" hostname="192.168.1.14" time="63.965">
+  <properties/>
+  <testcase name="rotateEveryKeyUnderOldAdministration()" classname="com.bloxbean.cardano.kavach.contracts.BrowserWalletDevkitTest" time="19.308"/>
+  <testcase name="freezeUnfreezeConfigureInitiateCancelThroughSdk()" classname="com.bloxbean.cardano.kavach.contracts.BrowserWalletDevkitTest" time="22.484"/>
+  <testcase name="replaceModuleThenUseCandidateAuthority()" classname="com.bloxbean.cardano.kavach.contracts.BrowserWalletDevkitTest" time="22.133"/>
+  <system-out><![CDATA[publication-0 confirmed 12423179359db8a0e96f1642ba7632593a9c808389bceb87d144fae9f6df4b6d fee=520933
+publication-1 confirmed 0f9185c886bdc03aba59353caecf4785350d4ee9defd8fb0eeeb28bbfa121061 fee=640437
+publication-2 confirmed 69c37beb6fb771072b95813a62932c9b63a53cecb624659c63af7ec1e38e6a8d fee=856477
+publication-3 confirmed 6c2a9d1412ff007e5c56478be3061af0519d425b06c8d4f199c109bf508c4c9b fee=429853
+publication-4 confirmed a331b6035bcdcd6cebc534a0e1ff4ae166e0fd2402e836b420019cb9d0fbc203 fee=643429
+registration confirmed 89bc56b99dbdd237ea416f5cf63438e458acba83870ea064fad397ad942aa540 fee=172937
+creation confirmed 00ba8c28133c5b37b4436c574a27efbe639b5c2fba75c1f2228589af9ef0f89c fee=803387
+replace-all-keys confirmed 33411785107c18e64eea7d734c2177624c43df3058e0902d9ceba419e18594f2 fee=1303669
+new-guardian-freeze confirmed 882475316cfc5d8a2be75354787599a1d7e499c169a06080fa4afb46a6bc8f0a fee=1151227
+new-defensive-unfreeze confirmed 2bab1263546f44380ef8b30c2bc4a6fe91834a227f916e4bd4963963dcc236a4 fee=1152795
+rotated-key-transfer-funding confirmed 62c24ed9aff4fdbfdcf70a306b70229d13007c74aef20728f4193c8f91db8bf1 fee=172937
+rotated-key-transfer confirmed 321a38ce580307eb5d9f667640e503f838b1bf81d0ed17d4d49b33158e306fda fee=1138138
+publication-0 confirmed c09fc4c59222c2c43406d9d5c5d8ba2d98f6636660abd284f1edc5882fde557b fee=520933
+publication-1 confirmed 7bceaceb4317f0c905a0bba0e3d7bd1bf7f6de048f61a614a9f378fd927b2729 fee=640437
+publication-2 confirmed f1cf744ce58d363e829961a8b77bd6559d5019f44fab249f808c787edb1edc6c fee=856477
+publication-3 confirmed ca818e14cad2c379e4ef5ed90ffed79b8105b1622aa1acce0099a9cc45c238d1 fee=429853
+publication-4 confirmed c6fe6f219f02d0a89489507d8b4aa5def3a1c1462a39972644817db32c8210df fee=643429
+registration confirmed ed5e22f44ceb684fe15291382dbbc44e66e72e447437960fc26e42823350e6f3 fee=172937
+creation confirmed dacb9402c10d3ac12c25e5ec3a230c5ef3b922615e8b7d49090bb6eae45892fe fee=803387
+freeze confirmed 4fa91f644ae9e7662e77c013fc739a5c4911ae69c50a81a1da5109afe3f4b680 fee=1151561
+unfreeze confirmed 752086cf2a939d23510d1328dff7f38d7abe5f8e7344c4b094ca38a4788d31fb fee=1152795
+configuration confirmed ab95adf26bb973cdfc1b646890e3e796dfe4546cb2ae083fa99cd8a66581d3ac fee=1261488
+recovery-start confirmed bcd03698f39c152a9686cfbcc5cfc3373c2d062c44be35ac41f559796899642d fee=1266358
+recovery-cancel confirmed 0cdd0b450658a15d6db43fa661d8a576b51a952bcfbad195da686ce4dd4cd43d fee=1186384
+unfreeze-after-cancel confirmed 79bfcbb079614e37ddbc6e7458ea3c9cdeaa61ab3ab15d1de5de97f309eecd69 fee=1152766
+publication-0 confirmed 8af77a0026f7febdb6afe96ff715245c6eb6eb824d30fb500eaf301419c839a3 fee=520933
+publication-1 confirmed 54177a08845e91367c0925c78b2d05c6a86f93513f8ebd92315d7325c814e27b fee=640437
+publication-2 confirmed 604bc47eca5d9d2f7bb8f5da23c39c01b805d76997202127bfbd10c5ac9d788a fee=856477
+publication-3 confirmed 995f7d92ef669ee215c80f8b608a99ceabc8d034ba19c21186bda50432c035c5 fee=429853
+publication-4 confirmed 2a7bb19d7bd96a8a4d5728b64d2a470e0b533060898b84a08930763feae273d3 fee=643429
+registration confirmed b2d314015ff5ef2f93953e6c84449369ffbf84938a1a66eb478be2f762aa860f fee=172937
+creation confirmed 7c16b7aa05c8283f27465dfdabb411816609e614f720a922db68046717f1a1af fee=803387
+candidate-publication confirmed 75dcb2760514eee581a9b2c2c7c1ac3e16d33d365a8b59873bfae2f6836d0d3e fee=856477
+candidate-registration confirmed ad98ca0bd883076b8595c5426e878b9384e2c9a4da0d1eed4bb38ce7667b331c fee=171441
+replace-module confirmed 9f01d8af4ad21cd59cf765e8ff36f2bd67b086d87d2c27f3f256d2d7db965352 fee=1748459
+candidate-freeze confirmed 48d0c4fa668d9140b230525dd39e5093172678245fe84c0c99954b07cd7c81ca fee=1151227
+candidate-unfreeze confirmed c575876115273e146191b188e2c888c86035af1a9d189f8e1b2c218122942e79 fee=1152795
+candidate-transfer-funding confirmed 208e693e79a1bd4e62766077aa83972eaa02f09777a21502473d6e952124e9e6 fee=172937
+candidate-transfer confirmed 349d269fa4a65f47231ef39f79723b25851201c056d4a16479850c220e8cdac9 fee=1141042
+]]></system-out>
+  <system-err><![CDATA[SLF4J(W): No SLF4J providers were found.
+SLF4J(W): Defaulting to no-operation (NOP) logger implementation
+SLF4J(W): See https://www.slf4j.org/codes.html#noProviders for further details.
+]]></system-err>
+</testsuite>

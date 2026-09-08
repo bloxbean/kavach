@@ -1,0 +1,111 @@
+package com.bloxbean.cardano.kavach.sdk;
+
+import com.bloxbean.cardano.julc.core.PlutusData;
+import com.bloxbean.cardano.julc.core.types.JulcList;
+import com.bloxbean.cardano.kavach.contracts.AccountTypes.*;
+import com.bloxbean.cardano.kavach.protocol.ProofDomains;
+import com.bloxbean.cardano.kavach.protocol.WireFormat;
+import org.bouncycastle.math.ec.rfc8032.Ed25519;
+
+import java.math.BigInteger;
+import java.util.HashSet;
+import java.util.HexFormat;
+import java.util.List;
+import java.util.Map;
+import java.util.Optional;
+import java.util.Set;
+import java.util.TreeMap;
+
+/** JVM proof verification for already structurally validated first-module configurations. */
+final class AdministrationProofs {
+    private AdministrationProofs() {}
+
+    /** Verifies every supplied proof, keeping old-role approval separate from destination possession. */
+    static void verify(AccountState old, ModuleRedeemer current, Optional<ModuleRedeemer> candidate) {
+        require(current.abiVersion().equals(BigInteger.ONE), "Unsupported current module ABI");
+        var request = current.intent();
+        var oldConfig = fields(old.authConfig());
+        var registry = registry(old.authConfig());
+        if (request.action() instanceof CompleteRecovery complete) {
+            require(current.operationProof().isEmpty() && candidate.isEmpty(), "Completion requires only target evidence");
+            introduced(old.authConfig(), complete.replacementConfig(), current.configPossession(),
+                    WireFormat.digest(ProofDomains.target(AccountCodec.data(old), AccountCodec.data(request))), true);
+            return;
+        }
+        int role = switch (request.action()) {
+            case ReplaceConfig ignored -> 3;
+            case ReplaceModule ignored -> 3;
+            case Freeze ignored -> 4;
+            case Unfreeze ignored -> 5;
+            case StartRecovery ignored -> 6;
+            case CancelRecovery ignored -> 7;
+            default -> throw new IllegalArgumentException("Unsupported administration action");
+        };
+        require(current.operationProof().isPresent(), "Missing old-role approval");
+        var proof = current.operationProof().orElseThrow();
+        require(proof.scheme().equals(BigInteger.ZERO), "Unsupported signature scheme");
+        var verified = signatures(proof.signatures(), registry, WireFormat.digest(AccountCodec.data(request)), 8);
+        threshold(verified, oldConfig.get(role));
+        if (request.action() instanceof ReplaceConfig change) {
+            require(candidate.isEmpty(), "Configuration replacement has no candidate invocation");
+            introduced(old.authConfig(), change.newConfig(), current.configPossession(),
+                    WireFormat.digest(ProofDomains.configuration(AccountCodec.data(old), AccountCodec.data(request))), false);
+        } else {
+            require(current.configPossession().isEmpty(), "Unexpected current possession evidence");
+            if (request.action() instanceof ReplaceModule change) {
+                require(candidate.isPresent(), "Missing candidate invocation");
+                var next = candidate.orElseThrow();
+                require(next.abiVersion().equals(BigInteger.ONE) && next.operationProof().isEmpty()
+                        && AccountCodec.data(next.intent()).equals(AccountCodec.data(request))
+                        && AccountCodec.list(next.receipts()).equals(AccountCodec.list(current.receipts())), "Candidate binding or proof shape mismatch");
+                var keys = registry(change.newConfig());
+                var all = signatures(next.configPossession(), keys,
+                        WireFormat.digest(ProofDomains.configuration(AccountCodec.data(old), AccountCodec.data(request))), 16);
+                require(all.size() == keys.size(), "Candidate must prove every key");
+            } else require(candidate.isEmpty(), "Unexpected candidate invocation");
+        }
+    }
+
+    /** Retention compares public bytes, so reusing an old numeric ID never skips new-key possession. */
+    private static void introduced(PlutusData old, PlutusData target, JulcList<Signature> evidence, byte[] digest, boolean recovery) {
+        var keys = registry(target);
+        Set<BigInteger> proven = evidence.isEmpty() ? Set.of() : signatures(evidence, keys, digest, 16);
+        var oldBytes = new HashSet<String>();
+        for (var key : registry(old).values()) oldBytes.add(HexFormat.of().formatHex(key));
+        var added = new HashSet<BigInteger>();
+        for (var entry : keys.entrySet()) if (!oldBytes.contains(HexFormat.of().formatHex(entry.getValue()))) added.add(entry.getKey());
+        require(proven.containsAll(added), "Missing newly introduced key possession");
+        if (recovery) threshold(proven, fields(target).get(2));
+        else require(proven.equals(added), "Extraneous configuration possession");
+    }
+
+    /** Resolves ordered evidence only through the authenticated registry; no supplied public key is trusted. */
+    private static Set<BigInteger> signatures(JulcList<Signature> proofs, Map<BigInteger, byte[]> keys, byte[] digest, int maximum) {
+        require(!proofs.isEmpty() && proofs.size() <= maximum, "Signature count");
+        var verified = new HashSet<BigInteger>();
+        BigInteger previous = BigInteger.valueOf(-1);
+        for (var proof : proofs) {
+            byte[] key = keys.get(proof.credentialId());
+            require(key != null && proof.credentialId().compareTo(previous) > 0 && proof.signature().length == 64, "Unsorted, unknown or malformed signature");
+            require(Ed25519.verify(proof.signature(), 0, key, 0, digest, 0, digest.length), "Invalid signature");
+            verified.add(proof.credentialId()); previous = proof.credentialId();
+        }
+        return verified;
+    }
+
+    private static void threshold(Set<BigInteger> verified, PlutusData policy) {
+        var fields = fields(policy);
+        long count = ((PlutusData.ListData) fields.get(1)).items().stream().map(AdministrationProofs::integer).filter(verified::contains).count();
+        require(BigInteger.valueOf(count).compareTo(integer(fields.get(0))) >= 0, "Required role threshold not satisfied");
+    }
+    private static Map<BigInteger, byte[]> registry(PlutusData config) {
+        var result = new TreeMap<BigInteger, byte[]>();
+        for (var item : ((PlutusData.ListData) fields(config).get(1)).items()) {
+            var entry = fields(item); result.put(integer(entry.get(0)), ((PlutusData.BytesData) entry.get(1)).value());
+        }
+        return result;
+    }
+    private static List<PlutusData> fields(PlutusData data) { return ((PlutusData.ConstrData) data).fields(); }
+    private static BigInteger integer(PlutusData data) { return ((PlutusData.IntData) data).value(); }
+    private static void require(boolean condition, String message) { if (!condition) throw new IllegalArgumentException(message); }
+}

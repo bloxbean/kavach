@@ -1,0 +1,19 @@
+{
+  "upstreamMainCommit": "37a696b27df0d80b18d88452ba053ca3afb91287",
+  "fixedSourceCommit": "1a46882ec3fdebd057fc71c6e720c14dcdfba36c",
+  "version": "0.1.0-pre17-1a46882-SNAPSHOT",
+  "patchSha256": "3177336b96477441265266a3e53d092d6a0eff982df60d639fa1e3c0b403d78f",
+  "artifacts": {
+    "julc-core": "39f0e854cdccc63aced4785e0f1534012f8f879a419146f98cc833e9ff9ace0e",
+    "julc-ledger-api": "a17afca9a50e3cabea533513b87b294b03ee2d8de8598ff70894a0d2109700b4",
+    "julc-vm": "33de9f9b81c11c884d36dde6d7e063bdbbaca66d0a9436aa4ad798743588f4d4",
+    "julc-compiler": "54bb628e61abd80bc83f9ce7dbac180e3b40e3c979d6558a31370573007da07a",
+    "julc-stdlib": "d022457bdef9295bb9dcf67b2e16e1e377bfa6d2a99ba0f13b9b031467692b78",
+    "julc-bls": "a4e0d820953e77eb7b5aeb42107ffa7adb483834c9e7091e7e635942bdab3f26",
+    "julc-blueprint": "a5c7c1b67701017f258d64a27e801f6638ce75618a36d6fd28ed52c9aa7614dc",
+    "julc-annotation-processor": "bd71796b0bc556d2f9e0f95389c8c4da7d8990e59f93d283909df8aa748e6f25",
+    "julc-testkit": "1c3b6a1f583aaead3789641d53daf6ef089174f545303b4f3cc435e188563b7f",
+    "julc-cardano-client-lib": "f73f0df7e8598c3e31c85e580e4ee110a912354e0d35a48e5567147c65a22ef5",
+    "julc-vm-java": "6a45ec1b3af5a421d4d523137a5b1b41ffe54a1e6ab6e8d92b45d1c7d266b30c"
+  }
+}

@@ -1,0 +1,132 @@
+WARNING: A restricted method in java.lang.System has been called
+WARNING: java.lang.System::load has been called by net.rubygrapefruit.platform.internal.NativeLibraryLoader in an unnamed module (file:/Users/satya/.gradle/wrapper/dists/gradle-9.2.0-bin/11i5gvueggl8a5cioxuftxrik/gradle-9.2.0/lib/native-platform-0.22-milestone-29.jar)
+WARNING: Use --enable-native-access=ALL-UNNAMED to avoid a warning for callers in this module
+WARNING: Restricted methods will be blocked in a future release unless native access is enabled
+
+> Task :verifyJulcToolchain
+> Task :compileJava UP-TO-DATE
+> Task :processResources NO-SOURCE
+> Task :classes UP-TO-DATE
+> Task :jar UP-TO-DATE
+> Task :compileTestJava
+> Task :processTestResources UP-TO-DATE
+> Task :testClasses
+> Task :test
+
+> Task :coseIntegrationTest
+
+BrowserWalletDevkitTest STANDARD_ERROR
+    SLF4J(W): No SLF4J providers were found.
+    SLF4J(W): Defaulting to no-operation (NOP) logger implementation
+    SLF4J(W): See https://www.slf4j.org/codes.html#noProviders for further details.
+
+BrowserWalletDevkitTest > rotateEveryKeyUnderOldAdministration() STANDARD_OUT
+    publication-0 confirmed 12423179359db8a0e96f1642ba7632593a9c808389bceb87d144fae9f6df4b6d fee=520933
+    publication-1 confirmed 0f9185c886bdc03aba59353caecf4785350d4ee9defd8fb0eeeb28bbfa121061 fee=640437
+    publication-2 confirmed 69c37beb6fb771072b95813a62932c9b63a53cecb624659c63af7ec1e38e6a8d fee=856477
+    publication-3 confirmed 6c2a9d1412ff007e5c56478be3061af0519d425b06c8d4f199c109bf508c4c9b fee=429853
+    publication-4 confirmed a331b6035bcdcd6cebc534a0e1ff4ae166e0fd2402e836b420019cb9d0fbc203 fee=643429
+    registration confirmed 89bc56b99dbdd237ea416f5cf63438e458acba83870ea064fad397ad942aa540 fee=172937
+    creation confirmed 00ba8c28133c5b37b4436c574a27efbe639b5c2fba75c1f2228589af9ef0f89c fee=803387
+    replace-all-keys confirmed 33411785107c18e64eea7d734c2177624c43df3058e0902d9ceba419e18594f2 fee=1303669
+    new-guardian-freeze confirmed 882475316cfc5d8a2be75354787599a1d7e499c169a06080fa4afb46a6bc8f0a fee=1151227
+    new-defensive-unfreeze confirmed 2bab1263546f44380ef8b30c2bc4a6fe91834a227f916e4bd4963963dcc236a4 fee=1152795
+    rotated-key-transfer-funding confirmed 62c24ed9aff4fdbfdcf70a306b70229d13007c74aef20728f4193c8f91db8bf1 fee=172937
+    rotated-key-transfer confirmed 321a38ce580307eb5d9f667640e503f838b1bf81d0ed17d4d49b33158e306fda fee=1138138
+
+BrowserWalletDevkitTest > freezeUnfreezeConfigureInitiateCancelThroughSdk() STANDARD_OUT
+    publication-0 confirmed c09fc4c59222c2c43406d9d5c5d8ba2d98f6636660abd284f1edc5882fde557b fee=520933
+    publication-1 confirmed 7bceaceb4317f0c905a0bba0e3d7bd1bf7f6de048f61a614a9f378fd927b2729 fee=640437
+    publication-2 confirmed f1cf744ce58d363e829961a8b77bd6559d5019f44fab249f808c787edb1edc6c fee=856477
+    publication-3 confirmed ca818e14cad2c379e4ef5ed90ffed79b8105b1622aa1acce0099a9cc45c238d1 fee=429853
+    publication-4 confirmed c6fe6f219f02d0a89489507d8b4aa5def3a1c1462a39972644817db32c8210df fee=643429
+    registration confirmed ed5e22f44ceb684fe15291382dbbc44e66e72e447437960fc26e42823350e6f3 fee=172937
+    creation confirmed dacb9402c10d3ac12c25e5ec3a230c5ef3b922615e8b7d49090bb6eae45892fe fee=803387
+    freeze confirmed 4fa91f644ae9e7662e77c013fc739a5c4911ae69c50a81a1da5109afe3f4b680 fee=1151561
+    unfreeze confirmed 752086cf2a939d23510d1328dff7f38d7abe5f8e7344c4b094ca38a4788d31fb fee=1152795
+    configuration confirmed ab95adf26bb973cdfc1b646890e3e796dfe4546cb2ae083fa99cd8a66581d3ac fee=1261488
+    recovery-start confirmed bcd03698f39c152a9686cfbcc5cfc3373c2d062c44be35ac41f559796899642d fee=1266358
+    recovery-cancel confirmed 0cdd0b450658a15d6db43fa661d8a576b51a952bcfbad195da686ce4dd4cd43d fee=1186384
+    unfreeze-after-cancel confirmed 79bfcbb079614e37ddbc6e7458ea3c9cdeaa61ab3ab15d1de5de97f309eecd69 fee=1152766
+
+BrowserWalletDevkitTest > replaceModuleThenUseCandidateAuthority() STANDARD_OUT
+    publication-0 confirmed 8af77a0026f7febdb6afe96ff715245c6eb6eb824d30fb500eaf301419c839a3 fee=520933
+    publication-1 confirmed 54177a08845e91367c0925c78b2d05c6a86f93513f8ebd92315d7325c814e27b fee=640437
+    publication-2 confirmed 604bc47eca5d9d2f7bb8f5da23c39c01b805d76997202127bfbd10c5ac9d788a fee=856477
+    publication-3 confirmed 995f7d92ef669ee215c80f8b608a99ceabc8d034ba19c21186bda50432c035c5 fee=429853
+    publication-4 confirmed 2a7bb19d7bd96a8a4d5728b64d2a470e0b533060898b84a08930763feae273d3 fee=643429
+    registration confirmed b2d314015ff5ef2f93953e6c84449369ffbf84938a1a66eb478be2f762aa860f fee=172937
+    creation confirmed 7c16b7aa05c8283f27465dfdabb411816609e614f720a922db68046717f1a1af fee=803387
+    candidate-publication confirmed 75dcb2760514eee581a9b2c2c7c1ac3e16d33d365a8b59873bfae2f6836d0d3e fee=856477
+    candidate-registration confirmed ad98ca0bd883076b8595c5426e878b9384e2c9a4da0d1eed4bb38ce7667b331c fee=171441
+    replace-module confirmed 9f01d8af4ad21cd59cf765e8ff36f2bd67b086d87d2c27f3f256d2d7db965352 fee=1748459
+    candidate-freeze confirmed 48d0c4fa668d9140b230525dd39e5093172678245fe84c0c99954b07cd7c81ca fee=1151227
+    candidate-unfreeze confirmed c575876115273e146191b188e2c888c86035af1a9d189f8e1b2c218122942e79 fee=1152795
+    candidate-transfer-funding confirmed 208e693e79a1bd4e62766077aa83972eaa02f09777a21502473d6e952124e9e6 fee=172937
+    candidate-transfer confirmed 349d269fa4a65f47231ef39f79723b25851201c056d4a16479850c220e8cdac9 fee=1141042
+
+> Task :demo:backend:compileJava UP-TO-DATE
+> Task :demo:backend:processResources NO-SOURCE
+> Task :demo:backend:classes UP-TO-DATE
+> Task :demo:backend:compileTestJava
+> Task :demo:backend:processTestResources NO-SOURCE
+> Task :demo:backend:testClasses
+
+> Task :demo:backend:demoIntegrationTest
+
+DemoServiceDevkitTest > createTransferRotateReplaceAndRecoverThroughDemoApi(int) STANDARD_ERROR
+    SLF4J(W): No SLF4J providers were found.
+    SLF4J(W): Defaulting to no-operation (NOP) logger implementation
+    SLF4J(W): See https://www.slf4j.org/codes.html#noProviders for further details.
+
+DemoServiceDevkitTest > createTransferRotateReplaceAndRecoverThroughDemoApi(int) > [1] 1 STANDARD_OUT
+    Create account · publish script 1 of 5 confirmed candidate 5259ae9b1b627edb87787470f14f01b1193e796f69a8a69369349f26e49b11cf
+    Create account · publish script 2 of 5 confirmed candidate 0addb874a5da0d3f1da1ddbf43b43449c54de174a48781f0bef065d73822b553
+    Create account · publish script 3 of 5 confirmed candidate f510db91b993aad04ad0678d9c1838edae0a63af99de8f31ce963261c49a93f6
+    Create account · publish script 4 of 5 confirmed candidate f5c6dad69caac3512969fd17eee702211074266cdba56f72bbbc19f55664c302
+    Create account · publish script 5 of 5 confirmed candidate 4a7f129d65065f093ad4bd086b5e8dc2e5320736e2b1e27c199064d50e225162
+    Register authorization checkpoints confirmed candidate d0be3fb79d1076d6d59ee8bc19bfe5a84c316c982dd57074a755b30f83cc42c3
+    Create account · approve genesis confirmed candidate 9a435e82f3d1d2ccb2fe3c7154b1301831492d28bc76da6827096e842081828e
+    Send assets confirmed candidate 876be7528277a0b5fa08f315c488ab18fc79b367432ab7cfde09050fe1ae6897
+    Send assets confirmed candidate 321349b6eaede78d9fe14a0120d0c515ae41b0e24e163293f3489dacd0622aa7
+    Consolidate assets confirmed candidate 0451b229245befacb32db542922f9f2468222e37d60471bb0f2de5a12ad52f88
+    Freeze account confirmed candidate 45b0235a778de7adcb34f5bf07526e7927ac86858e028175a09d0c60fc1abe58
+    Unfreeze account confirmed candidate 9ae0ace48ccc4c6ccf157ab94a49bbe84224d25f28f4d3ad7ea599c3b2bc1431
+    Rotate keys confirmed candidate 1b3f52b82fe5a8ebd8839a0fca31588c1a84acf359263b909c1c80ccd9c05c35
+    Publish candidate module confirmed candidate 10dee9dd6b7642940da10dca35ea0664421e19d8ec16b2dd1b0527aeb993cdfe
+    Register authorization checkpoints confirmed candidate 1a06313bd3f06c8f1f47eea491f96bff9d816ad63b09c8f01476d2f00c90e350
+    Replace module confirmed candidate 1759ff9886d0552c7f52fb98966c1c99b01714a139915a648145544824ff2386
+    Send assets confirmed candidate 79743b227ec2be0da2edca7296cdcc63dc7a406d24a55deeb574f377024a7065
+    Start recovery confirmed candidate a8a4a66921c39d9e89427c6ebab42fb4e6e54b0b5bd44d0f1853f49863b85387
+    Cancel recovery confirmed candidate 441d4fc7a35ff34c4af515ce392f9bac96d9003543b182a9c71e97739b27e05f
+    Unfreeze account confirmed candidate 34490a57a98a797ce822b7460fe7ef40fc11a7ecc71c6247996c6a6146c7817c
+    Send assets confirmed candidate a0b1555df010630c88fb2e6d54c99f11fac53748f5bf44c4734afc492b5f17db
+    Demo API mode 1 creation, transfers, key rotation, cross-mode replacement and recovery cancellation passed
+
+DemoServiceDevkitTest > createTransferRotateReplaceAndRecoverThroughDemoApi(int) > [2] 2 STANDARD_OUT
+    Create account · publish script 1 of 5 confirmed candidate ca6d9be46480391c763a0782021cc37fcaf7a31127400679cb49d7a4748828b4
+    Create account · publish script 2 of 5 confirmed candidate c4cde4b04ae82e63f6efb2a5de46a1c6343c7604e543780279f4f1aa3851488e
+    Create account · publish script 3 of 5 confirmed candidate 93e8f4b189e18c323bbd86d7a09613ea68ac4c2c4a23bb4908d5c01684e042b4
+    Create account · publish script 4 of 5 confirmed candidate 19d1be85d673e781f18f7a7dbd0f3535cca3c8e74bd8f9e74047e36d9b913a69
+    Create account · publish script 5 of 5 confirmed candidate 45ae6cb9859fc3925a20984918d191d1b7860a8fabeddc590f4006d74113c554
+    Register authorization checkpoints confirmed candidate 5b76b3e8c1bb4ccfd412a7dc0992197f25e143b01bf8681b3215743ffa12872e
+    Create account · approve genesis confirmed candidate af868f79702666dcf1d629e6b5da26dbb7188df3a9205b7a008ed076889b44fa
+    Send assets confirmed candidate 6b6f88c615074c542a31f8608530d3d3054f05c3a137336fbcdf39d06d2d10d0
+    Send assets confirmed candidate 3e3fb12959b88c8f712c7891f83fe747fc69bc08ea24c45c3e600ff76c805e6c
+    Consolidate assets confirmed candidate 83d4a9a7b76c6f95326c54e2fbbe3d5990c40675a4c083572adf128703fb8d26
+    Freeze account confirmed candidate 1097cef3523d657c06c56493b4b060116393c5f2037db0c886db32216591e110
+    Unfreeze account confirmed candidate a2ee7c89d5ff5a8d09bebe1538acde14b59bab2f922b6e8a5c7730d14eaffd19
+    Rotate keys confirmed candidate c1743fb3e2fded34dcc5a455411d53fe3331276924d1f2d00d53db73579dc964
+    Publish candidate module confirmed candidate 31d4871762fd27a382df3a50c4c140dddbd0c52e23643f649372aebe373bc95f
+    Register authorization checkpoints confirmed candidate f3a461873d7596d1ffb7deebd21ba879e79ef77e21b15fac1bd4e266c77b8cf1
+    Replace module confirmed candidate 6ed17ef1094493b5725097df66769227a28e77f434c5a18025bd88f510abad78
+    Send assets confirmed candidate 8f2b4912fcc64fc4c81ef13c5e56b55d69819783fef1bedcc7b8d64fe05cf58d
+    Start recovery confirmed candidate 699004fb8bd675281a6b4ea6123d277f2bddddb836114c1c8cabacd003854b44
+    Cancel recovery confirmed candidate 14f96acdc2d42bf6852a8065c36dd89e4d98d7aaa7200a686b5db73bbb31f007
+    Unfreeze account confirmed candidate 345aed59fa02a6d59d5e0820345f6f5bcaa696bd9e91af3afad23053408fa680
+    Send assets confirmed candidate 6e15560561ddf61342a1bfbb64d59c2b131038c07a1ade666eb62e89c9a76d55
+    Demo API mode 2 creation, transfers, key rotation, cross-mode replacement and recovery cancellation passed
+
+BUILD SUCCESSFUL in 3m 9s
+10 actionable tasks: 6 executed, 4 up-to-date
+Consider enabling configuration cache to speed up this build: https://docs.gradle.org/9.2.0/userguide/configuration_cache_enabling.html

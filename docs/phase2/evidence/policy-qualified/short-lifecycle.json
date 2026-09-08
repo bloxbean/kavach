@@ -1,0 +1,226 @@
+{
+  "publication-0" : {
+    "tx" : "b35b1d63132a9c36ccbd9d9ccf063f0de2353c6d11c2b38bf81b494e0dca336c",
+    "bytes" : 8207,
+    "redeemers" : [ ],
+    "fee" : 520933
+  },
+  "publication-1" : {
+    "tx" : "100dac042b6bc6b0d639b5afe5e523333690be610b6a0e9e8ad5e913ff0d9c3f",
+    "bytes" : 10923,
+    "redeemers" : [ ],
+    "fee" : 640437
+  },
+  "publication-2" : {
+    "tx" : "003c90b5845e49f8af1659e09a48a2ac7519a29193fd4ead1b4011b1680e034b",
+    "bytes" : 15038,
+    "redeemers" : [ ],
+    "fee" : 821497
+  },
+  "publication-3" : {
+    "tx" : "5bf00566eb673f3d316490e1932353637665d12ae1ae1eff83f47bfc670502d5",
+    "bytes" : 6137,
+    "redeemers" : [ ],
+    "fee" : 429853
+  },
+  "publication-4" : {
+    "tx" : "6bbc7bf96fce8ecf563ffdf40845ed9c0824b29904a37877d9c2f22c8f9f0021",
+    "bytes" : 10991,
+    "redeemers" : [ ],
+    "fee" : 643429
+  },
+  "registration" : {
+    "tx" : "0878af878191de5e39e37c1d62ea79c15aa6191ff671e0911231693cd662c2df",
+    "bytes" : 298,
+    "redeemers" : [ ],
+    "fee" : 172937
+  },
+  "creation" : {
+    "tx" : "fb58c6a54da72b2092304b9c5069f286074a6fdcda8d97e0213dec97e5125aa0",
+    "bytes" : 1890,
+    "redeemers" : [ {
+      "tag" : "mint",
+      "index" : 0,
+      "data" : {
+        "int" : 0
+      },
+      "exUnits" : {
+        "mem" : 853497,
+        "steps" : 396186430
+      }
+    }, {
+      "tag" : "reward",
+      "index" : 0,
+      "data" : {
+        "constructor" : 2,
+        "fields" : [ {
+          "int" : 1
+        }, {
+          "constructor" : 0,
+          "fields" : [ {
+            "int" : 1
+          }, {
+            "constructor" : 0,
+            "fields" : [ {
+              "bytes" : "0e389dea984c0ddee90cedf2116a7543244b2c76ae6fe44bf6d73d5a"
+            }, {
+              "bytes" : ""
+            } ]
+          }, {
+            "constructor" : 0,
+            "fields" : [ {
+              "int" : 0
+            }, {
+              "int" : 42
+            }, {
+              "bytes" : "6dc5239b28b6134b46b55e14de65fd083500b7768ebd525c978d6c3763fc4314"
+            } ]
+          }, {
+            "constructor" : 0,
+            "fields" : [ {
+              "bytes" : "e75bffdf2e14074d7ee212bb1428ad66dd2f5dbee98ea40f09c6715e"
+            }, {
+              "bytes" : "b1c774bed980652fa514905f48b8e70078ead5e78d6eb300d1ca4862"
+            }, {
+              "bytes" : "82f7a5fa57f680c96e5d819a2ec317b44508d5922c396f56960ff69c"
+            } ]
+          }, {
+            "int" : 0
+          }, {
+            "constructor" : 0,
+            "fields" : [ {
+              "bytes" : "9133eb3889257ae65a4fb7e2088c26773631e2d501bc2916ba2ca687"
+            }, {
+              "int" : 1
+            } ]
+          }, {
+            "constructor" : 0,
+            "fields" : [ {
+              "int" : 1
+            }, {
+              "list" : [ {
+                "constructor" : 0,
+                "fields" : [ {
+                  "int" : 0
+                }, {
+                  "bytes" : "b9fde51fc9dc1c1ad6d1590fd093117426a0b1b432424d927bf910ca84b76cd7"
+                } ]
+              }, {
+                "constructor" : 0,
+                "fields" : [ {
+                  "int" : 1
+                }, {
+                  "bytes" : "df66a5fe39404700c4d4ff402e41c979436c46d6cac992dc7275623aa02a2786"
+                } ]
+              }, {
+                "constructor" : 0,
+                "fields" : [ {
+                  "int" : 2
+                }, {
+                  "bytes" : "3ddd8fb2725f9adf913403f20044b7612ae79da36c8406ed94625b0d7b7418db"
+                } ]
+              } ]
+            }, {
+              "constructor" : 0,
+              "fields" : [ {
+                "int" : 1
+              }, {
+                "list" : [ {
+                  "int" : 0
+                } ]
+              } ]
+            }, {
+              "constructor" : 0,
+              "fields" : [ {
+                "int" : 2
+              }, {
+                "list" : [ {
+                  "int" : 0
+                }, {
+                  "int" : 1
+                } ]
+              } ]
+            }, {
+              "constructor" : 0,
+              "fields" : [ {
+                "int" : 1
+              }, {
+                "list" : [ {
+                  "int" : 1
+                } ]
+              } ]
+            }, {
+              "constructor" : 0,
+              "fields" : [ {
+                "int" : 1
+              }, {
+                "list" : [ {
+                  "int" : 2
+                } ]
+              } ]
+            }, {
+              "constructor" : 0,
+              "fields" : [ {
+                "int" : 1
+              }, {
+                "list" : [ {
+                  "int" : 1
+                } ]
+              } ]
+            }, {
+              "constructor" : 0,
+              "fields" : [ {
+                "int" : 1
+              }, {
+                "list" : [ {
+                  "int" : 2
+                } ]
+              } ]
+            } ]
+          }, {
+            "int" : 0
+          }, {
+            "int" : 86400000
+          }, {
+            "int" : 3600000
+          }, {
+            "int" : 0
+          }, {
+            "constructor" : 0,
+            "fields" : [ ]
+          } ]
+        }, {
+          "list" : [ {
+            "constructor" : 0,
+            "fields" : [ {
+              "int" : 0
+            }, {
+              "bytes" : "56b676e1c7d2a7b3d3fcb9731c77e1de112cab82103392853439aef8b70ea21e75bcd08f5ef7b50385714fc31b8013f6ffb82dc329f5de8c33ce51e6e98fd70d"
+            } ]
+          }, {
+            "constructor" : 0,
+            "fields" : [ {
+              "int" : 1
+            }, {
+              "bytes" : "4565d94514ae80009ded10cb4bdf25695ef587a28f29a2385d9a8e9f87dda69906ba627fccad598b557575d93614bcb6444e000e93faded236a2652e6350130c"
+            } ]
+          }, {
+            "constructor" : 0,
+            "fields" : [ {
+              "int" : 2
+            }, {
+              "bytes" : "c8122d7b4bc01b9c2b20e8515fbdbd0382618c77eaf594992ceb6ed0cb6b619981870cb09676fef06add3906f486441d995cbba7cabb8b55c461e046ec5fd00b"
+            } ]
+          } ]
+        }, {
+          "list" : [ ]
+        } ]
+      },
+      "exUnits" : {
+        "mem" : 1451118,
+        "steps" : 831239156
+      }
+    } ],
+    "fee" : 778428
+  }
+}

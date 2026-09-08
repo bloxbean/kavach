@@ -503,6 +503,7 @@ Examples include:
 
 ```text
 SpendIntent
+TransferWholeUtxoIntent
 RecoveryIntent
 FreezeIntent
 CredentialChangeIntent
@@ -751,7 +752,7 @@ The proposed V1 disposition is an immutable `rewardSink` full key address parame
 
 For each positive required withdrawal, the operation redeemer identifies a distinct reward-receipt output at that script's fixed sink with lovelace at least equal to the full withdrawn amount, no native assets, no datum and no reference script. External funding supplies any minimum-ADA top-up. Receipt indices are unique across required credentials and disjoint from signed recipient, account-change and state-successor allocations. Both calling core and called module must validate the applicable receipt bindings; ABI/deployment manifests expose the immutable disposition needed for composition. Do not allow one receipt to satisfy two withdrawals. Zero withdrawals need no receipt.
 
-Account input conservation remains unchanged: reward withdrawals and receipt outputs are excluded from account input/recipient/change totals and cannot substitute for account change or subsidize an account-funded fee calculation. Any relayer-selected disposition inconsistent with immutable parameters fails. A stale balance may require rebuilding a transaction; any changed signed fields require reauthorization. Phase 0 must prove positive-balance spending and recovery, multiple receipts sharing a sink, top-ups and double-counting rejection.
+Account input conservation remains unchanged: reward withdrawals and receipt outputs are excluded from account input/recipient/change totals and cannot substitute for account change or subsidize an account-funded fee calculation. Any relayer-selected disposition inconsistent with immutable parameters fails. A stale balance may require rebuilding a transaction; any changed signed fields require reauthorization. Phase 0 must prove positive-balance authorized checkpoint execution, multiple receipts sharing a sink, top-ups and double-counting rejection. Phase 1 spending and Phase 2 recovery must then exercise those same positive-balance cases through their complete operation validators before those phases close; isolated checkpoint probes do not establish working wallet recovery. This assigns the implementation-dependent tests to the phases that implement those operations, without removing the requirement.
 
 ### 16.2 Script purposes and registration lifecycle
 
@@ -946,6 +947,8 @@ The initial proposal describes a broader roadmap than the first deployable proto
 
 Unsupported operations MUST fail closed. Mint/burn fields and certificates/governance actions are rejected in normal V1 spends; initialization permits only the explicitly specified NFT mint and necessary checkpoint setup. Exact input binding restricts **account** inputs, allowing independent sponsor fee inputs. Every transaction that executes Kavach Plutus scripts needs externally key-controlled collateral; section 23.4 specifies the V1 model. No protocol administrator, hosted service or Yano component receives implicit authority over accounts.
 
+[ADR-005](adr-005-browser-wallet-authentication-and-demo.md) proposes a separately qualified browser-wallet increment with transaction-witness and COSE modules plus a web management demo. These are planned extensions; the raw Phase 2 qualification baseline remains unchanged.
+
 Ed25519 signing of a Kavach intent and a Cardano transaction witness are different authorization schemes. `TxInfo.signatories` is not evidence of a detached intent signature. A future transaction-witness module needs its own scheme identifier and tests, and must preserve all core intent checks.
 
 CIP-30 `signData` uses a CIP-8/COSE `Sig_structure`, not a raw signature over the Kavach digest. Stripping a COSE wrapper does not convert that signature. V1 uses dedicated signers implementing the specified raw Ed25519 scheme. CIP-30/CIP-8 intent authentication is deferred to a separately identified COSE-aware module that reconstructs and validates the signed structure, protected headers, key/address binding and exact payload. Hardware support is interface/firmware-specific; neither the Ed25519 curve nor availability of transaction signing proves support. Hardware wallets may still provide ordinary sponsor transaction witnesses when supported. See [CIP-30 signing](https://cips.cardano.org/cip/CIP-0030) and [CIP-8](https://cips.cardano.org/cip/CIP-8).
@@ -962,6 +965,8 @@ Use the Cardano Foundation platform as the interoperability reference and cardan
 
 ## 23. Account Creation, Addresses and State Integrity
 
+The ordinary V1 qualification candidate selects ADR-002 outcome B (2026-09-07): no hash-preserving CIP-113 compatibility promise. Future support may require a new core/account deployment and authorized asset migration. Full integration remains planned; no unrestricted extension hook is reserved. Outcome A's controlled-ledger prototype is required before any later release can claim compatibility.
+
 ### 23.1 Proposed script dependency layout
 
 Avoid circular script-hash parameterization. A candidate deployment order is:
@@ -969,7 +974,7 @@ Avoid circular script-hash parameterization. A candidate deployment order is:
 1. Compile the generic state validator and stable core checkpoint, applying immutable reward-disposition parameters where required before deriving hashes.
 2. Parameterize the one-shot minting policy with a consumed seed `TxOutRef`, the state-validator hash and deployment domain. Fix its single asset name; derive `AccountId` from the applied policy hash and name.
 3. Parameterize the asset validator with `AccountId`, the state-validator hash, core checkpoint hash and deployment domain. Derive its enterprise script address (no stake credential in V1).
-4. Build the initial state containing those bindings and the independently compiled initial auth module/configuration. The minting policy authenticates this exact initial-state commitment and designated creator authorization through its specified creation redeemer. Consuming the seed also requires its ledger spending authorization.
+4. Build the initial state containing those bindings and the independently compiled initial auth module/configuration. The selected initialization construction authenticates the final state through the designated creator’s transaction-body signature. The mint policy requires that creator as a required signer, the creator-owned seed and the unique supported genesis output; the creator’s client recomputes every derived binding before signing. See the ordered parameter graph in `protocol/v1/deployment.md`. Consuming the seed also requires its ledger spending authorization.
 
 The policy MUST verify the derived asset binding using a proven construction or an explicit creator-authorized commitment; it must not accept a relayer-selected address. Final parameter application, creator authorization and hash derivation are Phase 0 specifications, with golden deployment vectors. No script may require a hash which recursively depends on its own hash.
 
@@ -1036,6 +1041,16 @@ Because assets are fungible, this defines a bound on net account debit; it canno
 
 External sponsor inputs, their change and collateral require their own ledger authorization. Kavach does not promise to protect a sponsor who signs an unsafe transaction. The builder must validate the complete balanced transaction and keep account assets out of collateral arrangements.
 
+### 24.1 Whole-UTxO transfer for deposits outside partial-transfer bounds
+
+**Phase 0 design correction (2026-09-07):** an address cannot prevent a third party from creating a large valid native-asset UTxO. Partial-transfer count/byte limits must not strand that deposit. Ordinary V1 therefore includes `TransferWholeUtxoIntent`, a separate spending action with one exact input, one signed recipient index/full key address and `blake2b_256(serialiseData(input Value))`. It shares Normal-mode, authenticated state, spend-policy, domain, version, validity and exact-input replay checks. It grants no freeze, recovery, upgrade or dApp bypass.
+
+The core requires exactly one consumed account asset UTxO, no account-change outputs, no other script inputs, a plain key recipient, and exact equality of the **complete native-asset maps** of that input and recipient. Recipient lovelace must be at least input lovelace. All other outputs are plain ADA-only key outputs, including sponsor change and reward receipts. Account-funded fees are zero; any extra recipient ADA and all fees come from independently authorized key inputs. This permits external minimum-ADA top-ups without token arithmetic or a relayer-selected deduction. Reward receipts remain distinct from this recipient. The partial-transfer equation above applies to `SpendIntent`; this path instead preserves all input native assets and at least all input ADA at its recipient.
+
+The 12-asset partial-transfer bound does not apply to this single input/recipient. The qualified whole-value path supports the target ledger's value-size range, with an 8192-byte serialized Plutus Value guard tested beyond the current 5000-byte ledger value limit. Protocol-parameter changes require requalification before claiming support. All other transaction-count and purpose restrictions remain in force.
+
+The signer MUST resolve the exact signed input reference, validate its complete ledger value, recompute the signed value digest, and deterministically display every policy/name/quantity from that same value. Missing resolution or a digest mismatch rejects signing; a hash-only display is not sufficient. The value is supplied by the consumed ledger input during on-chain execution, so it need not be duplicated as a large recipient asset list in two redeemers. This is a narrowly specified whole-value transfer, not an arbitrary hashed-output authorization mechanism.
+
 ## 25. Language-Independent Wire Format and Conformance
 
 The protocol specification MUST be defined independently of Java records, JuLC implementation details, or any future Aiken data declarations. Source-language types are implementations of the schema, not its authority. Before producing signing or deployment artifacts, publish a versioned normative **CDDL schema for the CBOR encoding of Plutus Data**, supplemented by semantic constraints and canonical reserialization rules. CDDL alone does not define ordering, hashing, policy validity or all accepted encodings. Cover:
@@ -1067,7 +1082,7 @@ V1 uses a single pending recovery proposal. Policies below are separate operatio
 
 | Current mode | Operation | Required authority / condition | Successor mode |
 | --- | --- | --- | --- |
-| Normal | Spend | Spend policy; exact spend rules | Normal; state referenced |
+| Normal | Spend / TransferWholeUtxo | Spend policy; exact spend rules | Normal; state referenced |
 | Normal | Credential/policy/module change | Old AdminPolicy; valid successor configuration | Normal |
 | Normal | Freeze | FreezePolicy | Frozen |
 | Frozen | Unfreeze | Explicit UnfreezePolicy; stronger than everyday spend authority | Normal |
@@ -1075,7 +1090,7 @@ V1 uses a single pending recovery proposal. Policies below are separate operatio
 | RecoveryPending | CompleteRecovery | Stored proposal, delay elapsed, target proof of possession | Normal with committed replacement |
 | RecoveryPending | CancelRecovery | Explicit RecoveryCancelPolicy | Frozen |
 
-V1 configuration changes cannot disable recovery or reduce its configured delay or cooldown; these are explicit core field constraints. Compatible modules must reject empty or invalid role policies and retain supported recovery behavior. Because module configuration is opaque, module review must establish that requirement.
+V1 configuration changes cannot disable recovery or reduce its configured delay or cooldown; these are explicit core field constraints. The selected initial wire profile has no timing-update fields, so every V1 successor preserves delay and cooldown exactly; a relayer cannot make an unsigned increase. Compatible modules must reject empty or invalid role policies and retain supported recovery behavior. Because module configuration is opaque, module review must establish that requirement.
 
 All other transitions are rejected in V1. In particular, frozen/pending accounts cannot spend, install sessions, perform general configuration changes, or use ordinary unfreeze to bypass a pending recovery. V1 does not provide an underspecified “security-preserving admin” escape hatch.
 
@@ -1083,7 +1098,7 @@ All other transitions are rejected in V1. In particular, frozen/pending accounts
 
 A validator cannot observe transaction inclusion time directly. Initiation therefore requires a bounded finite validity interval and sets `executeAfter = initiation upper bound + configured delay`. This conservatively starts the delay no earlier than any allowed initiation time. The permitted maximum interval width, delay and cooldown ranges must be fixed and tested before V1.
 
-`CompleteRecovery` requires a finite validity interval whose lower bound is at or after `executeAfter`, equality of the stored proposal commitment and supplied target, and an installed-module verification of target proof of possession for that exact proposal. It requires no fresh approval from the lost everyday credential. The old state already records recovery-threshold approval; target proof prevents installation of unusable or mistyped credentials. Finalization increments `stateVersion`, preserves the attempt sequence and clears the pending proposal. Validators must never allow target evidence to select a different replacement.
+`CompleteRecovery` requires a finite validity interval whose lower bound is at or after `executeAfter`, canonical equality of the supplied replacement configuration with the target configuration stored in pending state, and an installed-module verification of target proof of possession for that exact proposal. It requires no fresh approval from the lost everyday credential. The old state already records recovery-threshold approval; target proof prevents installation of unusable or mistyped credentials. Finalization increments `stateVersion`, preserves the attempt sequence and clears the pending proposal. Validators must never allow target evidence to select a different replacement.
 
 Cancellation increments `stateVersion`, preserves the monotonically increasing attempt sequence, clears the proposal and remains frozen. It also extends the next-initiation deadline as specified below. A later attempt increments the sequence again. Numbering advances at initiation, including attempts later cancelled, so cancelled evidence cannot be reused. No automatic expiry silently unfreezes funds.
 
@@ -1151,9 +1166,17 @@ Record compiler and dependency versions, parameter values, optimization settings
 
 ### Phase 0 — specification and feasibility, no real funds
 
+**Qualification evidence (2026-09-07):** the [qualification report](../docs/phase0/qualification.md) and [acceptance ledger](../docs/phase0/completion-checklist.md) supersede the earlier incremental status. The reviewed `v1.0-rc1` baseline now specifies CDDL, semantic rules, a purpose-specific module ABI, creator-authorized acyclic initialization, nine ordinary actions, complete state/target data and separate possession domains. A drift manifest pins these files and conformance fixtures. The protocol and threat model remain proposed for production; no production core hashes are frozen.
+
+Normal JuLC compiler output passes the positive signature gate using the pinned source fix `0.1.0-pre17-1a46882-SNAPSHOT`, with CCL `0.8.0-pre5`. An independent clean build reproduces all 14 experimental template CBORs. Eight fast local DevKit tests cover state identity, one-shot minting, paired checkpoints, explicit purposes/registration, controlled legacy re-registration, reference fallback, whole-value transfer and POSIX interval semantics. The real positive-reward and shared-sink experiments also passed: actual 1,000 ADA credits were fully withdrawn, zero/partial withdrawals and receipt reuse were rejected, and both paired reward balances drained to distinct immutable-sink outputs. Phase 0 specification/feasibility is complete, with 217 local tests/diagnostics, one compiler acceptance gate, ten live DevKit tests and 21 independently validated CDDL fixtures; the acceptance ledger records exact evidence and scope. Historical probe reports retain their narrower scopes and earlier failures.
+
+Compiled stress tests establish component feasibility and numeric bounds; serialization models include state mutation, module replacement and large whole-value outputs. Whole-UTxO transfer was added because bounded partial accounting alone could strand a ledger-valid oversized deposit. Pending recovery retains the full target configuration to make completion comparison explicit. The pinned client bridge has reproduced withdrawal-index and native-token-ordering defects; final backend/node checks and bounded experimental allocations are required, and production builders must fix/requalify that bridge. Passing primitive tests is not a claim of a production account/module or working recovery implementation.
+
 Freeze the wire schema and threat model; demonstrate acyclic parameterization, one-shot initialization, first-module signatures, purpose/redeemer binding and empty- and positive-balance withdrawal acceptance, reward disposition and explicit purpose/registration behavior on the target ledger. Specify numeric bounds for inputs, outputs, assets, configuration bytes, credentials, evidence, validity width, recovery delay and cooldown. Measure worst-case CPU, memory, script/transaction size and minimum ADA against the chosen network's protocol parameters. If the checkpoint optimization does not pass, choose the simpler proven path. Before freezing production core hashes, either pass ADR-002's bounded compatibility prototype or record an explicit V1 decision withdrawing hash-preserving CIP-113 compatibility and accepting potential future migration. Ordinary V1 need not wait indefinitely on an external alpha implementation; an unfinished prototype is not a compatibility claim.
 
 ### Phase 1 — minimal transfer protocol
+
+Implementation partition: [ADR-003](adr-003-phase1-immutable-accounting-anchor.md) places transfer accounting at an explicitly required immutable asset-input anchor so each script can be published within ledger size limits. The checkpoint and asset validator together enforce immutable core rules; the authorization module cannot bypass accounting. Phase 1 development qualification is complete: 322 local tests, one toolchain gate, twelve short DevKit tests and the full positive-reward DevKit spend pass. Javadocs, source/artifact manifests, fresh-build reproducibility, budgets, fees and implementation self-review are recorded in the [Phase 1 acceptance ledger](../docs/phase1/completion-checklist.md). State remains sealed; this does not implement recovery or approve production use.
 
 Implement creation, exact-input spends, canonical Java encoding and the first module. Require positive and adversarial tests through compiled UPLC, including malformed data, incorrect state NFT/address, missing or wrong checkpoints, wrong operation/domain, replay, missing inputs, output reuse, unexpected native assets and excessive fee debit. A node-valid transaction test must complement constructed script contexts.
 
@@ -1219,7 +1242,7 @@ External sources reviewed on 2026-09-06 describe tooling and ledger mechanisms, 
 
 ### Review disposition — 2026-09-06
 
-The architecture review led to the following changes. These are specification updates; all implementation and ledger validation gates remain open.
+The architecture review led to the following specification changes. This table records their original disposition; section 29 and the Phase 0 acceptance ledger track subsequent experimental validation and later implementation gates.
 
 | Review finding | Resolution |
 | --- | --- |

@@ -1,0 +1,32 @@
+{
+  "upstreamMainCommit": "6754861bc1e803d3f91b5e7fdfd1b7eccbec200a",
+  "version": "0.1.0-pre17-6754861-SNAPSHOT",
+  "source": "Unmodified upstream main; serialization fix merged in PR #133",
+  "upstreamTests": {
+    "julc-compiler": {
+      "tests": 1485,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0
+    },
+    "julc-annotation-processor": {
+      "tests": 20,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0
+    }
+  },
+  "artifacts": {
+    "julc-core": "39f0e854cdccc63aced4785e0f1534012f8f879a419146f98cc833e9ff9ace0e",
+    "julc-ledger-api": "a17afca9a50e3cabea533513b87b294b03ee2d8de8598ff70894a0d2109700b4",
+    "julc-vm": "33de9f9b81c11c884d36dde6d7e063bdbbaca66d0a9436aa4ad798743588f4d4",
+    "julc-compiler": "4c063bfbc8802c61751673c8320a5137fbbbecf8efbcd8c325d75bcfd65ebe40",
+    "julc-stdlib": "d022457bdef9295bb9dcf67b2e16e1e377bfa6d2a99ba0f13b9b031467692b78",
+    "julc-bls": "a4e0d820953e77eb7b5aeb42107ffa7adb483834c9e7091e7e635942bdab3f26",
+    "julc-blueprint": "2b8e60d4bb39031030c181c7fe14793efeeb1549a6a8fa849a2b921b7d11480f",
+    "julc-annotation-processor": "bd71796b0bc556d2f9e0f95389c8c4da7d8990e59f93d283909df8aa748e6f25",
+    "julc-testkit": "1c3b6a1f583aaead3789641d53daf6ef089174f545303b4f3cc435e188563b7f",
+    "julc-cardano-client-lib": "f73f0df7e8598c3e31c85e580e4ee110a912354e0d35a48e5567147c65a22ef5",
+    "julc-vm-java": "6a45ec1b3af5a421d4d523137a5b1b41ffe54a1e6ab6e8d92b45d1c7d266b30c"
+  }
+}

@@ -1,0 +1,82 @@
+{
+  "scope": "Fresh isolated Gradle compile compared byte-for-byte with current working build; 14 Phase 0 and 5 Phase 1 emitted templates",
+  "command": "./gradlew -I <isolated-build-directory-init-script> compileJava phase0BuildManifest phase1BuildManifest",
+  "templates": [
+    {
+      "template": "AccountAssetValidator.plutus.json",
+      "sha256": "9594b7201feb4f63f50e0c25cf375fd27c74955a9cba2f213d348de594a9653d"
+    },
+    {
+      "template": "AccountStateValidator.plutus.json",
+      "sha256": "359f47ad973e4302a1f6b8fa8aa9dc55f931ed3a36dd431563eb751f567ad626"
+    },
+    {
+      "template": "BindingCheckpointProbe.plutus.json",
+      "sha256": "60ce2748d6d0aee009c795dbd6844f8efb5435bbff56d855211bca2175ea2740"
+    },
+    {
+      "template": "ConfigurationPossessionProbe.plutus.json",
+      "sha256": "6ac8d48e2bfdf24d3e0176ee329895e35d35e508e5c56d53ffae1b1da7bfbb2a"
+    },
+    {
+      "template": "CoreCheckpoint.plutus.json",
+      "sha256": "7becc0d1cb5f4a80e1e88d7902534ca2871c122c90997c4fc179beaf60d31b55"
+    },
+    {
+      "template": "DeregistrationFixture.plutus.json",
+      "sha256": "2b3e59dd2b4afd41c9a17f2c675e7183a62e7f65af5e397d316674e0e4cf8eca"
+    },
+    {
+      "template": "Ed25519Module.plutus.json",
+      "sha256": "9e4b63ceba1179b89ffcbf59f05f9fac8ef087505cb9f12a44307f83571c4181"
+    },
+    {
+      "template": "OwnedAssetFixture.plutus.json",
+      "sha256": "2d81c693429b12dc41adf3996d5eb3ccdd25b3c98c773a1c8d825db577334123"
+    },
+    {
+      "template": "RewardLifecycleProbe.plutus.json",
+      "sha256": "74f9a2a16b1e43182d3923decc7e53c796a32c1aadafed026c04adf2d14fb217"
+    },
+    {
+      "template": "SealedStateProbe.plutus.json",
+      "sha256": "1e1df47cca25e7406ebbc82bfdcc1dbdf02af503f1cce450591989fc8163adbc"
+    },
+    {
+      "template": "StateNftMintProbe.plutus.json",
+      "sha256": "4699e4005f09844e333711de1d429a2c0d54de201e05e2cd06a6b3af4c6d37ed"
+    },
+    {
+      "template": "StateNftPolicy.plutus.json",
+      "sha256": "904eaa88e569d877ab81c2dda203f00c1dc79c9a4750bf72633f776b1eedf8b8"
+    },
+    {
+      "template": "StateReferenceProbe.plutus.json",
+      "sha256": "13e61c7454f1cebde67e2b929a6dcbe77aa40cd0ebab293a06146136076fa3a4"
+    },
+    {
+      "template": "ThresholdWitnessProbe.plutus.json",
+      "sha256": "f96bba382778c9ba944fe239e6d1fdce5696660d50c60e34b72e2b924abbba94"
+    },
+    {
+      "template": "ValidityWindowProbe.plutus.json",
+      "sha256": "a2137cebec51aff2fa84b5ad5f4dd1104cb6c2d2774631692ebb82e9b9e3943c"
+    },
+    {
+      "template": "ValueAccountingProbe.plutus.json",
+      "sha256": "cc1c45d3cd64dd532f8e79b1642718d804baec33b9244966ec57b4d64ad7411b"
+    },
+    {
+      "template": "WholeUtxoTransferProbe.plutus.json",
+      "sha256": "38f4e20eb04ff1fb4cdf5ce64fcbb8784bd0088a6584babb5e712f356fb12e7b"
+    },
+    {
+      "template": "WireDigestProbe.plutus.json",
+      "sha256": "e8ab1ae5c7c21efd23d69f42d63c3ec7fa6636ecf27e05c764197d3b0a03c501"
+    },
+    {
+      "template": "WithdrawalProbe.plutus.json",
+      "sha256": "88031921b8beea10201f8c03fdc72813a5b3916cc6868196a735ac1e1b7c391b"
+    }
+  ]
+}

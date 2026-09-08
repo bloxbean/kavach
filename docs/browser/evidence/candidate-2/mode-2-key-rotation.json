@@ -1,0 +1,1470 @@
+{
+  "publication-0" : {
+    "fee" : 520933,
+    "tx" : "12423179359db8a0e96f1642ba7632593a9c808389bceb87d144fae9f6df4b6d",
+    "bytes" : 8207,
+    "redeemers" : [ ]
+  },
+  "publication-1" : {
+    "fee" : 640437,
+    "tx" : "0f9185c886bdc03aba59353caecf4785350d4ee9defd8fb0eeeb28bbfa121061",
+    "bytes" : 10923,
+    "redeemers" : [ ]
+  },
+  "publication-2" : {
+    "fee" : 856477,
+    "tx" : "69c37beb6fb771072b95813a62932c9b63a53cecb624659c63af7ec1e38e6a8d",
+    "bytes" : 15833,
+    "redeemers" : [ ]
+  },
+  "publication-3" : {
+    "fee" : 429853,
+    "tx" : "6c2a9d1412ff007e5c56478be3061af0519d425b06c8d4f199c109bf508c4c9b",
+    "bytes" : 6137,
+    "redeemers" : [ ]
+  },
+  "publication-4" : {
+    "fee" : 643429,
+    "tx" : "a331b6035bcdcd6cebc534a0e1ff4ae166e0fd2402e836b420019cb9d0fbc203",
+    "bytes" : 10991,
+    "redeemers" : [ ]
+  },
+  "registration" : {
+    "fee" : 172937,
+    "tx" : "89bc56b99dbdd237ea416f5cf63438e458acba83870ea064fad397ad942aa540",
+    "bytes" : 298,
+    "redeemers" : [ ]
+  },
+  "creation" : {
+    "fee" : 803387,
+    "tx" : "00ba8c28133c5b37b4436c574a27efbe639b5c2fba75c1f2228589af9ef0f89c",
+    "bytes" : 2022,
+    "redeemers" : [ {
+      "tag" : "mint",
+      "index" : 0,
+      "data" : {
+        "int" : 0
+      },
+      "exUnits" : {
+        "mem" : 857240,
+        "steps" : 397247957
+      }
+    }, {
+      "tag" : "reward",
+      "index" : 0,
+      "data" : {
+        "constructor" : 2,
+        "fields" : [ {
+          "int" : 1
+        }, {
+          "constructor" : 0,
+          "fields" : [ {
+            "int" : 1
+          }, {
+            "constructor" : 0,
+            "fields" : [ {
+              "bytes" : "35327fb9886c63bd5b02478a145a1bb2255c0efbf9cfe9114ef89bec"
+            }, {
+              "bytes" : ""
+            } ]
+          }, {
+            "constructor" : 0,
+            "fields" : [ {
+              "int" : 0
+            }, {
+              "int" : 42
+            }, {
+              "bytes" : "7a0c493afafa345c04e8ff1e810bf2b71540635417ef3b62491a0ea0ddff6737"
+            } ]
+          }, {
+            "constructor" : 0,
+            "fields" : [ {
+              "bytes" : "f65f1e28a7fb757814e6adf326d86c89679b67607994f6bd993ef924"
+            }, {
+              "bytes" : "9bf97aad767ee9bf21c898c507ef7fd5b7f6852d8570168c6e0a9a8c"
+            }, {
+              "bytes" : "ab6c97e03c5f809a5ab023e2a32a5fc8605ab96afac0d786aa5b3202"
+            } ]
+          }, {
+            "int" : 0
+          }, {
+            "constructor" : 0,
+            "fields" : [ {
+              "bytes" : "ad6d97b4fd616088eef5427a704523428873166f18f436f8f08d89fd"
+            }, {
+              "int" : 1
+            } ]
+          }, {
+            "constructor" : 0,
+            "fields" : [ {
+              "int" : 1
+            }, {
+              "list" : [ {
+                "constructor" : 0,
+                "fields" : [ {
+                  "int" : 0
+                }, {
+                  "bytes" : "0bda405f085c5f849328173c94eaab0abf4a1efe745a724fd5da52a6ab03f043"
+                } ]
+              }, {
+                "constructor" : 0,
+                "fields" : [ {
+                  "int" : 1
+                }, {
+                  "bytes" : "974b4c63840c27e74db0c7ad4a0cba67e83a98d6f007962b4cd334b8aa78c16b"
+                } ]
+              }, {
+                "constructor" : 0,
+                "fields" : [ {
+                  "int" : 2
+                }, {
+                  "bytes" : "91c76d0073282c4d6fbb732dbe96a86f13ba13c9c521346f356f31f2e60b3381"
+                } ]
+              } ]
+            }, {
+              "constructor" : 0,
+              "fields" : [ {
+                "int" : 1
+              }, {
+                "list" : [ {
+                  "int" : 0
+                } ]
+              } ]
+            }, {
+              "constructor" : 0,
+              "fields" : [ {
+                "int" : 2
+              }, {
+                "list" : [ {
+                  "int" : 0
+                }, {
+                  "int" : 1
+                } ]
+              } ]
+            }, {
+              "constructor" : 0,
+              "fields" : [ {
+                "int" : 1
+              }, {
+                "list" : [ {
+                  "int" : 1
+                } ]
+              } ]
+            }, {
+              "constructor" : 0,
+              "fields" : [ {
+                "int" : 1
+              }, {
+                "list" : [ {
+                  "int" : 2
+                } ]
+              } ]
+            }, {
+              "constructor" : 0,
+              "fields" : [ {
+                "int" : 1
+              }, {
+                "list" : [ {
+                  "int" : 1
+                } ]
+              } ]
+            }, {
+              "constructor" : 0,
+              "fields" : [ {
+                "int" : 1
+              }, {
+                "list" : [ {
+                  "int" : 2
+                } ]
+              } ]
+            } ]
+          }, {
+            "int" : 0
+          }, {
+            "int" : 86400000
+          }, {
+            "int" : 3600000
+          }, {
+            "int" : 0
+          }, {
+            "constructor" : 0,
+            "fields" : [ ]
+          } ]
+        }, {
+          "list" : [ {
+            "constructor" : 0,
+            "fields" : [ {
+              "int" : 0
+            }, {
+              "bytes" : "60a465451ede879491746b24ec90c1ed1e1ae74af59a76ef9301e51fe2b5eb2bd37cf2db1d389959d67a680ff427344a674a0a2144190691ef7545ce9494fda551cd3b4eb882f050f60aa17781bc18f4628163e0f003ab1013298ce20d01"
+            } ]
+          }, {
+            "constructor" : 0,
+            "fields" : [ {
+              "int" : 1
+            }, {
+              "bytes" : "60766046ba8692881bb94b1e1d8760e1205c9ba40f6bc7d52409775e6c06b327c851f9bb0512672011fec083eb5832edf69ba0974def30baa8ba3386c29550f945d6b328cd97ccd477ab9b5bce1083342170b70608e1d9f71b7d7dd30201"
+            } ]
+          }, {
+            "constructor" : 0,
+            "fields" : [ {
+              "int" : 2
+            }, {
+              "bytes" : "60b548f19692eb8f43e036039d6792ddb95d986cd0d49279f23762e3ba6ab54aab5e9b92f6735b63a86f3583dc10f1bd5ab3bfec2d0bead8d3e35c094c2b732d32755fb608e4b8f7d212f5b18e3fa475d008ba48124c9d6f644af5d30c01"
+            } ]
+          } ]
+        }, {
+          "list" : [ ]
+        } ]
+      },
+      "exUnits" : {
+        "mem" : 1544216,
+        "steps" : 852903077
+      }
+    } ]
+  },
+  "replace-all-keys" : {
+    "fee" : 1303669,
+    "tx" : "33411785107c18e64eea7d734c2177624c43df3058e0902d9ceba419e18594f2",
+    "bytes" : 3018,
+    "redeemers" : [ {
+      "tag" : "spend",
+      "index" : 0,
+      "data" : {
+        "constructor" : 0,
+        "fields" : [ {
+          "int" : 1
+        }, {
+          "constructor" : 0,
+          "fields" : [ {
+            "bytes" : "4b41564143485f494e54454e5401"
+          }, {
+            "constructor" : 0,
+            "fields" : [ {
+              "int" : 1
+            }, {
+              "constructor" : 0,
+              "fields" : [ {
+                "int" : 0
+              }, {
+                "int" : 42
+              }, {
+                "bytes" : "7a0c493afafa345c04e8ff1e810bf2b71540635417ef3b62491a0ea0ddff6737"
+              } ]
+            }, {
+              "constructor" : 0,
+              "fields" : [ {
+                "bytes" : "35327fb9886c63bd5b02478a145a1bb2255c0efbf9cfe9114ef89bec"
+              }, {
+                "bytes" : ""
+              } ]
+            }, {
+              "constructor" : 0,
+              "fields" : [ {
+                "bytes" : "f65f1e28a7fb757814e6adf326d86c89679b67607994f6bd993ef924"
+              }, {
+                "bytes" : "9bf97aad767ee9bf21c898c507ef7fd5b7f6852d8570168c6e0a9a8c"
+              }, {
+                "bytes" : "ab6c97e03c5f809a5ab023e2a32a5fc8605ab96afac0d786aa5b3202"
+              } ]
+            }, {
+              "int" : 0
+            }, {
+              "constructor" : 0,
+              "fields" : [ {
+                "bytes" : "00ba8c28133c5b37b4436c574a27efbe639b5c2fba75c1f2228589af9ef0f89c"
+              }, {
+                "int" : 0
+              } ]
+            } ]
+          }, {
+            "constructor" : 0,
+            "fields" : [ {
+              "int" : 1788802546000
+            }, {
+              "int" : 1788802726000
+            } ]
+          }, {
+            "constructor" : 1,
+            "fields" : [ {
+              "constructor" : 0,
+              "fields" : [ {
+                "int" : 1
+              }, {
+                "list" : [ {
+                  "constructor" : 0,
+                  "fields" : [ {
+                    "int" : 0
+                  }, {
+                    "bytes" : "5697d75cc2746518f94fbcbab27d44a60dc626d92f70cdd695298648f1e07614"
+                  } ]
+                }, {
+                  "constructor" : 0,
+                  "fields" : [ {
+                    "int" : 1
+                  }, {
+                    "bytes" : "86acd0905fb6581157ffbb4e08cd40de3024547ff3f6cacf95ceadd319f45d8e"
+                  } ]
+                }, {
+                  "constructor" : 0,
+                  "fields" : [ {
+                    "int" : 2
+                  }, {
+                    "bytes" : "0bcc00a72b4e3a94511552a9f38c9b1e16941a2db3e18f0ff739027d4003bee7"
+                  } ]
+                } ]
+              }, {
+                "constructor" : 0,
+                "fields" : [ {
+                  "int" : 1
+                }, {
+                  "list" : [ {
+                    "int" : 0
+                  } ]
+                } ]
+              }, {
+                "constructor" : 0,
+                "fields" : [ {
+                  "int" : 2
+                }, {
+                  "list" : [ {
+                    "int" : 0
+                  }, {
+                    "int" : 1
+                  } ]
+                } ]
+              }, {
+                "constructor" : 0,
+                "fields" : [ {
+                  "int" : 1
+                }, {
+                  "list" : [ {
+                    "int" : 1
+                  } ]
+                } ]
+              }, {
+                "constructor" : 0,
+                "fields" : [ {
+                  "int" : 1
+                }, {
+                  "list" : [ {
+                    "int" : 2
+                  } ]
+                } ]
+              }, {
+                "constructor" : 0,
+                "fields" : [ {
+                  "int" : 1
+                }, {
+                  "list" : [ {
+                    "int" : 1
+                  } ]
+                } ]
+              }, {
+                "constructor" : 0,
+                "fields" : [ {
+                  "int" : 1
+                }, {
+                  "list" : [ {
+                    "int" : 2
+                  } ]
+                } ]
+              } ]
+            } ]
+          } ]
+        }, {
+          "list" : [ ]
+        } ]
+      },
+      "exUnits" : {
+        "mem" : 1260185,
+        "steps" : 736748686
+      }
+    }, {
+      "tag" : "reward",
+      "index" : 0,
+      "data" : {
+        "constructor" : 0,
+        "fields" : [ {
+          "int" : 1
+        }, {
+          "constructor" : 0,
+          "fields" : [ {
+            "bytes" : "4b41564143485f494e54454e5401"
+          }, {
+            "constructor" : 0,
+            "fields" : [ {
+              "int" : 1
+            }, {
+              "constructor" : 0,
+              "fields" : [ {
+                "int" : 0
+              }, {
+                "int" : 42
+              }, {
+                "bytes" : "7a0c493afafa345c04e8ff1e810bf2b71540635417ef3b62491a0ea0ddff6737"
+              } ]
+            }, {
+              "constructor" : 0,
+              "fields" : [ {
+                "bytes" : "35327fb9886c63bd5b02478a145a1bb2255c0efbf9cfe9114ef89bec"
+              }, {
+                "bytes" : ""
+              } ]
+            }, {
+              "constructor" : 0,
+              "fields" : [ {
+                "bytes" : "f65f1e28a7fb757814e6adf326d86c89679b67607994f6bd993ef924"
+              }, {
+                "bytes" : "9bf97aad767ee9bf21c898c507ef7fd5b7f6852d8570168c6e0a9a8c"
+              }, {
+                "bytes" : "ab6c97e03c5f809a5ab023e2a32a5fc8605ab96afac0d786aa5b3202"
+              } ]
+            }, {
+              "int" : 0
+            }, {
+              "constructor" : 0,
+              "fields" : [ {
+                "bytes" : "00ba8c28133c5b37b4436c574a27efbe639b5c2fba75c1f2228589af9ef0f89c"
+              }, {
+                "int" : 0
+              } ]
+            } ]
+          }, {
+            "constructor" : 0,
+            "fields" : [ {
+              "int" : 1788802546000
+            }, {
+              "int" : 1788802726000
+            } ]
+          }, {
+            "constructor" : 1,
+            "fields" : [ {
+              "constructor" : 0,
+              "fields" : [ {
+                "int" : 1
+              }, {
+                "list" : [ {
+                  "constructor" : 0,
+                  "fields" : [ {
+                    "int" : 0
+                  }, {
+                    "bytes" : "5697d75cc2746518f94fbcbab27d44a60dc626d92f70cdd695298648f1e07614"
+                  } ]
+                }, {
+                  "constructor" : 0,
+                  "fields" : [ {
+                    "int" : 1
+                  }, {
+                    "bytes" : "86acd0905fb6581157ffbb4e08cd40de3024547ff3f6cacf95ceadd319f45d8e"
+                  } ]
+                }, {
+                  "constructor" : 0,
+                  "fields" : [ {
+                    "int" : 2
+                  }, {
+                    "bytes" : "0bcc00a72b4e3a94511552a9f38c9b1e16941a2db3e18f0ff739027d4003bee7"
+                  } ]
+                } ]
+              }, {
+                "constructor" : 0,
+                "fields" : [ {
+                  "int" : 1
+                }, {
+                  "list" : [ {
+                    "int" : 0
+                  } ]
+                } ]
+              }, {
+                "constructor" : 0,
+                "fields" : [ {
+                  "int" : 2
+                }, {
+                  "list" : [ {
+                    "int" : 0
+                  }, {
+                    "int" : 1
+                  } ]
+                } ]
+              }, {
+                "constructor" : 0,
+                "fields" : [ {
+                  "int" : 1
+                }, {
+                  "list" : [ {
+                    "int" : 1
+                  } ]
+                } ]
+              }, {
+                "constructor" : 0,
+                "fields" : [ {
+                  "int" : 1
+                }, {
+                  "list" : [ {
+                    "int" : 2
+                  } ]
+                } ]
+              }, {
+                "constructor" : 0,
+                "fields" : [ {
+                  "int" : 1
+                }, {
+                  "list" : [ {
+                    "int" : 1
+                  } ]
+                } ]
+              }, {
+                "constructor" : 0,
+                "fields" : [ {
+                  "int" : 1
+                }, {
+                  "list" : [ {
+                    "int" : 2
+                  } ]
+                } ]
+              } ]
+            } ]
+          } ]
+        }, {
+          "list" : [ ]
+        } ]
+      },
+      "exUnits" : {
+        "mem" : 927292,
+        "steps" : 540652364
+      }
+    }, {
+      "tag" : "reward",
+      "index" : 1,
+      "data" : {
+        "constructor" : 0,
+        "fields" : [ {
+          "int" : 1
+        }, {
+          "constructor" : 0,
+          "fields" : [ {
+            "bytes" : "4b41564143485f494e54454e5401"
+          }, {
+            "constructor" : 0,
+            "fields" : [ {
+              "int" : 1
+            }, {
+              "constructor" : 0,
+              "fields" : [ {
+                "int" : 0
+              }, {
+                "int" : 42
+              }, {
+                "bytes" : "7a0c493afafa345c04e8ff1e810bf2b71540635417ef3b62491a0ea0ddff6737"
+              } ]
+            }, {
+              "constructor" : 0,
+              "fields" : [ {
+                "bytes" : "35327fb9886c63bd5b02478a145a1bb2255c0efbf9cfe9114ef89bec"
+              }, {
+                "bytes" : ""
+              } ]
+            }, {
+              "constructor" : 0,
+              "fields" : [ {
+                "bytes" : "f65f1e28a7fb757814e6adf326d86c89679b67607994f6bd993ef924"
+              }, {
+                "bytes" : "9bf97aad767ee9bf21c898c507ef7fd5b7f6852d8570168c6e0a9a8c"
+              }, {
+                "bytes" : "ab6c97e03c5f809a5ab023e2a32a5fc8605ab96afac0d786aa5b3202"
+              } ]
+            }, {
+              "int" : 0
+            }, {
+              "constructor" : 0,
+              "fields" : [ {
+                "bytes" : "00ba8c28133c5b37b4436c574a27efbe639b5c2fba75c1f2228589af9ef0f89c"
+              }, {
+                "int" : 0
+              } ]
+            } ]
+          }, {
+            "constructor" : 0,
+            "fields" : [ {
+              "int" : 1788802546000
+            }, {
+              "int" : 1788802726000
+            } ]
+          }, {
+            "constructor" : 1,
+            "fields" : [ {
+              "constructor" : 0,
+              "fields" : [ {
+                "int" : 1
+              }, {
+                "list" : [ {
+                  "constructor" : 0,
+                  "fields" : [ {
+                    "int" : 0
+                  }, {
+                    "bytes" : "5697d75cc2746518f94fbcbab27d44a60dc626d92f70cdd695298648f1e07614"
+                  } ]
+                }, {
+                  "constructor" : 0,
+                  "fields" : [ {
+                    "int" : 1
+                  }, {
+                    "bytes" : "86acd0905fb6581157ffbb4e08cd40de3024547ff3f6cacf95ceadd319f45d8e"
+                  } ]
+                }, {
+                  "constructor" : 0,
+                  "fields" : [ {
+                    "int" : 2
+                  }, {
+                    "bytes" : "0bcc00a72b4e3a94511552a9f38c9b1e16941a2db3e18f0ff739027d4003bee7"
+                  } ]
+                } ]
+              }, {
+                "constructor" : 0,
+                "fields" : [ {
+                  "int" : 1
+                }, {
+                  "list" : [ {
+                    "int" : 0
+                  } ]
+                } ]
+              }, {
+                "constructor" : 0,
+                "fields" : [ {
+                  "int" : 2
+                }, {
+                  "list" : [ {
+                    "int" : 0
+                  }, {
+                    "int" : 1
+                  } ]
+                } ]
+              }, {
+                "constructor" : 0,
+                "fields" : [ {
+                  "int" : 1
+                }, {
+                  "list" : [ {
+                    "int" : 1
+                  } ]
+                } ]
+              }, {
+                "constructor" : 0,
+                "fields" : [ {
+                  "int" : 1
+                }, {
+                  "list" : [ {
+                    "int" : 2
+                  } ]
+                } ]
+              }, {
+                "constructor" : 0,
+                "fields" : [ {
+                  "int" : 1
+                }, {
+                  "list" : [ {
+                    "int" : 1
+                  } ]
+                } ]
+              }, {
+                "constructor" : 0,
+                "fields" : [ {
+                  "int" : 1
+                }, {
+                  "list" : [ {
+                    "int" : 2
+                  } ]
+                } ]
+              } ]
+            } ]
+          } ]
+        }, {
+          "constructor" : 0,
+          "fields" : [ {
+            "constructor" : 0,
+            "fields" : [ {
+              "int" : 2
+            }, {
+              "list" : [ {
+                "constructor" : 0,
+                "fields" : [ {
+                  "int" : 0
+                }, {
+                  "bytes" : "60a465451ede879491746b24ec90c1ed1e1ae74af59a76ef9301e51fe22158522c6440b380239ea2f63f023d4146530eecaabf592ac1286ad51f4a782b7423f6c13c68487208234ba097e42f86c58e8f7089cf2216505bac91c8e3980b01"
+                } ]
+              }, {
+                "constructor" : 0,
+                "fields" : [ {
+                  "int" : 1
+                }, {
+                  "bytes" : "60766046ba8692881bb94b1e1d8760e1205c9ba40f6bc7d52409775e6c0ce0adffee21158b02a342c8beb869bae4ce279f276f80fea91352e35f6227bee4ef42f30c31fb07b3cca1feb8699dadf4082ff10568a5ef04d643df2dc40c0501"
+                } ]
+              } ]
+            } ]
+          } ]
+        }, {
+          "list" : [ {
+            "constructor" : 0,
+            "fields" : [ {
+              "int" : 0
+            }, {
+              "bytes" : "604c8715f85c12c204cc041389eb3a313bd23d614025ce0752fdc748cd696ef29caea3c619ca1bc24e37580ea62147d8312a251c71b37ddfc78fe925992997d013742453c627c1f023435921f6380a646a146b9f6c70276817730cdd0e01"
+            } ]
+          }, {
+            "constructor" : 0,
+            "fields" : [ {
+              "int" : 1
+            }, {
+              "bytes" : "60dc5beb0003db9b6b0ce2f4ec92461c5f33f2e25f8f7f4b7585a5d0e578a98b5a49a71a0810adf658431e86b6f2532b1c9c73bdcb0da4920f8f397afd524deba9f1c4284df62f4d2776dc21b18441acc90035a47a9a806d53edab530801"
+            } ]
+          }, {
+            "constructor" : 0,
+            "fields" : [ {
+              "int" : 2
+            }, {
+              "bytes" : "604b88a867ace7504dba17ce97b32bab958741c5d6521b5169d1dbe2bcf5dae0ffb9c2aa075049a4c0e34194181fa9f456b197f90887e9ddc116e2946d586828a1a1f4d19afd16b710b502221a4cb984f3252649687d2cd23ead090a0f01"
+            } ]
+          } ]
+        }, {
+          "list" : [ ]
+        } ]
+      },
+      "exUnits" : {
+        "mem" : 2544938,
+        "steps" : 1567661255
+      }
+    } ]
+  },
+  "replace-all-keys-state" : "d8799f01d8799f581c35327fb9886c63bd5b02478a145a1bb2255c0efbf9cfe9114ef89bec40ffd8799f00182a58207a0c493afafa345c04e8ff1e810bf2b71540635417ef3b62491a0ea0ddff6737ffd8799f581cf65f1e28a7fb757814e6adf326d86c89679b67607994f6bd993ef924581c9bf97aad767ee9bf21c898c507ef7fd5b7f6852d8570168c6e0a9a8c581cab6c97e03c5f809a5ab023e2a32a5fc8605ab96afac0d786aa5b3202ff01d8799f581cad6d97b4fd616088eef5427a704523428873166f18f436f8f08d89fd01ffd8799f019fd8799f0058205697d75cc2746518f94fbcbab27d44a60dc626d92f70cdd695298648f1e07614ffd8799f01582086acd0905fb6581157ffbb4e08cd40de3024547ff3f6cacf95ceadd319f45d8effd8799f0258200bcc00a72b4e3a94511552a9f38c9b1e16941a2db3e18f0ff739027d4003bee7ffffd8799f019f00ffffd8799f029f0001ffffd8799f019f01ffffd8799f019f02ffffd8799f019f01ffffd8799f019f02ffffff001a05265c001a0036ee8000d87980ff",
+  "new-guardian-freeze" : {
+    "fee" : 1151227,
+    "tx" : "882475316cfc5d8a2be75354787599a1d7e499c169a06080fa4afb46a6bc8f0a",
+    "bytes" : 2075,
+    "redeemers" : [ {
+      "tag" : "spend",
+      "index" : 0,
+      "data" : {
+        "constructor" : 0,
+        "fields" : [ {
+          "int" : 1
+        }, {
+          "constructor" : 0,
+          "fields" : [ {
+            "bytes" : "4b41564143485f494e54454e5401"
+          }, {
+            "constructor" : 0,
+            "fields" : [ {
+              "int" : 1
+            }, {
+              "constructor" : 0,
+              "fields" : [ {
+                "int" : 0
+              }, {
+                "int" : 42
+              }, {
+                "bytes" : "7a0c493afafa345c04e8ff1e810bf2b71540635417ef3b62491a0ea0ddff6737"
+              } ]
+            }, {
+              "constructor" : 0,
+              "fields" : [ {
+                "bytes" : "35327fb9886c63bd5b02478a145a1bb2255c0efbf9cfe9114ef89bec"
+              }, {
+                "bytes" : ""
+              } ]
+            }, {
+              "constructor" : 0,
+              "fields" : [ {
+                "bytes" : "f65f1e28a7fb757814e6adf326d86c89679b67607994f6bd993ef924"
+              }, {
+                "bytes" : "9bf97aad767ee9bf21c898c507ef7fd5b7f6852d8570168c6e0a9a8c"
+              }, {
+                "bytes" : "ab6c97e03c5f809a5ab023e2a32a5fc8605ab96afac0d786aa5b3202"
+              } ]
+            }, {
+              "int" : 1
+            }, {
+              "constructor" : 0,
+              "fields" : [ {
+                "bytes" : "33411785107c18e64eea7d734c2177624c43df3058e0902d9ceba419e18594f2"
+              }, {
+                "int" : 0
+              } ]
+            } ]
+          }, {
+            "constructor" : 0,
+            "fields" : [ {
+              "int" : 1788802547000
+            }, {
+              "int" : 1788802727000
+            } ]
+          }, {
+            "constructor" : 3,
+            "fields" : [ ]
+          } ]
+        }, {
+          "list" : [ ]
+        } ]
+      },
+      "exUnits" : {
+        "mem" : 1262287,
+        "steps" : 693077035
+      }
+    }, {
+      "tag" : "reward",
+      "index" : 0,
+      "data" : {
+        "constructor" : 0,
+        "fields" : [ {
+          "int" : 1
+        }, {
+          "constructor" : 0,
+          "fields" : [ {
+            "bytes" : "4b41564143485f494e54454e5401"
+          }, {
+            "constructor" : 0,
+            "fields" : [ {
+              "int" : 1
+            }, {
+              "constructor" : 0,
+              "fields" : [ {
+                "int" : 0
+              }, {
+                "int" : 42
+              }, {
+                "bytes" : "7a0c493afafa345c04e8ff1e810bf2b71540635417ef3b62491a0ea0ddff6737"
+              } ]
+            }, {
+              "constructor" : 0,
+              "fields" : [ {
+                "bytes" : "35327fb9886c63bd5b02478a145a1bb2255c0efbf9cfe9114ef89bec"
+              }, {
+                "bytes" : ""
+              } ]
+            }, {
+              "constructor" : 0,
+              "fields" : [ {
+                "bytes" : "f65f1e28a7fb757814e6adf326d86c89679b67607994f6bd993ef924"
+              }, {
+                "bytes" : "9bf97aad767ee9bf21c898c507ef7fd5b7f6852d8570168c6e0a9a8c"
+              }, {
+                "bytes" : "ab6c97e03c5f809a5ab023e2a32a5fc8605ab96afac0d786aa5b3202"
+              } ]
+            }, {
+              "int" : 1
+            }, {
+              "constructor" : 0,
+              "fields" : [ {
+                "bytes" : "33411785107c18e64eea7d734c2177624c43df3058e0902d9ceba419e18594f2"
+              }, {
+                "int" : 0
+              } ]
+            } ]
+          }, {
+            "constructor" : 0,
+            "fields" : [ {
+              "int" : 1788802547000
+            }, {
+              "int" : 1788802727000
+            } ]
+          }, {
+            "constructor" : 3,
+            "fields" : [ ]
+          } ]
+        }, {
+          "list" : [ ]
+        } ]
+      },
+      "exUnits" : {
+        "mem" : 927519,
+        "steps" : 483058019
+      }
+    }, {
+      "tag" : "reward",
+      "index" : 1,
+      "data" : {
+        "constructor" : 0,
+        "fields" : [ {
+          "int" : 1
+        }, {
+          "constructor" : 0,
+          "fields" : [ {
+            "bytes" : "4b41564143485f494e54454e5401"
+          }, {
+            "constructor" : 0,
+            "fields" : [ {
+              "int" : 1
+            }, {
+              "constructor" : 0,
+              "fields" : [ {
+                "int" : 0
+              }, {
+                "int" : 42
+              }, {
+                "bytes" : "7a0c493afafa345c04e8ff1e810bf2b71540635417ef3b62491a0ea0ddff6737"
+              } ]
+            }, {
+              "constructor" : 0,
+              "fields" : [ {
+                "bytes" : "35327fb9886c63bd5b02478a145a1bb2255c0efbf9cfe9114ef89bec"
+              }, {
+                "bytes" : ""
+              } ]
+            }, {
+              "constructor" : 0,
+              "fields" : [ {
+                "bytes" : "f65f1e28a7fb757814e6adf326d86c89679b67607994f6bd993ef924"
+              }, {
+                "bytes" : "9bf97aad767ee9bf21c898c507ef7fd5b7f6852d8570168c6e0a9a8c"
+              }, {
+                "bytes" : "ab6c97e03c5f809a5ab023e2a32a5fc8605ab96afac0d786aa5b3202"
+              } ]
+            }, {
+              "int" : 1
+            }, {
+              "constructor" : 0,
+              "fields" : [ {
+                "bytes" : "33411785107c18e64eea7d734c2177624c43df3058e0902d9ceba419e18594f2"
+              }, {
+                "int" : 0
+              } ]
+            } ]
+          }, {
+            "constructor" : 0,
+            "fields" : [ {
+              "int" : 1788802547000
+            }, {
+              "int" : 1788802727000
+            } ]
+          }, {
+            "constructor" : 3,
+            "fields" : [ ]
+          } ]
+        }, {
+          "constructor" : 0,
+          "fields" : [ {
+            "constructor" : 0,
+            "fields" : [ {
+              "int" : 2
+            }, {
+              "list" : [ {
+                "constructor" : 0,
+                "fields" : [ {
+                  "int" : 1
+                }, {
+                  "bytes" : "60dc5beb0003db9b6b0ce2f4ec92461c5f33f2e25f8f7f4b7585a5d0e51a490ba1953fe26b5e786be74f6fe41143cdc1375003b2aa46dd5fc29ec48192ad6c2bcc231dd2c36e683149e846118cc292f704bb1d2ba06cbf573f2b86770601"
+                } ]
+              } ]
+            } ]
+          } ]
+        }, {
+          "list" : [ ]
+        }, {
+          "list" : [ ]
+        } ]
+      },
+      "exUnits" : {
+        "mem" : 1667597,
+        "steps" : 830351382
+      }
+    } ]
+  },
+  "new-guardian-freeze-state" : "d8799f01d8799f581c35327fb9886c63bd5b02478a145a1bb2255c0efbf9cfe9114ef89bec40ffd8799f00182a58207a0c493afafa345c04e8ff1e810bf2b71540635417ef3b62491a0ea0ddff6737ffd8799f581cf65f1e28a7fb757814e6adf326d86c89679b67607994f6bd993ef924581c9bf97aad767ee9bf21c898c507ef7fd5b7f6852d8570168c6e0a9a8c581cab6c97e03c5f809a5ab023e2a32a5fc8605ab96afac0d786aa5b3202ff02d8799f581cad6d97b4fd616088eef5427a704523428873166f18f436f8f08d89fd01ffd8799f019fd8799f0058205697d75cc2746518f94fbcbab27d44a60dc626d92f70cdd695298648f1e07614ffd8799f01582086acd0905fb6581157ffbb4e08cd40de3024547ff3f6cacf95ceadd319f45d8effd8799f0258200bcc00a72b4e3a94511552a9f38c9b1e16941a2db3e18f0ff739027d4003bee7ffffd8799f019f00ffffd8799f029f0001ffffd8799f019f01ffffd8799f019f02ffffd8799f019f01ffffd8799f019f02ffffff001a05265c001a0036ee8000d87a80ff",
+  "new-defensive-unfreeze" : {
+    "fee" : 1152795,
+    "tx" : "2bab1263546f44380ef8b30c2bc4a6fe91834a227f916e4bd4963963dcc236a4",
+    "bytes" : 2075,
+    "redeemers" : [ {
+      "tag" : "spend",
+      "index" : 0,
+      "data" : {
+        "constructor" : 0,
+        "fields" : [ {
+          "int" : 1
+        }, {
+          "constructor" : 0,
+          "fields" : [ {
+            "bytes" : "4b41564143485f494e54454e5401"
+          }, {
+            "constructor" : 0,
+            "fields" : [ {
+              "int" : 1
+            }, {
+              "constructor" : 0,
+              "fields" : [ {
+                "int" : 0
+              }, {
+                "int" : 42
+              }, {
+                "bytes" : "7a0c493afafa345c04e8ff1e810bf2b71540635417ef3b62491a0ea0ddff6737"
+              } ]
+            }, {
+              "constructor" : 0,
+              "fields" : [ {
+                "bytes" : "35327fb9886c63bd5b02478a145a1bb2255c0efbf9cfe9114ef89bec"
+              }, {
+                "bytes" : ""
+              } ]
+            }, {
+              "constructor" : 0,
+              "fields" : [ {
+                "bytes" : "f65f1e28a7fb757814e6adf326d86c89679b67607994f6bd993ef924"
+              }, {
+                "bytes" : "9bf97aad767ee9bf21c898c507ef7fd5b7f6852d8570168c6e0a9a8c"
+              }, {
+                "bytes" : "ab6c97e03c5f809a5ab023e2a32a5fc8605ab96afac0d786aa5b3202"
+              } ]
+            }, {
+              "int" : 2
+            }, {
+              "constructor" : 0,
+              "fields" : [ {
+                "bytes" : "882475316cfc5d8a2be75354787599a1d7e499c169a06080fa4afb46a6bc8f0a"
+              }, {
+                "int" : 0
+              } ]
+            } ]
+          }, {
+            "constructor" : 0,
+            "fields" : [ {
+              "int" : 1788802549000
+            }, {
+              "int" : 1788802729000
+            } ]
+          }, {
+            "constructor" : 4,
+            "fields" : [ ]
+          } ]
+        }, {
+          "list" : [ ]
+        } ]
+      },
+      "exUnits" : {
+        "mem" : 1262918,
+        "steps" : 693232784
+      }
+    }, {
+      "tag" : "reward",
+      "index" : 0,
+      "data" : {
+        "constructor" : 0,
+        "fields" : [ {
+          "int" : 1
+        }, {
+          "constructor" : 0,
+          "fields" : [ {
+            "bytes" : "4b41564143485f494e54454e5401"
+          }, {
+            "constructor" : 0,
+            "fields" : [ {
+              "int" : 1
+            }, {
+              "constructor" : 0,
+              "fields" : [ {
+                "int" : 0
+              }, {
+                "int" : 42
+              }, {
+                "bytes" : "7a0c493afafa345c04e8ff1e810bf2b71540635417ef3b62491a0ea0ddff6737"
+              } ]
+            }, {
+              "constructor" : 0,
+              "fields" : [ {
+                "bytes" : "35327fb9886c63bd5b02478a145a1bb2255c0efbf9cfe9114ef89bec"
+              }, {
+                "bytes" : ""
+              } ]
+            }, {
+              "constructor" : 0,
+              "fields" : [ {
+                "bytes" : "f65f1e28a7fb757814e6adf326d86c89679b67607994f6bd993ef924"
+              }, {
+                "bytes" : "9bf97aad767ee9bf21c898c507ef7fd5b7f6852d8570168c6e0a9a8c"
+              }, {
+                "bytes" : "ab6c97e03c5f809a5ab023e2a32a5fc8605ab96afac0d786aa5b3202"
+              } ]
+            }, {
+              "int" : 2
+            }, {
+              "constructor" : 0,
+              "fields" : [ {
+                "bytes" : "882475316cfc5d8a2be75354787599a1d7e499c169a06080fa4afb46a6bc8f0a"
+              }, {
+                "int" : 0
+              } ]
+            } ]
+          }, {
+            "constructor" : 0,
+            "fields" : [ {
+              "int" : 1788802549000
+            }, {
+              "int" : 1788802729000
+            } ]
+          }, {
+            "constructor" : 4,
+            "fields" : [ ]
+          } ]
+        }, {
+          "list" : [ ]
+        } ]
+      },
+      "exUnits" : {
+        "mem" : 929412,
+        "steps" : 483525268
+      }
+    }, {
+      "tag" : "reward",
+      "index" : 1,
+      "data" : {
+        "constructor" : 0,
+        "fields" : [ {
+          "int" : 1
+        }, {
+          "constructor" : 0,
+          "fields" : [ {
+            "bytes" : "4b41564143485f494e54454e5401"
+          }, {
+            "constructor" : 0,
+            "fields" : [ {
+              "int" : 1
+            }, {
+              "constructor" : 0,
+              "fields" : [ {
+                "int" : 0
+              }, {
+                "int" : 42
+              }, {
+                "bytes" : "7a0c493afafa345c04e8ff1e810bf2b71540635417ef3b62491a0ea0ddff6737"
+              } ]
+            }, {
+              "constructor" : 0,
+              "fields" : [ {
+                "bytes" : "35327fb9886c63bd5b02478a145a1bb2255c0efbf9cfe9114ef89bec"
+              }, {
+                "bytes" : ""
+              } ]
+            }, {
+              "constructor" : 0,
+              "fields" : [ {
+                "bytes" : "f65f1e28a7fb757814e6adf326d86c89679b67607994f6bd993ef924"
+              }, {
+                "bytes" : "9bf97aad767ee9bf21c898c507ef7fd5b7f6852d8570168c6e0a9a8c"
+              }, {
+                "bytes" : "ab6c97e03c5f809a5ab023e2a32a5fc8605ab96afac0d786aa5b3202"
+              } ]
+            }, {
+              "int" : 2
+            }, {
+              "constructor" : 0,
+              "fields" : [ {
+                "bytes" : "882475316cfc5d8a2be75354787599a1d7e499c169a06080fa4afb46a6bc8f0a"
+              }, {
+                "int" : 0
+              } ]
+            } ]
+          }, {
+            "constructor" : 0,
+            "fields" : [ {
+              "int" : 1788802549000
+            }, {
+              "int" : 1788802729000
+            } ]
+          }, {
+            "constructor" : 4,
+            "fields" : [ ]
+          } ]
+        }, {
+          "constructor" : 0,
+          "fields" : [ {
+            "constructor" : 0,
+            "fields" : [ {
+              "int" : 2
+            }, {
+              "list" : [ {
+                "constructor" : 0,
+                "fields" : [ {
+                  "int" : 2
+                }, {
+                  "bytes" : "604b88a867ace7504dba17ce97b32bab958741c5d6521b5169d1dbe2bc61feb2b57172f7004d72e422be1c80d71f25e6f173f48f886a4bda98c70fab223c6becb08299ab32cb49130e60aabb6d3347f82ea260cc1b4f33daa0a21f0d0301"
+                } ]
+              } ]
+            } ]
+          } ]
+        }, {
+          "list" : [ ]
+        }, {
+          "list" : [ ]
+        } ]
+      },
+      "exUnits" : {
+        "mem" : 1685357,
+        "steps" : 835238701
+      }
+    } ]
+  },
+  "new-defensive-unfreeze-state" : "d8799f01d8799f581c35327fb9886c63bd5b02478a145a1bb2255c0efbf9cfe9114ef89bec40ffd8799f00182a58207a0c493afafa345c04e8ff1e810bf2b71540635417ef3b62491a0ea0ddff6737ffd8799f581cf65f1e28a7fb757814e6adf326d86c89679b67607994f6bd993ef924581c9bf97aad767ee9bf21c898c507ef7fd5b7f6852d8570168c6e0a9a8c581cab6c97e03c5f809a5ab023e2a32a5fc8605ab96afac0d786aa5b3202ff03d8799f581cad6d97b4fd616088eef5427a704523428873166f18f436f8f08d89fd01ffd8799f019fd8799f0058205697d75cc2746518f94fbcbab27d44a60dc626d92f70cdd695298648f1e07614ffd8799f01582086acd0905fb6581157ffbb4e08cd40de3024547ff3f6cacf95ceadd319f45d8effd8799f0258200bcc00a72b4e3a94511552a9f38c9b1e16941a2db3e18f0ff739027d4003bee7ffffd8799f019f00ffffd8799f029f0001ffffd8799f019f01ffffd8799f019f02ffffd8799f019f01ffffd8799f019f02ffffff001a05265c001a0036ee8000d87980ff",
+  "rotated-key-transfer-funding" : {
+    "fee" : 172937,
+    "tx" : "62c24ed9aff4fdbfdcf70a306b70229d13007c74aef20728f4193c8f91db8bf1",
+    "bytes" : 298,
+    "redeemers" : [ ]
+  },
+  "rotated-key-transfer" : {
+    "fee" : 1138138,
+    "tx" : "321a38ce580307eb5d9f667640e503f838b1bf81d0ed17d4d49b33158e306fda",
+    "bytes" : 1686,
+    "redeemers" : [ {
+      "tag" : "spend",
+      "index" : 0,
+      "data" : {
+        "constructor" : 0,
+        "fields" : [ {
+          "int" : 1
+        }, {
+          "bytes" : "b095294d2d30e752eb3041e88dba767cc88f458b05b99f6675321edf8aadc716"
+        } ]
+      },
+      "exUnits" : {
+        "mem" : 883461,
+        "steps" : 354404138
+      }
+    }, {
+      "tag" : "reward",
+      "index" : 0,
+      "data" : {
+        "constructor" : 0,
+        "fields" : [ {
+          "int" : 1
+        }, {
+          "constructor" : 0,
+          "fields" : [ {
+            "bytes" : "4b41564143485f494e54454e5401"
+          }, {
+            "constructor" : 0,
+            "fields" : [ {
+              "int" : 1
+            }, {
+              "constructor" : 0,
+              "fields" : [ {
+                "int" : 0
+              }, {
+                "int" : 42
+              }, {
+                "bytes" : "7a0c493afafa345c04e8ff1e810bf2b71540635417ef3b62491a0ea0ddff6737"
+              } ]
+            }, {
+              "constructor" : 0,
+              "fields" : [ {
+                "bytes" : "35327fb9886c63bd5b02478a145a1bb2255c0efbf9cfe9114ef89bec"
+              }, {
+                "bytes" : ""
+              } ]
+            }, {
+              "constructor" : 0,
+              "fields" : [ {
+                "bytes" : "f65f1e28a7fb757814e6adf326d86c89679b67607994f6bd993ef924"
+              }, {
+                "bytes" : "9bf97aad767ee9bf21c898c507ef7fd5b7f6852d8570168c6e0a9a8c"
+              }, {
+                "bytes" : "ab6c97e03c5f809a5ab023e2a32a5fc8605ab96afac0d786aa5b3202"
+              } ]
+            }, {
+              "int" : 3
+            }, {
+              "constructor" : 0,
+              "fields" : [ {
+                "bytes" : "2bab1263546f44380ef8b30c2bc4a6fe91834a227f916e4bd4963963dcc236a4"
+              }, {
+                "int" : 0
+              } ]
+            } ]
+          }, {
+            "constructor" : 0,
+            "fields" : [ {
+              "int" : 1788802551000
+            }, {
+              "int" : 1788802731000
+            } ]
+          }, {
+            "constructor" : 0,
+            "fields" : [ {
+              "list" : [ {
+                "constructor" : 0,
+                "fields" : [ {
+                  "bytes" : "62c24ed9aff4fdbfdcf70a306b70229d13007c74aef20728f4193c8f91db8bf1"
+                }, {
+                  "int" : 0
+                } ]
+              } ]
+            }, {
+              "list" : [ {
+                "constructor" : 0,
+                "fields" : [ {
+                  "int" : 0
+                }, {
+                  "constructor" : 0,
+                  "fields" : [ {
+                    "constructor" : 0,
+                    "fields" : [ {
+                      "bytes" : "88db1f1acaea28067c6050eede0adb2fa854b93a3e1953c639e9d8a0"
+                    } ]
+                  }, {
+                    "constructor" : 1,
+                    "fields" : [ ]
+                  } ]
+                }, {
+                  "list" : [ {
+                    "constructor" : 0,
+                    "fields" : [ {
+                      "bytes" : ""
+                    }, {
+                      "bytes" : ""
+                    }, {
+                      "int" : 2000000
+                    } ]
+                  } ]
+                } ]
+              } ]
+            }, {
+              "int" : 0
+            } ]
+          } ]
+        }, {
+          "list" : [ ]
+        } ]
+      },
+      "exUnits" : {
+        "mem" : 938678,
+        "steps" : 511268157
+      }
+    }, {
+      "tag" : "reward",
+      "index" : 1,
+      "data" : {
+        "constructor" : 0,
+        "fields" : [ {
+          "int" : 1
+        }, {
+          "constructor" : 0,
+          "fields" : [ {
+            "bytes" : "4b41564143485f494e54454e5401"
+          }, {
+            "constructor" : 0,
+            "fields" : [ {
+              "int" : 1
+            }, {
+              "constructor" : 0,
+              "fields" : [ {
+                "int" : 0
+              }, {
+                "int" : 42
+              }, {
+                "bytes" : "7a0c493afafa345c04e8ff1e810bf2b71540635417ef3b62491a0ea0ddff6737"
+              } ]
+            }, {
+              "constructor" : 0,
+              "fields" : [ {
+                "bytes" : "35327fb9886c63bd5b02478a145a1bb2255c0efbf9cfe9114ef89bec"
+              }, {
+                "bytes" : ""
+              } ]
+            }, {
+              "constructor" : 0,
+              "fields" : [ {
+                "bytes" : "f65f1e28a7fb757814e6adf326d86c89679b67607994f6bd993ef924"
+              }, {
+                "bytes" : "9bf97aad767ee9bf21c898c507ef7fd5b7f6852d8570168c6e0a9a8c"
+              }, {
+                "bytes" : "ab6c97e03c5f809a5ab023e2a32a5fc8605ab96afac0d786aa5b3202"
+              } ]
+            }, {
+              "int" : 3
+            }, {
+              "constructor" : 0,
+              "fields" : [ {
+                "bytes" : "2bab1263546f44380ef8b30c2bc4a6fe91834a227f916e4bd4963963dcc236a4"
+              }, {
+                "int" : 0
+              } ]
+            } ]
+          }, {
+            "constructor" : 0,
+            "fields" : [ {
+              "int" : 1788802551000
+            }, {
+              "int" : 1788802731000
+            } ]
+          }, {
+            "constructor" : 0,
+            "fields" : [ {
+              "list" : [ {
+                "constructor" : 0,
+                "fields" : [ {
+                  "bytes" : "62c24ed9aff4fdbfdcf70a306b70229d13007c74aef20728f4193c8f91db8bf1"
+                }, {
+                  "int" : 0
+                } ]
+              } ]
+            }, {
+              "list" : [ {
+                "constructor" : 0,
+                "fields" : [ {
+                  "int" : 0
+                }, {
+                  "constructor" : 0,
+                  "fields" : [ {
+                    "constructor" : 0,
+                    "fields" : [ {
+                      "bytes" : "88db1f1acaea28067c6050eede0adb2fa854b93a3e1953c639e9d8a0"
+                    } ]
+                  }, {
+                    "constructor" : 1,
+                    "fields" : [ ]
+                  } ]
+                }, {
+                  "list" : [ {
+                    "constructor" : 0,
+                    "fields" : [ {
+                      "bytes" : ""
+                    }, {
+                      "bytes" : ""
+                    }, {
+                      "int" : 2000000
+                    } ]
+                  } ]
+                } ]
+              } ]
+            }, {
+              "int" : 0
+            } ]
+          } ]
+        }, {
+          "constructor" : 0,
+          "fields" : [ {
+            "constructor" : 0,
+            "fields" : [ {
+              "int" : 2
+            }, {
+              "list" : [ {
+                "constructor" : 0,
+                "fields" : [ {
+                  "int" : 0
+                }, {
+                  "bytes" : "604c8715f85c12c204cc041389eb3a313bd23d614025ce0752fdc748cdec94e052e09c8ff62d36a034463032e2d2a537b488cf91edcaf4695f60ce7599ad046600f14740f94e6421d6565cfc875ac8f6dbfbf92e60fd2713b9949d220d01"
+                } ]
+              } ]
+            } ]
+          } ]
+        }, {
+          "list" : [ ]
+        }, {
+          "list" : [ ]
+        } ]
+      },
+      "exUnits" : {
+        "mem" : 1607935,
+        "steps" : 843611445
+      }
+    } ]
+  },
+  "scope" : "All-new key possession under old administration, followed by new-key defensive actions on DevKit"
+}

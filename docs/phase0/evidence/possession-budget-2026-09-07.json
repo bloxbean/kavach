@@ -1,0 +1,8 @@
+{
+  "scope" : "Configuration possession primitive maximum input-size case; opaque payload, not a valid full account operation",
+  "keyCount" : 16,
+  "signatureCount" : 16,
+  "serializedEnvelopeBytes" : 1536,
+  "cpu" : 2567350389,
+  "memory" : 6254187
+}

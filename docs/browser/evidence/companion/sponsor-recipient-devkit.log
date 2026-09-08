@@ -1,0 +1,80 @@
+WARNING: A restricted method in java.lang.System has been called
+WARNING: java.lang.System::load has been called by net.rubygrapefruit.platform.internal.NativeLibraryLoader in an unnamed module (file:/Users/satya/.gradle/wrapper/dists/gradle-9.2.0-bin/11i5gvueggl8a5cioxuftxrik/gradle-9.2.0/lib/native-platform-0.22-milestone-29.jar)
+WARNING: Use --enable-native-access=ALL-UNNAMED to avoid a warning for callers in this module
+WARNING: Restricted methods will be blocked in a future release unless native access is enabled
+
+> Task :verifyJulcToolchain
+> Task :compileJava UP-TO-DATE
+> Task :processResources NO-SOURCE
+> Task :classes UP-TO-DATE
+> Task :jar UP-TO-DATE
+> Task :demo:backend:compileJava
+> Task :demo:backend:processResources NO-SOURCE
+> Task :demo:backend:classes
+> Task :demo:backend:javadoc
+> Task :demo:backend:compileTestJava UP-TO-DATE
+> Task :demo:backend:processTestResources NO-SOURCE
+> Task :demo:backend:testClasses UP-TO-DATE
+> Task :demo:backend:test
+> Task :demo:backend:check
+
+> Task :demo:backend:demoIntegrationTest
+
+DemoServiceDevkitTest > createTransferRotateReplaceAndRecoverThroughDemoApi(int) STANDARD_ERROR
+    SLF4J(W): No SLF4J providers were found.
+    SLF4J(W): Defaulting to no-operation (NOP) logger implementation
+    SLF4J(W): See https://www.slf4j.org/codes.html#noProviders for further details.
+
+DemoServiceDevkitTest > createTransferRotateReplaceAndRecoverThroughDemoApi(int) > [1] 1 STANDARD_OUT
+    Create account · publish script 1 of 5 confirmed candidate 8b09c24b7f2d797a554e914b8453b4a080a8b91cc3aff08f58345ee982cd8291
+    Create account · publish script 2 of 5 confirmed candidate b273594252b66a71b15d456540d8dbe5af6ae8f28b45b28742dc3e0370a84dd6
+    Create account · publish script 3 of 5 confirmed candidate 8d8da4b383d0cde84a85e5c1db74b971fb41b8105def4d4888584614caceaf5e
+    Create account · publish script 4 of 5 confirmed candidate 1fa446cca12865fa4e7154c018447946dcb2a1acff5bf9415980e68b70dba4b6
+    Create account · publish script 5 of 5 confirmed candidate 35ef57df1a158e5d24cb3878e90dd73de42ee22414d333b3525645db4650f685
+    Register authorization checkpoints confirmed candidate 7df67c7694ac26b21dc310ccdbaf6a97bd0477f5f059ad7fd2053abfe2691d23
+    Create account · approve genesis confirmed candidate 0a5ae7b271990b158967c0c1e3ae3ce901aa1401e781aae2a394472a369c6f41
+    Send assets confirmed candidate 32168295cc5c2faef7fadfd58d143e1276af23fab223f15e2339195b21ddf205
+    Send assets confirmed candidate bf85dada84f7b17f87b6bb43e9b46f9dae52bf90a00711e329a2c53dc2bd8221
+    Send assets confirmed candidate ffde0200c57d462c89f45e17a190c271bb22d12d1e6e22c87b886211dbacca41
+    Consolidate assets confirmed candidate c3a91df256302e3e916c8f11d3945d0a3214e1cb6b1f8a056dec098597aef550
+    Freeze account confirmed candidate 441b9ea629586c7e9a2b26e214853b7ec0512cec58735935486a14c810f2748a
+    Unfreeze account confirmed candidate c6d3543c575081ca01ad7ea16c1e41d1cbe1f06c4c11c824d330d726220975ee
+    Rotate keys confirmed candidate b60f108e300625c0893c6b6f16e26c82f5e654c779a8273b172fa4fea767303b
+    Publish candidate module confirmed candidate 24616953b6d6dbe83c75db3fbc5c0e67f16e78100dc60b5bccec1614a5cb0885
+    Register authorization checkpoints confirmed candidate f38d3423d0c48b485ad3a9ae964c846acaeb2b3cdb8b18d985a0798c0b54e601
+    Replace module confirmed candidate dc9d818f0f0b7365a1db0b1c70dbc0cd8afc035f6a66ac37d19142db9f020b9e
+    Send assets confirmed candidate 2bfa80a6ee83bcefcf82e3cf9c6c5e599d29921c0420a4d4110c028860157114
+    Start recovery confirmed candidate c96a8874720459527325ae07c40e3452ce567a9215c104c5fd02b15698db40b1
+    Cancel recovery confirmed candidate 83efbbdc6b5b13295930153f752dd853cfd908b4585e88be0a8c95c0754b84bc
+    Unfreeze account confirmed candidate 8f651c7bff53bad570093cba2466d76a39dd924979eacde2a0103708d64f06a7
+    Send assets confirmed candidate ae1de65b6eea387794841844f4efe36916f65a6f9c405bb596e95940706a3fbf
+    Demo API mode 1 creation, transfers, key rotation, cross-mode replacement and recovery cancellation passed
+
+DemoServiceDevkitTest > createTransferRotateReplaceAndRecoverThroughDemoApi(int) > [2] 2 STANDARD_OUT
+    Create account · publish script 1 of 5 confirmed candidate c3edcf55d8ae0c32bb735b1437297974195045154be6672a91d3383e48c159e3
+    Create account · publish script 2 of 5 confirmed candidate d5a64cd6e092a6e43f7e5c57817e857435502a655d27ccb31c1b226648b6b6bf
+    Create account · publish script 3 of 5 confirmed candidate 88af18da8c82c200a132f3ecdb9cb082f6e6110139606e4cfa58bff9cb90368e
+    Create account · publish script 4 of 5 confirmed candidate bd9686c44b881f0eeafbf66059a5e7eeb1aa9e04bbe5fd5af30a21dff7f2b206
+    Create account · publish script 5 of 5 confirmed candidate bde81ce503abebb2101eee0ece90840cc16cf9c22aa576d339382bc188d17582
+    Register authorization checkpoints confirmed candidate c7898751ea2d18e39665fb8e840b9c21da3be72eb21cd2e27c7c7d6b1961e390
+    Create account · approve genesis confirmed candidate 5a6695ac3b6e63b91245497964f55f41bea61499d88e09d21440cd2b9aeb08c2
+    Send assets confirmed candidate 24be98bca843a3f74a625496673c9ff5c06ecf78a5e4088ef4c4da8328e0264c
+    Send assets confirmed candidate 75acde01bae1d5c6277916552e9649edcfa755b6f0dfa03ad7a785e726d9cb32
+    Send assets confirmed candidate 5a52dbba04581f224d3235461e7bb3659e4c19699e5cb51622399162c9f4597a
+    Consolidate assets confirmed candidate a953d50a78a81e642c7cbaf5bdad1afc5bab06ac3de38b4e537ce196bc9f953f
+    Freeze account confirmed candidate df96b802d9094ba9780148557caafff45a6e6f73259bbef6e9849da95097cb6a
+    Unfreeze account confirmed candidate c1ebd6ddf19db8874a802726068ff723e7f8958d146d52158be3ff3e67ad0f27
+    Rotate keys confirmed candidate b6bb499ba5a97b5de2607cffe95e2c8badc6a63a1dfaad0c655284626226cc5f
+    Publish candidate module confirmed candidate 82d19b9f948d73d06fcde969bfffe3ab5b8f17996a8a5e873e119ebb68b127b7
+    Register authorization checkpoints confirmed candidate 9b0e87a686c9144d9d4674ba0ba19135ab10b6beca269a5bc3e8c364271ec060
+    Replace module confirmed candidate 3a2f56f38b6bbf4f520353d9969cf3d2e07db52324f5d1ac7ef34d3b5625a03d
+    Send assets confirmed candidate 5166da17bfc86413ded7573bd3f2903f360f97197a7db204703329dde239aa22
+    Start recovery confirmed candidate c180674e1782bddedef9da6fb4c7164d69c65b31cdc1294d2aff7657da214532
+    Cancel recovery confirmed candidate ef593a1dfa7fff94f90c4deb4401c24a3cdb28f52b4afd62edb7b944691d066e
+    Unfreeze account confirmed candidate f994ed9f7b984d01dd17da478fe6f079f6134659c4593c4ac91b0a21d321231d
+    Send assets confirmed candidate e54376dd3e477dc52add02069ce37544a76a9c1a1099275bf6705ab42e911b54
+    Demo API mode 2 creation, transfers, key rotation, cross-mode replacement and recovery cancellation passed
+
+BUILD SUCCESSFUL in 3m 3s
+8 actionable tasks: 5 executed, 3 up-to-date
+Consider enabling configuration cache to speed up this build: https://docs.gradle.org/9.2.0/userguide/configuration_cache_enabling.html

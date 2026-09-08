@@ -1,0 +1,2382 @@
+{
+  "publication-0" : {
+    "tx" : "e7027d7dc1faf05066d2ff6f9956b076c30cfc1c00dd3c7f6c7423b66b703ab7",
+    "bytes" : 8407,
+    "fee" : 529733,
+    "redeemers" : null
+  },
+  "publication-1" : {
+    "tx" : "df2827f05526f8a797687505c515b54108b87494d46deffb6fccf21a8ca47395",
+    "bytes" : 12878,
+    "fee" : 726457,
+    "redeemers" : null
+  },
+  "publication-2" : {
+    "tx" : "60eecc0d8e3f7ef255e571fb248fee73a91bc7c1a73c1f2fbd405e3c985ab164",
+    "bytes" : 6442,
+    "fee" : 443273,
+    "redeemers" : null
+  },
+  "publication-3" : {
+    "tx" : "abbee633cfb3ecccb9d25fbbd893cb9f77f766d1170436603cd7fee319c38edf",
+    "bytes" : 11001,
+    "fee" : 643869,
+    "redeemers" : null
+  },
+  "registration" : {
+    "tx" : "b9ff23557e92d9e6be5a91d0a1d0d6d53d973cfc30f9b501b70e6db0e0f78dab",
+    "bytes" : 298,
+    "fee" : 172937,
+    "redeemers" : null
+  },
+  "creation" : {
+    "tx" : "17f21348442d94eaa2a859086313dc1d6b4fea1c7f748acdb4674be87956a51a",
+    "bytes" : 1890,
+    "fee" : 780306,
+    "redeemers" : [ {
+      "tag" : "mint",
+      "index" : 0,
+      "data" : {
+        "int" : 0
+      },
+      "exUnits" : {
+        "mem" : 853245,
+        "steps" : 396413700
+      }
+    }, {
+      "tag" : "reward",
+      "index" : 0,
+      "data" : {
+        "constructor" : 2,
+        "fields" : [ {
+          "int" : 1
+        }, {
+          "constructor" : 0,
+          "fields" : [ {
+            "int" : 1
+          }, {
+            "constructor" : 0,
+            "fields" : [ {
+              "bytes" : "9136f5ea4c041c682c4bc4c83bd34ab7ae7ffcb7b217a792f6cafed9"
+            }, {
+              "bytes" : ""
+            } ]
+          }, {
+            "constructor" : 0,
+            "fields" : [ {
+              "int" : 0
+            }, {
+              "int" : 42
+            }, {
+              "bytes" : "c0b8414b93012a422fa0cd0c611aeed1837698cc110d4422091ae86d99d1da18"
+            } ]
+          }, {
+            "constructor" : 0,
+            "fields" : [ {
+              "bytes" : "9364b2b3b314a47f2f4884f709901fa0af343ca1ae2df0523439f64f"
+            }, {
+              "bytes" : "eef3bb646b8fa1fb8ac24a44e14a14b39d213203554b01f390ade3a7"
+            }, {
+              "bytes" : "7ca8d0b169bc9767c607c553d65b63b74f7ef46560a46ea230f6473a"
+            } ]
+          }, {
+            "int" : 0
+          }, {
+            "constructor" : 0,
+            "fields" : [ {
+              "bytes" : "2f6dae1051b7f97c15d6cb44ffaf0c926bddef0f6ad9a6a3b432727f"
+            }, {
+              "int" : 1
+            } ]
+          }, {
+            "constructor" : 0,
+            "fields" : [ {
+              "int" : 1
+            }, {
+              "list" : [ {
+                "constructor" : 0,
+                "fields" : [ {
+                  "int" : 0
+                }, {
+                  "bytes" : "90e72810fdc68e243aa97b0e653e26014a4b84af12964fedad7fd1e7bdf6003c"
+                } ]
+              }, {
+                "constructor" : 0,
+                "fields" : [ {
+                  "int" : 1
+                }, {
+                  "bytes" : "e30d00d6023985756015043f77368d99991600ddc574e89dcf0c6c0c574a5b6a"
+                } ]
+              }, {
+                "constructor" : 0,
+                "fields" : [ {
+                  "int" : 2
+                }, {
+                  "bytes" : "e18dd384031776d32b859022d3a85e8f70271a19ec513fbc1733c0c486d2ceec"
+                } ]
+              } ]
+            }, {
+              "constructor" : 0,
+              "fields" : [ {
+                "int" : 1
+              }, {
+                "list" : [ {
+                  "int" : 0
+                } ]
+              } ]
+            }, {
+              "constructor" : 0,
+              "fields" : [ {
+                "int" : 2
+              }, {
+                "list" : [ {
+                  "int" : 0
+                }, {
+                  "int" : 1
+                } ]
+              } ]
+            }, {
+              "constructor" : 0,
+              "fields" : [ {
+                "int" : 1
+              }, {
+                "list" : [ {
+                  "int" : 1
+                } ]
+              } ]
+            }, {
+              "constructor" : 0,
+              "fields" : [ {
+                "int" : 1
+              }, {
+                "list" : [ {
+                  "int" : 2
+                } ]
+              } ]
+            }, {
+              "constructor" : 0,
+              "fields" : [ {
+                "int" : 1
+              }, {
+                "list" : [ {
+                  "int" : 1
+                } ]
+              } ]
+            }, {
+              "constructor" : 0,
+              "fields" : [ {
+                "int" : 1
+              }, {
+                "list" : [ {
+                  "int" : 2
+                } ]
+              } ]
+            } ]
+          }, {
+            "int" : 0
+          }, {
+            "int" : 86400000
+          }, {
+            "int" : 3600000
+          }, {
+            "int" : 0
+          }, {
+            "constructor" : 0,
+            "fields" : [ ]
+          } ]
+        }, {
+          "list" : [ {
+            "constructor" : 0,
+            "fields" : [ {
+              "int" : 0
+            }, {
+              "bytes" : "51ac57ff1796c1d27d658686147fcbc326e0151f5589f15a79d4f66efd1e7625d3c11ea9c862dd021c0458b5032d9b5a6a45bca6393c81842a7e9317c36ea905"
+            } ]
+          }, {
+            "constructor" : 0,
+            "fields" : [ {
+              "int" : 1
+            }, {
+              "bytes" : "140a56662ebaf03ee788c31b990f72b6715d7916184d4906e493b646b46dd359f1cfaafe57af685a27baa55af128a8f5fffc5dcd4c45c1e401ab286337ec9c0b"
+            } ]
+          }, {
+            "constructor" : 0,
+            "fields" : [ {
+              "int" : 2
+            }, {
+              "bytes" : "9fae38c5e1c1f6937995d569f8888a332811cc5123f9e126af856d380b93099f1aa0b69bdbc23e1ea7102a9b4ceab311606057663373a546ebac41718244a20d"
+            } ]
+          } ]
+        }, {
+          "list" : [ ]
+        } ]
+      },
+      "exUnits" : {
+        "mem" : 1844016,
+        "steps" : 936240913
+      }
+    } ]
+  },
+  "funding" : {
+    "tx" : "fa81923bcb8f4b30ca57281850a4bb26b0b220a9e27e2ef8fb54e79d08b8c24c",
+    "bytes" : 672,
+    "fee" : 189393,
+    "redeemers" : null
+  },
+  "recipientSubstitutionRejected" : true,
+  "tokenDiversionRejected" : true,
+  "spend" : {
+    "tx" : "e9bbab063cb0cc635b4053fa5f59afcbaa54a2a4c41b2f2504c6336678f86545",
+    "bytes" : 4758,
+    "fee" : 1964658,
+    "redeemers" : [ {
+      "tag" : "spend",
+      "index" : 0,
+      "data" : {
+        "constructor" : 0,
+        "fields" : [ {
+          "int" : 1
+        }, {
+          "bytes" : "132f34bdb4943045f74157f37ec53cf833d4258214bcf418df26a808d71e3024"
+        } ]
+      },
+      "exUnits" : {
+        "mem" : 6850342,
+        "steps" : 2546358110
+      }
+    }, {
+      "tag" : "spend",
+      "index" : 1,
+      "data" : {
+        "constructor" : 0,
+        "fields" : [ {
+          "int" : 1
+        }, {
+          "bytes" : "132f34bdb4943045f74157f37ec53cf833d4258214bcf418df26a808d71e3024"
+        } ]
+      },
+      "exUnits" : {
+        "mem" : 202545,
+        "steps" : 285913245
+      }
+    }, {
+      "tag" : "spend",
+      "index" : 2,
+      "data" : {
+        "constructor" : 0,
+        "fields" : [ {
+          "int" : 1
+        }, {
+          "bytes" : "132f34bdb4943045f74157f37ec53cf833d4258214bcf418df26a808d71e3024"
+        } ]
+      },
+      "exUnits" : {
+        "mem" : 202545,
+        "steps" : 285913245
+      }
+    }, {
+      "tag" : "spend",
+      "index" : 3,
+      "data" : {
+        "constructor" : 0,
+        "fields" : [ {
+          "int" : 1
+        }, {
+          "bytes" : "132f34bdb4943045f74157f37ec53cf833d4258214bcf418df26a808d71e3024"
+        } ]
+      },
+      "exUnits" : {
+        "mem" : 202545,
+        "steps" : 285913245
+      }
+    }, {
+      "tag" : "spend",
+      "index" : 4,
+      "data" : {
+        "constructor" : 0,
+        "fields" : [ {
+          "int" : 1
+        }, {
+          "bytes" : "132f34bdb4943045f74157f37ec53cf833d4258214bcf418df26a808d71e3024"
+        } ]
+      },
+      "exUnits" : {
+        "mem" : 202545,
+        "steps" : 285913245
+      }
+    }, {
+      "tag" : "spend",
+      "index" : 5,
+      "data" : {
+        "constructor" : 0,
+        "fields" : [ {
+          "int" : 1
+        }, {
+          "bytes" : "132f34bdb4943045f74157f37ec53cf833d4258214bcf418df26a808d71e3024"
+        } ]
+      },
+      "exUnits" : {
+        "mem" : 202545,
+        "steps" : 285913245
+      }
+    }, {
+      "tag" : "spend",
+      "index" : 6,
+      "data" : {
+        "constructor" : 0,
+        "fields" : [ {
+          "int" : 1
+        }, {
+          "bytes" : "132f34bdb4943045f74157f37ec53cf833d4258214bcf418df26a808d71e3024"
+        } ]
+      },
+      "exUnits" : {
+        "mem" : 202545,
+        "steps" : 285913245
+      }
+    }, {
+      "tag" : "spend",
+      "index" : 7,
+      "data" : {
+        "constructor" : 0,
+        "fields" : [ {
+          "int" : 1
+        }, {
+          "bytes" : "132f34bdb4943045f74157f37ec53cf833d4258214bcf418df26a808d71e3024"
+        } ]
+      },
+      "exUnits" : {
+        "mem" : 202545,
+        "steps" : 285913245
+      }
+    }, {
+      "tag" : "reward",
+      "index" : 0,
+      "data" : {
+        "constructor" : 0,
+        "fields" : [ {
+          "int" : 1
+        }, {
+          "constructor" : 0,
+          "fields" : [ {
+            "bytes" : "4b41564143485f494e54454e5401"
+          }, {
+            "constructor" : 0,
+            "fields" : [ {
+              "int" : 1
+            }, {
+              "constructor" : 0,
+              "fields" : [ {
+                "int" : 0
+              }, {
+                "int" : 42
+              }, {
+                "bytes" : "c0b8414b93012a422fa0cd0c611aeed1837698cc110d4422091ae86d99d1da18"
+              } ]
+            }, {
+              "constructor" : 0,
+              "fields" : [ {
+                "bytes" : "9136f5ea4c041c682c4bc4c83bd34ab7ae7ffcb7b217a792f6cafed9"
+              }, {
+                "bytes" : ""
+              } ]
+            }, {
+              "constructor" : 0,
+              "fields" : [ {
+                "bytes" : "9364b2b3b314a47f2f4884f709901fa0af343ca1ae2df0523439f64f"
+              }, {
+                "bytes" : "eef3bb646b8fa1fb8ac24a44e14a14b39d213203554b01f390ade3a7"
+              }, {
+                "bytes" : "7ca8d0b169bc9767c607c553d65b63b74f7ef46560a46ea230f6473a"
+              } ]
+            }, {
+              "int" : 0
+            }, {
+              "constructor" : 0,
+              "fields" : [ {
+                "bytes" : "17f21348442d94eaa2a859086313dc1d6b4fea1c7f748acdb4674be87956a51a"
+              }, {
+                "int" : 0
+              } ]
+            } ]
+          }, {
+            "constructor" : 0,
+            "fields" : [ {
+              "int" : 1788771415000
+            }, {
+              "int" : 1788771595000
+            } ]
+          }, {
+            "constructor" : 0,
+            "fields" : [ {
+              "list" : [ {
+                "constructor" : 0,
+                "fields" : [ {
+                  "bytes" : "fa81923bcb8f4b30ca57281850a4bb26b0b220a9e27e2ef8fb54e79d08b8c24c"
+                }, {
+                  "int" : 0
+                } ]
+              }, {
+                "constructor" : 0,
+                "fields" : [ {
+                  "bytes" : "fa81923bcb8f4b30ca57281850a4bb26b0b220a9e27e2ef8fb54e79d08b8c24c"
+                }, {
+                  "int" : 1
+                } ]
+              }, {
+                "constructor" : 0,
+                "fields" : [ {
+                  "bytes" : "fa81923bcb8f4b30ca57281850a4bb26b0b220a9e27e2ef8fb54e79d08b8c24c"
+                }, {
+                  "int" : 2
+                } ]
+              }, {
+                "constructor" : 0,
+                "fields" : [ {
+                  "bytes" : "fa81923bcb8f4b30ca57281850a4bb26b0b220a9e27e2ef8fb54e79d08b8c24c"
+                }, {
+                  "int" : 3
+                } ]
+              }, {
+                "constructor" : 0,
+                "fields" : [ {
+                  "bytes" : "fa81923bcb8f4b30ca57281850a4bb26b0b220a9e27e2ef8fb54e79d08b8c24c"
+                }, {
+                  "int" : 4
+                } ]
+              }, {
+                "constructor" : 0,
+                "fields" : [ {
+                  "bytes" : "fa81923bcb8f4b30ca57281850a4bb26b0b220a9e27e2ef8fb54e79d08b8c24c"
+                }, {
+                  "int" : 5
+                } ]
+              }, {
+                "constructor" : 0,
+                "fields" : [ {
+                  "bytes" : "fa81923bcb8f4b30ca57281850a4bb26b0b220a9e27e2ef8fb54e79d08b8c24c"
+                }, {
+                  "int" : 6
+                } ]
+              }, {
+                "constructor" : 0,
+                "fields" : [ {
+                  "bytes" : "fa81923bcb8f4b30ca57281850a4bb26b0b220a9e27e2ef8fb54e79d08b8c24c"
+                }, {
+                  "int" : 7
+                } ]
+              } ]
+            }, {
+              "list" : [ {
+                "constructor" : 0,
+                "fields" : [ {
+                  "int" : 0
+                }, {
+                  "constructor" : 0,
+                  "fields" : [ {
+                    "constructor" : 0,
+                    "fields" : [ {
+                      "bytes" : "9644a4b061846966bf01dbcc28b1b265b09f293c3b2403ec577ffcca"
+                    } ]
+                  }, {
+                    "constructor" : 1,
+                    "fields" : [ ]
+                  } ]
+                }, {
+                  "list" : [ {
+                    "constructor" : 0,
+                    "fields" : [ {
+                      "bytes" : ""
+                    }, {
+                      "bytes" : ""
+                    }, {
+                      "int" : 2000000
+                    } ]
+                  }, {
+                    "constructor" : 0,
+                    "fields" : [ {
+                      "bytes" : "6e1ee0d5723cf815d465b38eab0e596f3462edb1ec84e346d2213b9a"
+                    }, {
+                      "bytes" : "00"
+                    }, {
+                      "int" : 1
+                    } ]
+                  } ]
+                } ]
+              }, {
+                "constructor" : 0,
+                "fields" : [ {
+                  "int" : 1
+                }, {
+                  "constructor" : 0,
+                  "fields" : [ {
+                    "constructor" : 0,
+                    "fields" : [ {
+                      "bytes" : "9644a4b061846966bf01dbcc28b1b265b09f293c3b2403ec577ffcca"
+                    } ]
+                  }, {
+                    "constructor" : 1,
+                    "fields" : [ ]
+                  } ]
+                }, {
+                  "list" : [ {
+                    "constructor" : 0,
+                    "fields" : [ {
+                      "bytes" : ""
+                    }, {
+                      "bytes" : ""
+                    }, {
+                      "int" : 2000000
+                    } ]
+                  }, {
+                    "constructor" : 0,
+                    "fields" : [ {
+                      "bytes" : "6e1ee0d5723cf815d465b38eab0e596f3462edb1ec84e346d2213b9a"
+                    }, {
+                      "bytes" : "01"
+                    }, {
+                      "int" : 1
+                    } ]
+                  } ]
+                } ]
+              }, {
+                "constructor" : 0,
+                "fields" : [ {
+                  "int" : 2
+                }, {
+                  "constructor" : 0,
+                  "fields" : [ {
+                    "constructor" : 0,
+                    "fields" : [ {
+                      "bytes" : "9644a4b061846966bf01dbcc28b1b265b09f293c3b2403ec577ffcca"
+                    } ]
+                  }, {
+                    "constructor" : 1,
+                    "fields" : [ ]
+                  } ]
+                }, {
+                  "list" : [ {
+                    "constructor" : 0,
+                    "fields" : [ {
+                      "bytes" : ""
+                    }, {
+                      "bytes" : ""
+                    }, {
+                      "int" : 2000000
+                    } ]
+                  }, {
+                    "constructor" : 0,
+                    "fields" : [ {
+                      "bytes" : "6e1ee0d5723cf815d465b38eab0e596f3462edb1ec84e346d2213b9a"
+                    }, {
+                      "bytes" : "02"
+                    }, {
+                      "int" : 1
+                    } ]
+                  } ]
+                } ]
+              }, {
+                "constructor" : 0,
+                "fields" : [ {
+                  "int" : 3
+                }, {
+                  "constructor" : 0,
+                  "fields" : [ {
+                    "constructor" : 0,
+                    "fields" : [ {
+                      "bytes" : "9644a4b061846966bf01dbcc28b1b265b09f293c3b2403ec577ffcca"
+                    } ]
+                  }, {
+                    "constructor" : 1,
+                    "fields" : [ ]
+                  } ]
+                }, {
+                  "list" : [ {
+                    "constructor" : 0,
+                    "fields" : [ {
+                      "bytes" : ""
+                    }, {
+                      "bytes" : ""
+                    }, {
+                      "int" : 2000000
+                    } ]
+                  }, {
+                    "constructor" : 0,
+                    "fields" : [ {
+                      "bytes" : "6e1ee0d5723cf815d465b38eab0e596f3462edb1ec84e346d2213b9a"
+                    }, {
+                      "bytes" : "03"
+                    }, {
+                      "int" : 1
+                    } ]
+                  } ]
+                } ]
+              }, {
+                "constructor" : 0,
+                "fields" : [ {
+                  "int" : 4
+                }, {
+                  "constructor" : 0,
+                  "fields" : [ {
+                    "constructor" : 0,
+                    "fields" : [ {
+                      "bytes" : "9644a4b061846966bf01dbcc28b1b265b09f293c3b2403ec577ffcca"
+                    } ]
+                  }, {
+                    "constructor" : 1,
+                    "fields" : [ ]
+                  } ]
+                }, {
+                  "list" : [ {
+                    "constructor" : 0,
+                    "fields" : [ {
+                      "bytes" : ""
+                    }, {
+                      "bytes" : ""
+                    }, {
+                      "int" : 2000000
+                    } ]
+                  }, {
+                    "constructor" : 0,
+                    "fields" : [ {
+                      "bytes" : "6e1ee0d5723cf815d465b38eab0e596f3462edb1ec84e346d2213b9a"
+                    }, {
+                      "bytes" : "04"
+                    }, {
+                      "int" : 1
+                    } ]
+                  } ]
+                } ]
+              }, {
+                "constructor" : 0,
+                "fields" : [ {
+                  "int" : 5
+                }, {
+                  "constructor" : 0,
+                  "fields" : [ {
+                    "constructor" : 0,
+                    "fields" : [ {
+                      "bytes" : "9644a4b061846966bf01dbcc28b1b265b09f293c3b2403ec577ffcca"
+                    } ]
+                  }, {
+                    "constructor" : 1,
+                    "fields" : [ ]
+                  } ]
+                }, {
+                  "list" : [ {
+                    "constructor" : 0,
+                    "fields" : [ {
+                      "bytes" : ""
+                    }, {
+                      "bytes" : ""
+                    }, {
+                      "int" : 2000000
+                    } ]
+                  }, {
+                    "constructor" : 0,
+                    "fields" : [ {
+                      "bytes" : "6e1ee0d5723cf815d465b38eab0e596f3462edb1ec84e346d2213b9a"
+                    }, {
+                      "bytes" : "05"
+                    }, {
+                      "int" : 1
+                    } ]
+                  } ]
+                } ]
+              }, {
+                "constructor" : 0,
+                "fields" : [ {
+                  "int" : 6
+                }, {
+                  "constructor" : 0,
+                  "fields" : [ {
+                    "constructor" : 0,
+                    "fields" : [ {
+                      "bytes" : "9644a4b061846966bf01dbcc28b1b265b09f293c3b2403ec577ffcca"
+                    } ]
+                  }, {
+                    "constructor" : 1,
+                    "fields" : [ ]
+                  } ]
+                }, {
+                  "list" : [ {
+                    "constructor" : 0,
+                    "fields" : [ {
+                      "bytes" : ""
+                    }, {
+                      "bytes" : ""
+                    }, {
+                      "int" : 2000000
+                    } ]
+                  }, {
+                    "constructor" : 0,
+                    "fields" : [ {
+                      "bytes" : "6e1ee0d5723cf815d465b38eab0e596f3462edb1ec84e346d2213b9a"
+                    }, {
+                      "bytes" : "06"
+                    }, {
+                      "int" : 1
+                    } ]
+                  } ]
+                } ]
+              }, {
+                "constructor" : 0,
+                "fields" : [ {
+                  "int" : 7
+                }, {
+                  "constructor" : 0,
+                  "fields" : [ {
+                    "constructor" : 0,
+                    "fields" : [ {
+                      "bytes" : "9644a4b061846966bf01dbcc28b1b265b09f293c3b2403ec577ffcca"
+                    } ]
+                  }, {
+                    "constructor" : 1,
+                    "fields" : [ ]
+                  } ]
+                }, {
+                  "list" : [ {
+                    "constructor" : 0,
+                    "fields" : [ {
+                      "bytes" : ""
+                    }, {
+                      "bytes" : ""
+                    }, {
+                      "int" : 2000000
+                    } ]
+                  }, {
+                    "constructor" : 0,
+                    "fields" : [ {
+                      "bytes" : "6e1ee0d5723cf815d465b38eab0e596f3462edb1ec84e346d2213b9a"
+                    }, {
+                      "bytes" : "07"
+                    }, {
+                      "int" : 1
+                    } ]
+                  } ]
+                } ]
+              } ]
+            }, {
+              "int" : 0
+            } ]
+          } ]
+        }, {
+          "constructor" : 0,
+          "fields" : [ {
+            "constructor" : 0,
+            "fields" : [ {
+              "int" : 0
+            }, {
+              "list" : [ {
+                "constructor" : 0,
+                "fields" : [ {
+                  "int" : 0
+                }, {
+                  "bytes" : "8d5b3dfd20a6cfd8c8a097b5cbc144d3fd4b2cf5e5ec582566ca15789b96c578e6cbde248290fbad29961eeb21f8101e220b7cbf2f2fc0ff0aa42ff140f5ac0d"
+                } ]
+              } ]
+            } ]
+          } ]
+        }, {
+          "list" : [ ]
+        }, {
+          "list" : [ ]
+        } ]
+      },
+      "exUnits" : {
+        "mem" : 1480660,
+        "steps" : 1164368667
+      }
+    }, {
+      "tag" : "reward",
+      "index" : 1,
+      "data" : {
+        "constructor" : 0,
+        "fields" : [ {
+          "int" : 1
+        }, {
+          "constructor" : 0,
+          "fields" : [ {
+            "bytes" : "4b41564143485f494e54454e5401"
+          }, {
+            "constructor" : 0,
+            "fields" : [ {
+              "int" : 1
+            }, {
+              "constructor" : 0,
+              "fields" : [ {
+                "int" : 0
+              }, {
+                "int" : 42
+              }, {
+                "bytes" : "c0b8414b93012a422fa0cd0c611aeed1837698cc110d4422091ae86d99d1da18"
+              } ]
+            }, {
+              "constructor" : 0,
+              "fields" : [ {
+                "bytes" : "9136f5ea4c041c682c4bc4c83bd34ab7ae7ffcb7b217a792f6cafed9"
+              }, {
+                "bytes" : ""
+              } ]
+            }, {
+              "constructor" : 0,
+              "fields" : [ {
+                "bytes" : "9364b2b3b314a47f2f4884f709901fa0af343ca1ae2df0523439f64f"
+              }, {
+                "bytes" : "eef3bb646b8fa1fb8ac24a44e14a14b39d213203554b01f390ade3a7"
+              }, {
+                "bytes" : "7ca8d0b169bc9767c607c553d65b63b74f7ef46560a46ea230f6473a"
+              } ]
+            }, {
+              "int" : 0
+            }, {
+              "constructor" : 0,
+              "fields" : [ {
+                "bytes" : "17f21348442d94eaa2a859086313dc1d6b4fea1c7f748acdb4674be87956a51a"
+              }, {
+                "int" : 0
+              } ]
+            } ]
+          }, {
+            "constructor" : 0,
+            "fields" : [ {
+              "int" : 1788771415000
+            }, {
+              "int" : 1788771595000
+            } ]
+          }, {
+            "constructor" : 0,
+            "fields" : [ {
+              "list" : [ {
+                "constructor" : 0,
+                "fields" : [ {
+                  "bytes" : "fa81923bcb8f4b30ca57281850a4bb26b0b220a9e27e2ef8fb54e79d08b8c24c"
+                }, {
+                  "int" : 0
+                } ]
+              }, {
+                "constructor" : 0,
+                "fields" : [ {
+                  "bytes" : "fa81923bcb8f4b30ca57281850a4bb26b0b220a9e27e2ef8fb54e79d08b8c24c"
+                }, {
+                  "int" : 1
+                } ]
+              }, {
+                "constructor" : 0,
+                "fields" : [ {
+                  "bytes" : "fa81923bcb8f4b30ca57281850a4bb26b0b220a9e27e2ef8fb54e79d08b8c24c"
+                }, {
+                  "int" : 2
+                } ]
+              }, {
+                "constructor" : 0,
+                "fields" : [ {
+                  "bytes" : "fa81923bcb8f4b30ca57281850a4bb26b0b220a9e27e2ef8fb54e79d08b8c24c"
+                }, {
+                  "int" : 3
+                } ]
+              }, {
+                "constructor" : 0,
+                "fields" : [ {
+                  "bytes" : "fa81923bcb8f4b30ca57281850a4bb26b0b220a9e27e2ef8fb54e79d08b8c24c"
+                }, {
+                  "int" : 4
+                } ]
+              }, {
+                "constructor" : 0,
+                "fields" : [ {
+                  "bytes" : "fa81923bcb8f4b30ca57281850a4bb26b0b220a9e27e2ef8fb54e79d08b8c24c"
+                }, {
+                  "int" : 5
+                } ]
+              }, {
+                "constructor" : 0,
+                "fields" : [ {
+                  "bytes" : "fa81923bcb8f4b30ca57281850a4bb26b0b220a9e27e2ef8fb54e79d08b8c24c"
+                }, {
+                  "int" : 6
+                } ]
+              }, {
+                "constructor" : 0,
+                "fields" : [ {
+                  "bytes" : "fa81923bcb8f4b30ca57281850a4bb26b0b220a9e27e2ef8fb54e79d08b8c24c"
+                }, {
+                  "int" : 7
+                } ]
+              } ]
+            }, {
+              "list" : [ {
+                "constructor" : 0,
+                "fields" : [ {
+                  "int" : 0
+                }, {
+                  "constructor" : 0,
+                  "fields" : [ {
+                    "constructor" : 0,
+                    "fields" : [ {
+                      "bytes" : "9644a4b061846966bf01dbcc28b1b265b09f293c3b2403ec577ffcca"
+                    } ]
+                  }, {
+                    "constructor" : 1,
+                    "fields" : [ ]
+                  } ]
+                }, {
+                  "list" : [ {
+                    "constructor" : 0,
+                    "fields" : [ {
+                      "bytes" : ""
+                    }, {
+                      "bytes" : ""
+                    }, {
+                      "int" : 2000000
+                    } ]
+                  }, {
+                    "constructor" : 0,
+                    "fields" : [ {
+                      "bytes" : "6e1ee0d5723cf815d465b38eab0e596f3462edb1ec84e346d2213b9a"
+                    }, {
+                      "bytes" : "00"
+                    }, {
+                      "int" : 1
+                    } ]
+                  } ]
+                } ]
+              }, {
+                "constructor" : 0,
+                "fields" : [ {
+                  "int" : 1
+                }, {
+                  "constructor" : 0,
+                  "fields" : [ {
+                    "constructor" : 0,
+                    "fields" : [ {
+                      "bytes" : "9644a4b061846966bf01dbcc28b1b265b09f293c3b2403ec577ffcca"
+                    } ]
+                  }, {
+                    "constructor" : 1,
+                    "fields" : [ ]
+                  } ]
+                }, {
+                  "list" : [ {
+                    "constructor" : 0,
+                    "fields" : [ {
+                      "bytes" : ""
+                    }, {
+                      "bytes" : ""
+                    }, {
+                      "int" : 2000000
+                    } ]
+                  }, {
+                    "constructor" : 0,
+                    "fields" : [ {
+                      "bytes" : "6e1ee0d5723cf815d465b38eab0e596f3462edb1ec84e346d2213b9a"
+                    }, {
+                      "bytes" : "01"
+                    }, {
+                      "int" : 1
+                    } ]
+                  } ]
+                } ]
+              }, {
+                "constructor" : 0,
+                "fields" : [ {
+                  "int" : 2
+                }, {
+                  "constructor" : 0,
+                  "fields" : [ {
+                    "constructor" : 0,
+                    "fields" : [ {
+                      "bytes" : "9644a4b061846966bf01dbcc28b1b265b09f293c3b2403ec577ffcca"
+                    } ]
+                  }, {
+                    "constructor" : 1,
+                    "fields" : [ ]
+                  } ]
+                }, {
+                  "list" : [ {
+                    "constructor" : 0,
+                    "fields" : [ {
+                      "bytes" : ""
+                    }, {
+                      "bytes" : ""
+                    }, {
+                      "int" : 2000000
+                    } ]
+                  }, {
+                    "constructor" : 0,
+                    "fields" : [ {
+                      "bytes" : "6e1ee0d5723cf815d465b38eab0e596f3462edb1ec84e346d2213b9a"
+                    }, {
+                      "bytes" : "02"
+                    }, {
+                      "int" : 1
+                    } ]
+                  } ]
+                } ]
+              }, {
+                "constructor" : 0,
+                "fields" : [ {
+                  "int" : 3
+                }, {
+                  "constructor" : 0,
+                  "fields" : [ {
+                    "constructor" : 0,
+                    "fields" : [ {
+                      "bytes" : "9644a4b061846966bf01dbcc28b1b265b09f293c3b2403ec577ffcca"
+                    } ]
+                  }, {
+                    "constructor" : 1,
+                    "fields" : [ ]
+                  } ]
+                }, {
+                  "list" : [ {
+                    "constructor" : 0,
+                    "fields" : [ {
+                      "bytes" : ""
+                    }, {
+                      "bytes" : ""
+                    }, {
+                      "int" : 2000000
+                    } ]
+                  }, {
+                    "constructor" : 0,
+                    "fields" : [ {
+                      "bytes" : "6e1ee0d5723cf815d465b38eab0e596f3462edb1ec84e346d2213b9a"
+                    }, {
+                      "bytes" : "03"
+                    }, {
+                      "int" : 1
+                    } ]
+                  } ]
+                } ]
+              }, {
+                "constructor" : 0,
+                "fields" : [ {
+                  "int" : 4
+                }, {
+                  "constructor" : 0,
+                  "fields" : [ {
+                    "constructor" : 0,
+                    "fields" : [ {
+                      "bytes" : "9644a4b061846966bf01dbcc28b1b265b09f293c3b2403ec577ffcca"
+                    } ]
+                  }, {
+                    "constructor" : 1,
+                    "fields" : [ ]
+                  } ]
+                }, {
+                  "list" : [ {
+                    "constructor" : 0,
+                    "fields" : [ {
+                      "bytes" : ""
+                    }, {
+                      "bytes" : ""
+                    }, {
+                      "int" : 2000000
+                    } ]
+                  }, {
+                    "constructor" : 0,
+                    "fields" : [ {
+                      "bytes" : "6e1ee0d5723cf815d465b38eab0e596f3462edb1ec84e346d2213b9a"
+                    }, {
+                      "bytes" : "04"
+                    }, {
+                      "int" : 1
+                    } ]
+                  } ]
+                } ]
+              }, {
+                "constructor" : 0,
+                "fields" : [ {
+                  "int" : 5
+                }, {
+                  "constructor" : 0,
+                  "fields" : [ {
+                    "constructor" : 0,
+                    "fields" : [ {
+                      "bytes" : "9644a4b061846966bf01dbcc28b1b265b09f293c3b2403ec577ffcca"
+                    } ]
+                  }, {
+                    "constructor" : 1,
+                    "fields" : [ ]
+                  } ]
+                }, {
+                  "list" : [ {
+                    "constructor" : 0,
+                    "fields" : [ {
+                      "bytes" : ""
+                    }, {
+                      "bytes" : ""
+                    }, {
+                      "int" : 2000000
+                    } ]
+                  }, {
+                    "constructor" : 0,
+                    "fields" : [ {
+                      "bytes" : "6e1ee0d5723cf815d465b38eab0e596f3462edb1ec84e346d2213b9a"
+                    }, {
+                      "bytes" : "05"
+                    }, {
+                      "int" : 1
+                    } ]
+                  } ]
+                } ]
+              }, {
+                "constructor" : 0,
+                "fields" : [ {
+                  "int" : 6
+                }, {
+                  "constructor" : 0,
+                  "fields" : [ {
+                    "constructor" : 0,
+                    "fields" : [ {
+                      "bytes" : "9644a4b061846966bf01dbcc28b1b265b09f293c3b2403ec577ffcca"
+                    } ]
+                  }, {
+                    "constructor" : 1,
+                    "fields" : [ ]
+                  } ]
+                }, {
+                  "list" : [ {
+                    "constructor" : 0,
+                    "fields" : [ {
+                      "bytes" : ""
+                    }, {
+                      "bytes" : ""
+                    }, {
+                      "int" : 2000000
+                    } ]
+                  }, {
+                    "constructor" : 0,
+                    "fields" : [ {
+                      "bytes" : "6e1ee0d5723cf815d465b38eab0e596f3462edb1ec84e346d2213b9a"
+                    }, {
+                      "bytes" : "06"
+                    }, {
+                      "int" : 1
+                    } ]
+                  } ]
+                } ]
+              }, {
+                "constructor" : 0,
+                "fields" : [ {
+                  "int" : 7
+                }, {
+                  "constructor" : 0,
+                  "fields" : [ {
+                    "constructor" : 0,
+                    "fields" : [ {
+                      "bytes" : "9644a4b061846966bf01dbcc28b1b265b09f293c3b2403ec577ffcca"
+                    } ]
+                  }, {
+                    "constructor" : 1,
+                    "fields" : [ ]
+                  } ]
+                }, {
+                  "list" : [ {
+                    "constructor" : 0,
+                    "fields" : [ {
+                      "bytes" : ""
+                    }, {
+                      "bytes" : ""
+                    }, {
+                      "int" : 2000000
+                    } ]
+                  }, {
+                    "constructor" : 0,
+                    "fields" : [ {
+                      "bytes" : "6e1ee0d5723cf815d465b38eab0e596f3462edb1ec84e346d2213b9a"
+                    }, {
+                      "bytes" : "07"
+                    }, {
+                      "int" : 1
+                    } ]
+                  } ]
+                } ]
+              } ]
+            }, {
+              "int" : 0
+            } ]
+          } ]
+        }, {
+          "list" : [ ]
+        } ]
+      },
+      "exUnits" : {
+        "mem" : 1278596,
+        "steps" : 869333223
+      }
+    } ]
+  },
+  "replayRejected" : true,
+  "feeBreakdown" : {
+    "transactionBytes" : 4758,
+    "baseFeeLovelace" : 364733,
+    "executionFeeLovelace" : 1110805,
+    "referenceScriptFeeLovelace" : 489120,
+    "referenceScriptBytes" : 31440,
+    "paidFeeLovelace" : 1964658,
+    "paidMinusCalculatedLovelace" : 0,
+    "redeemers" : [ {
+      "purpose" : "Spend",
+      "memory" : 6850342,
+      "cpu" : 2546358110,
+      "lovelaceBeforeRounding" : 578857.1531310,
+      "index" : 0
+    }, {
+      "purpose" : "Spend",
+      "memory" : 202545,
+      "cpu" : 285913245,
+      "lovelaceBeforeRounding" : 32301.1914645,
+      "index" : 1
+    }, {
+      "purpose" : "Spend",
+      "memory" : 202545,
+      "cpu" : 285913245,
+      "lovelaceBeforeRounding" : 32301.1914645,
+      "index" : 2
+    }, {
+      "purpose" : "Spend",
+      "memory" : 202545,
+      "cpu" : 285913245,
+      "lovelaceBeforeRounding" : 32301.1914645,
+      "index" : 3
+    }, {
+      "purpose" : "Spend",
+      "memory" : 202545,
+      "cpu" : 285913245,
+      "lovelaceBeforeRounding" : 32301.1914645,
+      "index" : 4
+    }, {
+      "purpose" : "Spend",
+      "memory" : 202545,
+      "cpu" : 285913245,
+      "lovelaceBeforeRounding" : 32301.1914645,
+      "index" : 5
+    }, {
+      "purpose" : "Spend",
+      "memory" : 202545,
+      "cpu" : 285913245,
+      "lovelaceBeforeRounding" : 32301.1914645,
+      "index" : 6
+    }, {
+      "purpose" : "Spend",
+      "memory" : 202545,
+      "cpu" : 285913245,
+      "lovelaceBeforeRounding" : 32301.1914645,
+      "index" : 7
+    }, {
+      "purpose" : "Reward",
+      "memory" : 1480660,
+      "cpu" : 1164368667,
+      "lovelaceBeforeRounding" : 169385.0628907,
+      "index" : 0
+    }, {
+      "purpose" : "Reward",
+      "memory" : 1278596,
+      "cpu" : 869333223,
+      "lovelaceBeforeRounding" : 136453.9145783,
+      "index" : 1
+    } ],
+    "referenceScripts" : [ {
+      "chargedBytes" : 10731,
+      "hash" : "eef3bb646b8fa1fb8ac24a44e14a14b39d213203554b01f390ade3a7"
+    }, {
+      "chargedBytes" : 8137,
+      "hash" : "7ca8d0b169bc9767c607c553d65b63b74f7ef46560a46ea230f6473a"
+    }, {
+      "chargedBytes" : 12572,
+      "hash" : "2f6dae1051b7f97c15d6cb44ffaf0c926bddef0f6ad9a6a3b432727f"
+    } ]
+  },
+  "recipientCount" : 8,
+  "budgetAllowancePercent" : 5,
+  "accountInputCount" : 8,
+  "nativeTokenCount" : 8,
+  "wholeTransfer" : false,
+  "scope" : "Phase 1 full creation and transfer; sealed development state, not production recovery",
+  "protocolParameters" : {
+    "min_fee_a" : 44,
+    "min_fee_b" : 155381,
+    "max_block_size" : 90112,
+    "max_tx_size" : 16384,
+    "max_block_header_size" : 1100,
+    "key_deposit" : "2000000",
+    "pool_deposit" : "500000000",
+    "a0" : 0,
+    "rho" : 0.003,
+    "tau" : 0.2,
+    "decentralisation_param" : null,
+    "extra_entropy" : null,
+    "protocol_major_ver" : 11,
+    "protocol_minor_ver" : 0,
+    "min_utxo" : null,
+    "min_pool_cost" : "170000000",
+    "nonce" : null,
+    "cost_models" : {
+      "PlutusV1" : {
+        "000" : 100788,
+        "001" : 420,
+        "002" : 1,
+        "003" : 1,
+        "004" : 1000,
+        "005" : 173,
+        "006" : 0,
+        "007" : 1,
+        "008" : 1000,
+        "009" : 59957,
+        "010" : 4,
+        "011" : 1,
+        "012" : 11183,
+        "013" : 32,
+        "014" : 201305,
+        "015" : 8356,
+        "016" : 4,
+        "017" : 16000,
+        "018" : 100,
+        "019" : 16000,
+        "020" : 100,
+        "021" : 16000,
+        "022" : 100,
+        "023" : 16000,
+        "024" : 100,
+        "025" : 16000,
+        "026" : 100,
+        "027" : 16000,
+        "028" : 100,
+        "029" : 100,
+        "030" : 100,
+        "031" : 16000,
+        "032" : 100,
+        "033" : 94375,
+        "034" : 32,
+        "035" : 132994,
+        "036" : 32,
+        "037" : 61462,
+        "038" : 4,
+        "039" : 72010,
+        "040" : 178,
+        "041" : 0,
+        "042" : 1,
+        "043" : 22151,
+        "044" : 32,
+        "045" : 91189,
+        "046" : 769,
+        "047" : 4,
+        "048" : 2,
+        "049" : 85848,
+        "050" : 228465,
+        "051" : 122,
+        "052" : 0,
+        "053" : 1,
+        "054" : 1,
+        "055" : 1000,
+        "056" : 42921,
+        "057" : 4,
+        "058" : 2,
+        "059" : 30623,
+        "060" : 28755,
+        "061" : 75,
+        "062" : 1,
+        "063" : 898148,
+        "064" : 27279,
+        "065" : 1,
+        "066" : 51775,
+        "067" : 558,
+        "068" : 1,
+        "069" : 39184,
+        "070" : 1000,
+        "071" : 60594,
+        "072" : 1,
+        "073" : 141895,
+        "074" : 32,
+        "075" : 83150,
+        "076" : 32,
+        "077" : 15299,
+        "078" : 32,
+        "079" : 76049,
+        "080" : 1,
+        "081" : 13169,
+        "082" : 4,
+        "083" : 22100,
+        "084" : 10,
+        "085" : 28999,
+        "086" : 74,
+        "087" : 1,
+        "088" : 28999,
+        "089" : 74,
+        "090" : 1,
+        "091" : 43285,
+        "092" : 552,
+        "093" : 1,
+        "094" : 44749,
+        "095" : 541,
+        "096" : 1,
+        "097" : 33852,
+        "098" : 32,
+        "099" : 68246,
+        "100" : 32,
+        "101" : 72362,
+        "102" : 32,
+        "103" : 7243,
+        "104" : 32,
+        "105" : 7391,
+        "106" : 32,
+        "107" : 11546,
+        "108" : 32,
+        "109" : 85848,
+        "110" : 228465,
+        "111" : 122,
+        "112" : 0,
+        "113" : 1,
+        "114" : 1,
+        "115" : 90434,
+        "116" : 519,
+        "117" : 0,
+        "118" : 1,
+        "119" : 74433,
+        "120" : 32,
+        "121" : 85848,
+        "122" : 228465,
+        "123" : 122,
+        "124" : 0,
+        "125" : 1,
+        "126" : 1,
+        "127" : 85848,
+        "128" : 228465,
+        "129" : 122,
+        "130" : 0,
+        "131" : 1,
+        "132" : 1,
+        "133" : 270652,
+        "134" : 22588,
+        "135" : 4,
+        "136" : 1457325,
+        "137" : 64566,
+        "138" : 4,
+        "139" : 20467,
+        "140" : 1,
+        "141" : 4,
+        "142" : 0,
+        "143" : 141992,
+        "144" : 32,
+        "145" : 100788,
+        "146" : 420,
+        "147" : 1,
+        "148" : 1,
+        "149" : 81663,
+        "150" : 32,
+        "151" : 59498,
+        "152" : 32,
+        "153" : 20142,
+        "154" : 32,
+        "155" : 24588,
+        "156" : 32,
+        "157" : 20744,
+        "158" : 32,
+        "159" : 25933,
+        "160" : 32,
+        "161" : 24623,
+        "162" : 32,
+        "163" : 53384111,
+        "164" : 14333,
+        "165" : 10,
+        "166" : 955506,
+        "167" : 213312,
+        "168" : 0,
+        "169" : 2,
+        "170" : 43053543,
+        "171" : 10,
+        "172" : 43574283,
+        "173" : 26308,
+        "174" : 10,
+        "175" : 16000,
+        "176" : 100,
+        "177" : 16000,
+        "178" : 100,
+        "179" : 962335,
+        "180" : 18,
+        "181" : 2780678,
+        "182" : 6,
+        "183" : 442008,
+        "184" : 1,
+        "185" : 52538055,
+        "186" : 3756,
+        "187" : 18,
+        "188" : 267929,
+        "189" : 18,
+        "190" : 76433006,
+        "191" : 8868,
+        "192" : 18,
+        "193" : 52948122,
+        "194" : 18,
+        "195" : 1995836,
+        "196" : 36,
+        "197" : 3227919,
+        "198" : 12,
+        "199" : 901022,
+        "200" : 1,
+        "201" : 166917843,
+        "202" : 4307,
+        "203" : 36,
+        "204" : 284546,
+        "205" : 36,
+        "206" : 158221314,
+        "207" : 26549,
+        "208" : 36,
+        "209" : 74698472,
+        "210" : 36,
+        "211" : 333849714,
+        "212" : 1,
+        "213" : 254006273,
+        "214" : 72,
+        "215" : 2174038,
+        "216" : 72,
+        "217" : 2261318,
+        "218" : 64571,
+        "219" : 4,
+        "220" : 207616,
+        "221" : 8310,
+        "222" : 4,
+        "223" : 1293828,
+        "224" : 28716,
+        "225" : 63,
+        "226" : 0,
+        "227" : 1,
+        "228" : 1006041,
+        "229" : 43623,
+        "230" : 251,
+        "231" : 0,
+        "232" : 1,
+        "233" : 100181,
+        "234" : 726,
+        "235" : 719,
+        "236" : 0,
+        "237" : 1,
+        "238" : 100181,
+        "239" : 726,
+        "240" : 719,
+        "241" : 0,
+        "242" : 1,
+        "243" : 100181,
+        "244" : 726,
+        "245" : 719,
+        "246" : 0,
+        "247" : 1,
+        "248" : 107878,
+        "249" : 680,
+        "250" : 0,
+        "251" : 1,
+        "252" : 95336,
+        "253" : 1,
+        "254" : 281145,
+        "255" : 18848,
+        "256" : 0,
+        "257" : 1,
+        "258" : 180194,
+        "259" : 159,
+        "260" : 1,
+        "261" : 1,
+        "262" : 158519,
+        "263" : 8942,
+        "264" : 0,
+        "265" : 1,
+        "266" : 159378,
+        "267" : 8813,
+        "268" : 0,
+        "269" : 1,
+        "270" : 107490,
+        "271" : 3298,
+        "272" : 1,
+        "273" : 106057,
+        "274" : 655,
+        "275" : 1,
+        "276" : 1964219,
+        "277" : 24520,
+        "278" : 3,
+        "279" : 607153,
+        "280" : 231697,
+        "281" : 53144,
+        "282" : 0,
+        "283" : 1,
+        "284" : 116711,
+        "285" : 1957,
+        "286" : 4,
+        "287" : 231883,
+        "288" : 10,
+        "289" : 1000,
+        "290" : 24838,
+        "291" : 7,
+        "292" : 1,
+        "293" : 232010,
+        "294" : 32,
+        "295" : 321837444,
+        "296" : 25087669,
+        "297" : 18,
+        "298" : 617887431,
+        "299" : 67302824,
+        "300" : 36,
+        "301" : 356924,
+        "302" : 18413,
+        "303" : 45,
+        "304" : 21,
+        "305" : 219951,
+        "306" : 9444,
+        "307" : 1,
+        "308" : 1000,
+        "309" : 172116,
+        "310" : 183150,
+        "311" : 6,
+        "312" : 24,
+        "313" : 21,
+        "314" : 213283,
+        "315" : 618401,
+        "316" : 1998,
+        "317" : 28258,
+        "318" : 1,
+        "319" : 1000,
+        "320" : 38159,
+        "321" : 2,
+        "322" : 22,
+        "323" : 1000,
+        "324" : 95933,
+        "325" : 1,
+        "326" : 1,
+        "327" : 11,
+        "328" : 1000,
+        "329" : 277577,
+        "330" : 12,
+        "331" : 21
+      },
+      "PlutusV2" : {
+        "000" : 100788,
+        "001" : 420,
+        "002" : 1,
+        "003" : 1,
+        "004" : 1000,
+        "005" : 173,
+        "006" : 0,
+        "007" : 1,
+        "008" : 1000,
+        "009" : 59957,
+        "010" : 4,
+        "011" : 1,
+        "012" : 11183,
+        "013" : 32,
+        "014" : 201305,
+        "015" : 8356,
+        "016" : 4,
+        "017" : 16000,
+        "018" : 100,
+        "019" : 16000,
+        "020" : 100,
+        "021" : 16000,
+        "022" : 100,
+        "023" : 16000,
+        "024" : 100,
+        "025" : 16000,
+        "026" : 100,
+        "027" : 16000,
+        "028" : 100,
+        "029" : 100,
+        "030" : 100,
+        "031" : 16000,
+        "032" : 100,
+        "033" : 94375,
+        "034" : 32,
+        "035" : 132994,
+        "036" : 32,
+        "037" : 61462,
+        "038" : 4,
+        "039" : 72010,
+        "040" : 178,
+        "041" : 0,
+        "042" : 1,
+        "043" : 22151,
+        "044" : 32,
+        "045" : 91189,
+        "046" : 769,
+        "047" : 4,
+        "048" : 2,
+        "049" : 85848,
+        "050" : 228465,
+        "051" : 122,
+        "052" : 0,
+        "053" : 1,
+        "054" : 1,
+        "055" : 1000,
+        "056" : 42921,
+        "057" : 4,
+        "058" : 2,
+        "059" : 30623,
+        "060" : 28755,
+        "061" : 75,
+        "062" : 1,
+        "063" : 898148,
+        "064" : 27279,
+        "065" : 1,
+        "066" : 51775,
+        "067" : 558,
+        "068" : 1,
+        "069" : 39184,
+        "070" : 1000,
+        "071" : 60594,
+        "072" : 1,
+        "073" : 141895,
+        "074" : 32,
+        "075" : 83150,
+        "076" : 32,
+        "077" : 15299,
+        "078" : 32,
+        "079" : 76049,
+        "080" : 1,
+        "081" : 13169,
+        "082" : 4,
+        "083" : 22100,
+        "084" : 10,
+        "085" : 28999,
+        "086" : 74,
+        "087" : 1,
+        "088" : 28999,
+        "089" : 74,
+        "090" : 1,
+        "091" : 43285,
+        "092" : 552,
+        "093" : 1,
+        "094" : 44749,
+        "095" : 541,
+        "096" : 1,
+        "097" : 33852,
+        "098" : 32,
+        "099" : 68246,
+        "100" : 32,
+        "101" : 72362,
+        "102" : 32,
+        "103" : 7243,
+        "104" : 32,
+        "105" : 7391,
+        "106" : 32,
+        "107" : 11546,
+        "108" : 32,
+        "109" : 85848,
+        "110" : 228465,
+        "111" : 122,
+        "112" : 0,
+        "113" : 1,
+        "114" : 1,
+        "115" : 90434,
+        "116" : 519,
+        "117" : 0,
+        "118" : 1,
+        "119" : 74433,
+        "120" : 32,
+        "121" : 85848,
+        "122" : 228465,
+        "123" : 122,
+        "124" : 0,
+        "125" : 1,
+        "126" : 1,
+        "127" : 85848,
+        "128" : 228465,
+        "129" : 122,
+        "130" : 0,
+        "131" : 1,
+        "132" : 1,
+        "133" : 955506,
+        "134" : 213312,
+        "135" : 0,
+        "136" : 2,
+        "137" : 270652,
+        "138" : 22588,
+        "139" : 4,
+        "140" : 1457325,
+        "141" : 64566,
+        "142" : 4,
+        "143" : 20467,
+        "144" : 1,
+        "145" : 4,
+        "146" : 0,
+        "147" : 141992,
+        "148" : 32,
+        "149" : 100788,
+        "150" : 420,
+        "151" : 1,
+        "152" : 1,
+        "153" : 81663,
+        "154" : 32,
+        "155" : 59498,
+        "156" : 32,
+        "157" : 20142,
+        "158" : 32,
+        "159" : 24588,
+        "160" : 32,
+        "161" : 20744,
+        "162" : 32,
+        "163" : 25933,
+        "164" : 32,
+        "165" : 24623,
+        "166" : 32,
+        "167" : 43053543,
+        "168" : 10,
+        "169" : 53384111,
+        "170" : 14333,
+        "171" : 10,
+        "172" : 43574283,
+        "173" : 26308,
+        "174" : 10,
+        "175" : 1293828,
+        "176" : 28716,
+        "177" : 63,
+        "178" : 0,
+        "179" : 1,
+        "180" : 1006041,
+        "181" : 43623,
+        "182" : 251,
+        "183" : 0,
+        "184" : 1,
+        "185" : 16000,
+        "186" : 100,
+        "187" : 16000,
+        "188" : 100,
+        "189" : 962335,
+        "190" : 18,
+        "191" : 2780678,
+        "192" : 6,
+        "193" : 442008,
+        "194" : 1,
+        "195" : 52538055,
+        "196" : 3756,
+        "197" : 18,
+        "198" : 267929,
+        "199" : 18,
+        "200" : 76433006,
+        "201" : 8868,
+        "202" : 18,
+        "203" : 52948122,
+        "204" : 18,
+        "205" : 1995836,
+        "206" : 36,
+        "207" : 3227919,
+        "208" : 12,
+        "209" : 901022,
+        "210" : 1,
+        "211" : 166917843,
+        "212" : 4307,
+        "213" : 36,
+        "214" : 284546,
+        "215" : 36,
+        "216" : 158221314,
+        "217" : 26549,
+        "218" : 36,
+        "219" : 74698472,
+        "220" : 36,
+        "221" : 333849714,
+        "222" : 1,
+        "223" : 254006273,
+        "224" : 72,
+        "225" : 2174038,
+        "226" : 72,
+        "227" : 2261318,
+        "228" : 64571,
+        "229" : 4,
+        "230" : 207616,
+        "231" : 8310,
+        "232" : 4,
+        "233" : 100181,
+        "234" : 726,
+        "235" : 719,
+        "236" : 0,
+        "237" : 1,
+        "238" : 100181,
+        "239" : 726,
+        "240" : 719,
+        "241" : 0,
+        "242" : 1,
+        "243" : 100181,
+        "244" : 726,
+        "245" : 719,
+        "246" : 0,
+        "247" : 1,
+        "248" : 107878,
+        "249" : 680,
+        "250" : 0,
+        "251" : 1,
+        "252" : 95336,
+        "253" : 1,
+        "254" : 281145,
+        "255" : 18848,
+        "256" : 0,
+        "257" : 1,
+        "258" : 180194,
+        "259" : 159,
+        "260" : 1,
+        "261" : 1,
+        "262" : 158519,
+        "263" : 8942,
+        "264" : 0,
+        "265" : 1,
+        "266" : 159378,
+        "267" : 8813,
+        "268" : 0,
+        "269" : 1,
+        "270" : 107490,
+        "271" : 3298,
+        "272" : 1,
+        "273" : 106057,
+        "274" : 655,
+        "275" : 1,
+        "276" : 1964219,
+        "277" : 24520,
+        "278" : 3,
+        "279" : 607153,
+        "280" : 231697,
+        "281" : 53144,
+        "282" : 0,
+        "283" : 1,
+        "284" : 116711,
+        "285" : 1957,
+        "286" : 4,
+        "287" : 231883,
+        "288" : 10,
+        "289" : 1000,
+        "290" : 24838,
+        "291" : 7,
+        "292" : 1,
+        "293" : 232010,
+        "294" : 32,
+        "295" : 321837444,
+        "296" : 25087669,
+        "297" : 18,
+        "298" : 617887431,
+        "299" : 67302824,
+        "300" : 36,
+        "301" : 356924,
+        "302" : 18413,
+        "303" : 45,
+        "304" : 21,
+        "305" : 219951,
+        "306" : 9444,
+        "307" : 1,
+        "308" : 1000,
+        "309" : 172116,
+        "310" : 183150,
+        "311" : 6,
+        "312" : 24,
+        "313" : 21,
+        "314" : 213283,
+        "315" : 618401,
+        "316" : 1998,
+        "317" : 28258,
+        "318" : 1,
+        "319" : 1000,
+        "320" : 38159,
+        "321" : 2,
+        "322" : 22,
+        "323" : 1000,
+        "324" : 95933,
+        "325" : 1,
+        "326" : 1,
+        "327" : 11,
+        "328" : 1000,
+        "329" : 277577,
+        "330" : 12,
+        "331" : 21
+      },
+      "PlutusV3" : {
+        "000" : 100788,
+        "001" : 420,
+        "002" : 1,
+        "003" : 1,
+        "004" : 1000,
+        "005" : 173,
+        "006" : 0,
+        "007" : 1,
+        "008" : 1000,
+        "009" : 59957,
+        "010" : 4,
+        "011" : 1,
+        "012" : 11183,
+        "013" : 32,
+        "014" : 201305,
+        "015" : 8356,
+        "016" : 4,
+        "017" : 16000,
+        "018" : 100,
+        "019" : 16000,
+        "020" : 100,
+        "021" : 16000,
+        "022" : 100,
+        "023" : 16000,
+        "024" : 100,
+        "025" : 16000,
+        "026" : 100,
+        "027" : 16000,
+        "028" : 100,
+        "029" : 100,
+        "030" : 100,
+        "031" : 16000,
+        "032" : 100,
+        "033" : 94375,
+        "034" : 32,
+        "035" : 132994,
+        "036" : 32,
+        "037" : 61462,
+        "038" : 4,
+        "039" : 72010,
+        "040" : 178,
+        "041" : 0,
+        "042" : 1,
+        "043" : 22151,
+        "044" : 32,
+        "045" : 91189,
+        "046" : 769,
+        "047" : 4,
+        "048" : 2,
+        "049" : 85848,
+        "050" : 123203,
+        "051" : 7305,
+        "052" : -900,
+        "053" : 1716,
+        "054" : 960,
+        "055" : 57,
+        "056" : 85848,
+        "057" : 0,
+        "058" : 1,
+        "059" : 1,
+        "060" : 1000,
+        "061" : 42921,
+        "062" : 4,
+        "063" : 2,
+        "064" : 30623,
+        "065" : 28755,
+        "066" : 75,
+        "067" : 1,
+        "068" : 898148,
+        "069" : 27279,
+        "070" : 1,
+        "071" : 51775,
+        "072" : 558,
+        "073" : 1,
+        "074" : 39184,
+        "075" : 1000,
+        "076" : 60594,
+        "077" : 1,
+        "078" : 141895,
+        "079" : 32,
+        "080" : 83150,
+        "081" : 32,
+        "082" : 15299,
+        "083" : 32,
+        "084" : 76049,
+        "085" : 1,
+        "086" : 13169,
+        "087" : 4,
+        "088" : 22100,
+        "089" : 10,
+        "090" : 28999,
+        "091" : 74,
+        "092" : 1,
+        "093" : 28999,
+        "094" : 74,
+        "095" : 1,
+        "096" : 43285,
+        "097" : 552,
+        "098" : 1,
+        "099" : 44749,
+        "100" : 541,
+        "101" : 1,
+        "102" : 33852,
+        "103" : 32,
+        "104" : 68246,
+        "105" : 32,
+        "106" : 72362,
+        "107" : 32,
+        "108" : 7243,
+        "109" : 32,
+        "110" : 7391,
+        "111" : 32,
+        "112" : 11546,
+        "113" : 32,
+        "114" : 85848,
+        "115" : 123203,
+        "116" : 7305,
+        "117" : -900,
+        "118" : 1716,
+        "119" : 960,
+        "120" : 57,
+        "121" : 85848,
+        "122" : 0,
+        "123" : 1,
+        "124" : 90434,
+        "125" : 519,
+        "126" : 0,
+        "127" : 1,
+        "128" : 74433,
+        "129" : 32,
+        "130" : 85848,
+        "131" : 123203,
+        "132" : 7305,
+        "133" : -900,
+        "134" : 1716,
+        "135" : 960,
+        "136" : 57,
+        "137" : 85848,
+        "138" : 0,
+        "139" : 1,
+        "140" : 1,
+        "141" : 85848,
+        "142" : 123203,
+        "143" : 7305,
+        "144" : -900,
+        "145" : 1716,
+        "146" : 960,
+        "147" : 57,
+        "148" : 85848,
+        "149" : 0,
+        "150" : 1,
+        "151" : 955506,
+        "152" : 213312,
+        "153" : 0,
+        "154" : 2,
+        "155" : 270652,
+        "156" : 22588,
+        "157" : 4,
+        "158" : 1457325,
+        "159" : 64566,
+        "160" : 4,
+        "161" : 20467,
+        "162" : 1,
+        "163" : 4,
+        "164" : 0,
+        "165" : 141992,
+        "166" : 32,
+        "167" : 100788,
+        "168" : 420,
+        "169" : 1,
+        "170" : 1,
+        "171" : 81663,
+        "172" : 32,
+        "173" : 59498,
+        "174" : 32,
+        "175" : 20142,
+        "176" : 32,
+        "177" : 24588,
+        "178" : 32,
+        "179" : 20744,
+        "180" : 32,
+        "181" : 25933,
+        "182" : 32,
+        "183" : 24623,
+        "184" : 32,
+        "185" : 43053543,
+        "186" : 10,
+        "187" : 53384111,
+        "188" : 14333,
+        "189" : 10,
+        "190" : 43574283,
+        "191" : 26308,
+        "192" : 10,
+        "193" : 16000,
+        "194" : 100,
+        "195" : 16000,
+        "196" : 100,
+        "197" : 962335,
+        "198" : 18,
+        "199" : 2780678,
+        "200" : 6,
+        "201" : 442008,
+        "202" : 1,
+        "203" : 52538055,
+        "204" : 3756,
+        "205" : 18,
+        "206" : 267929,
+        "207" : 18,
+        "208" : 76433006,
+        "209" : 8868,
+        "210" : 18,
+        "211" : 52948122,
+        "212" : 18,
+        "213" : 1995836,
+        "214" : 36,
+        "215" : 3227919,
+        "216" : 12,
+        "217" : 901022,
+        "218" : 1,
+        "219" : 166917843,
+        "220" : 4307,
+        "221" : 36,
+        "222" : 284546,
+        "223" : 36,
+        "224" : 158221314,
+        "225" : 26549,
+        "226" : 36,
+        "227" : 74698472,
+        "228" : 36,
+        "229" : 333849714,
+        "230" : 1,
+        "231" : 254006273,
+        "232" : 72,
+        "233" : 2174038,
+        "234" : 72,
+        "235" : 2261318,
+        "236" : 64571,
+        "237" : 4,
+        "238" : 207616,
+        "239" : 8310,
+        "240" : 4,
+        "241" : 1293828,
+        "242" : 28716,
+        "243" : 63,
+        "244" : 0,
+        "245" : 1,
+        "246" : 1006041,
+        "247" : 43623,
+        "248" : 251,
+        "249" : 0,
+        "250" : 1,
+        "251" : 100181,
+        "252" : 726,
+        "253" : 719,
+        "254" : 0,
+        "255" : 1,
+        "256" : 100181,
+        "257" : 726,
+        "258" : 719,
+        "259" : 0,
+        "260" : 1,
+        "261" : 100181,
+        "262" : 726,
+        "263" : 719,
+        "264" : 0,
+        "265" : 1,
+        "266" : 107878,
+        "267" : 680,
+        "268" : 0,
+        "269" : 1,
+        "270" : 95336,
+        "271" : 1,
+        "272" : 281145,
+        "273" : 18848,
+        "274" : 0,
+        "275" : 1,
+        "276" : 180194,
+        "277" : 159,
+        "278" : 1,
+        "279" : 1,
+        "280" : 158519,
+        "281" : 8942,
+        "282" : 0,
+        "283" : 1,
+        "284" : 159378,
+        "285" : 8813,
+        "286" : 0,
+        "287" : 1,
+        "288" : 107490,
+        "289" : 3298,
+        "290" : 1,
+        "291" : 106057,
+        "292" : 655,
+        "293" : 1,
+        "294" : 1964219,
+        "295" : 24520,
+        "296" : 3,
+        "297" : 607153,
+        "298" : 231697,
+        "299" : 53144,
+        "300" : 0,
+        "301" : 1,
+        "302" : 116711,
+        "303" : 1957,
+        "304" : 4,
+        "305" : 231883,
+        "306" : 10,
+        "307" : 1000,
+        "308" : 24838,
+        "309" : 7,
+        "310" : 1,
+        "311" : 232010,
+        "312" : 32,
+        "313" : 321837444,
+        "314" : 25087669,
+        "315" : 18,
+        "316" : 617887431,
+        "317" : 67302824,
+        "318" : 36,
+        "319" : 356924,
+        "320" : 18413,
+        "321" : 45,
+        "322" : 21,
+        "323" : 219951,
+        "324" : 9444,
+        "325" : 1,
+        "326" : 1000,
+        "327" : 172116,
+        "328" : 183150,
+        "329" : 6,
+        "330" : 24,
+        "331" : 21,
+        "332" : 213283,
+        "333" : 618401,
+        "334" : 1998,
+        "335" : 28258,
+        "336" : 1,
+        "337" : 1000,
+        "338" : 38159,
+        "339" : 2,
+        "340" : 22,
+        "341" : 1000,
+        "342" : 95933,
+        "343" : 1,
+        "344" : 1,
+        "345" : 11,
+        "346" : 1000,
+        "347" : 277577,
+        "348" : 12,
+        "349" : 21
+      }
+    },
+    "price_mem" : 0.0577,
+    "price_step" : 0.0000721,
+    "max_tx_ex_mem" : "16500000",
+    "max_tx_ex_steps" : "10000000000",
+    "max_block_ex_mem" : "72000000",
+    "max_block_ex_steps" : "20000000000",
+    "max_val_size" : "5000",
+    "collateral_percent" : 150,
+    "max_collateral_inputs" : 3,
+    "coins_per_utxo_size" : "4310",
+    "coins_per_utxo_word" : null,
+    "pvt_motion_no_confidence" : 0.51,
+    "pvt_committee_normal" : 0.51,
+    "pvt_committee_no_confidence" : 0.51,
+    "pvt_hard_fork_initiation" : 0.51,
+    "dvt_motion_no_confidence" : 0.67,
+    "dvt_committee_normal" : 0.67,
+    "dvt_committee_no_confidence" : 0.6,
+    "dvt_update_to_constitution" : 0.75,
+    "dvt_hard_fork_initiation" : 0.6,
+    "dvt_treasury_withdrawal" : 0.67,
+    "committee_min_size" : 0,
+    "committee_max_term_length" : 146,
+    "gov_action_lifetime" : 6,
+    "gov_action_deposit" : 1000000000,
+    "drep_deposit" : 500000000,
+    "drep_activity" : 20,
+    "min_fee_ref_script_cost_per_byte" : 15,
+    "emax" : 18,
+    "nopt" : 100,
+    "e_max" : 18,
+    "n_opt" : 100,
+    "cost_models_raw" : {
+      "PlutusV3" : [ 100788, 420, 1, 1, 1000, 173, 0, 1, 1000, 59957, 4, 1, 11183, 32, 201305, 8356, 4, 16000, 100, 16000, 100, 16000, 100, 16000, 100, 16000, 100, 16000, 100, 100, 100, 16000, 100, 94375, 32, 132994, 32, 61462, 4, 72010, 178, 0, 1, 22151, 32, 91189, 769, 4, 2, 85848, 123203, 7305, -900, 1716, 960, 57, 85848, 0, 1, 1, 1000, 42921, 4, 2, 30623, 28755, 75, 1, 898148, 27279, 1, 51775, 558, 1, 39184, 1000, 60594, 1, 141895, 32, 83150, 32, 15299, 32, 76049, 1, 13169, 4, 22100, 10, 28999, 74, 1, 28999, 74, 1, 43285, 552, 1, 44749, 541, 1, 33852, 32, 68246, 32, 72362, 32, 7243, 32, 7391, 32, 11546, 32, 85848, 123203, 7305, -900, 1716, 960, 57, 85848, 0, 1, 90434, 519, 0, 1, 74433, 32, 85848, 123203, 7305, -900, 1716, 960, 57, 85848, 0, 1, 1, 85848, 123203, 7305, -900, 1716, 960, 57, 85848, 0, 1, 955506, 213312, 0, 2, 270652, 22588, 4, 1457325, 64566, 4, 20467, 1, 4, 0, 141992, 32, 100788, 420, 1, 1, 81663, 32, 59498, 32, 20142, 32, 24588, 32, 20744, 32, 25933, 32, 24623, 32, 43053543, 10, 53384111, 14333, 10, 43574283, 26308, 10, 16000, 100, 16000, 100, 962335, 18, 2780678, 6, 442008, 1, 52538055, 3756, 18, 267929, 18, 76433006, 8868, 18, 52948122, 18, 1995836, 36, 3227919, 12, 901022, 1, 166917843, 4307, 36, 284546, 36, 158221314, 26549, 36, 74698472, 36, 333849714, 1, 254006273, 72, 2174038, 72, 2261318, 64571, 4, 207616, 8310, 4, 1293828, 28716, 63, 0, 1, 1006041, 43623, 251, 0, 1, 100181, 726, 719, 0, 1, 100181, 726, 719, 0, 1, 100181, 726, 719, 0, 1, 107878, 680, 0, 1, 95336, 1, 281145, 18848, 0, 1, 180194, 159, 1, 1, 158519, 8942, 0, 1, 159378, 8813, 0, 1, 107490, 3298, 1, 106057, 655, 1, 1964219, 24520, 3, 607153, 231697, 53144, 0, 1, 116711, 1957, 4, 231883, 10, 1000, 24838, 7, 1, 232010, 32, 321837444, 25087669, 18, 617887431, 67302824, 36, 356924, 18413, 45, 21, 219951, 9444, 1, 1000, 172116, 183150, 6, 24, 21, 213283, 618401, 1998, 28258, 1, 1000, 38159, 2, 22, 1000, 95933, 1, 1, 11, 1000, 277577, 12, 21 ],
+      "PlutusV2" : [ 100788, 420, 1, 1, 1000, 173, 0, 1, 1000, 59957, 4, 1, 11183, 32, 201305, 8356, 4, 16000, 100, 16000, 100, 16000, 100, 16000, 100, 16000, 100, 16000, 100, 100, 100, 16000, 100, 94375, 32, 132994, 32, 61462, 4, 72010, 178, 0, 1, 22151, 32, 91189, 769, 4, 2, 85848, 228465, 122, 0, 1, 1, 1000, 42921, 4, 2, 30623, 28755, 75, 1, 898148, 27279, 1, 51775, 558, 1, 39184, 1000, 60594, 1, 141895, 32, 83150, 32, 15299, 32, 76049, 1, 13169, 4, 22100, 10, 28999, 74, 1, 28999, 74, 1, 43285, 552, 1, 44749, 541, 1, 33852, 32, 68246, 32, 72362, 32, 7243, 32, 7391, 32, 11546, 32, 85848, 228465, 122, 0, 1, 1, 90434, 519, 0, 1, 74433, 32, 85848, 228465, 122, 0, 1, 1, 85848, 228465, 122, 0, 1, 1, 955506, 213312, 0, 2, 270652, 22588, 4, 1457325, 64566, 4, 20467, 1, 4, 0, 141992, 32, 100788, 420, 1, 1, 81663, 32, 59498, 32, 20142, 32, 24588, 32, 20744, 32, 25933, 32, 24623, 32, 43053543, 10, 53384111, 14333, 10, 43574283, 26308, 10, 1293828, 28716, 63, 0, 1, 1006041, 43623, 251, 0, 1, 16000, 100, 16000, 100, 962335, 18, 2780678, 6, 442008, 1, 52538055, 3756, 18, 267929, 18, 76433006, 8868, 18, 52948122, 18, 1995836, 36, 3227919, 12, 901022, 1, 166917843, 4307, 36, 284546, 36, 158221314, 26549, 36, 74698472, 36, 333849714, 1, 254006273, 72, 2174038, 72, 2261318, 64571, 4, 207616, 8310, 4, 100181, 726, 719, 0, 1, 100181, 726, 719, 0, 1, 100181, 726, 719, 0, 1, 107878, 680, 0, 1, 95336, 1, 281145, 18848, 0, 1, 180194, 159, 1, 1, 158519, 8942, 0, 1, 159378, 8813, 0, 1, 107490, 3298, 1, 106057, 655, 1, 1964219, 24520, 3, 607153, 231697, 53144, 0, 1, 116711, 1957, 4, 231883, 10, 1000, 24838, 7, 1, 232010, 32, 321837444, 25087669, 18, 617887431, 67302824, 36, 356924, 18413, 45, 21, 219951, 9444, 1, 1000, 172116, 183150, 6, 24, 21, 213283, 618401, 1998, 28258, 1, 1000, 38159, 2, 22, 1000, 95933, 1, 1, 11, 1000, 277577, 12, 21 ],
+      "PlutusV1" : [ 100788, 420, 1, 1, 1000, 173, 0, 1, 1000, 59957, 4, 1, 11183, 32, 201305, 8356, 4, 16000, 100, 16000, 100, 16000, 100, 16000, 100, 16000, 100, 16000, 100, 100, 100, 16000, 100, 94375, 32, 132994, 32, 61462, 4, 72010, 178, 0, 1, 22151, 32, 91189, 769, 4, 2, 85848, 228465, 122, 0, 1, 1, 1000, 42921, 4, 2, 30623, 28755, 75, 1, 898148, 27279, 1, 51775, 558, 1, 39184, 1000, 60594, 1, 141895, 32, 83150, 32, 15299, 32, 76049, 1, 13169, 4, 22100, 10, 28999, 74, 1, 28999, 74, 1, 43285, 552, 1, 44749, 541, 1, 33852, 32, 68246, 32, 72362, 32, 7243, 32, 7391, 32, 11546, 32, 85848, 228465, 122, 0, 1, 1, 90434, 519, 0, 1, 74433, 32, 85848, 228465, 122, 0, 1, 1, 85848, 228465, 122, 0, 1, 1, 270652, 22588, 4, 1457325, 64566, 4, 20467, 1, 4, 0, 141992, 32, 100788, 420, 1, 1, 81663, 32, 59498, 32, 20142, 32, 24588, 32, 20744, 32, 25933, 32, 24623, 32, 53384111, 14333, 10, 955506, 213312, 0, 2, 43053543, 10, 43574283, 26308, 10, 16000, 100, 16000, 100, 962335, 18, 2780678, 6, 442008, 1, 52538055, 3756, 18, 267929, 18, 76433006, 8868, 18, 52948122, 18, 1995836, 36, 3227919, 12, 901022, 1, 166917843, 4307, 36, 284546, 36, 158221314, 26549, 36, 74698472, 36, 333849714, 1, 254006273, 72, 2174038, 72, 2261318, 64571, 4, 207616, 8310, 4, 1293828, 28716, 63, 0, 1, 1006041, 43623, 251, 0, 1, 100181, 726, 719, 0, 1, 100181, 726, 719, 0, 1, 100181, 726, 719, 0, 1, 107878, 680, 0, 1, 95336, 1, 281145, 18848, 0, 1, 180194, 159, 1, 1, 158519, 8942, 0, 1, 159378, 8813, 0, 1, 107490, 3298, 1, 106057, 655, 1, 1964219, 24520, 3, 607153, 231697, 53144, 0, 1, 116711, 1957, 4, 231883, 10, 1000, 24838, 7, 1, 232010, 32, 321837444, 25087669, 18, 617887431, 67302824, 36, 356924, 18413, 45, 21, 219951, 9444, 1, 1000, 172116, 183150, 6, 24, 21, 213283, 618401, 1998, 28258, 1, 1000, 38159, 2, 22, 1000, 95933, 1, 1, 11, 1000, 277577, 12, 21 ]
+    },
+    "pvt_p_p_security_group" : 0.51,
+    "dvt_p_p_network_group" : null,
+    "dvt_p_p_economic_group" : null,
+    "dvt_p_p_technical_group" : null,
+    "dvt_p_p_gov_group" : null
+  },
+  "state" : "d8799f01d8799f581c9136f5ea4c041c682c4bc4c83bd34ab7ae7ffcb7b217a792f6cafed940ffd8799f00182a5820c0b8414b93012a422fa0cd0c611aeed1837698cc110d4422091ae86d99d1da18ffd8799f581c9364b2b3b314a47f2f4884f709901fa0af343ca1ae2df0523439f64f581ceef3bb646b8fa1fb8ac24a44e14a14b39d213203554b01f390ade3a7581c7ca8d0b169bc9767c607c553d65b63b74f7ef46560a46ea230f6473aff00d8799f581c2f6dae1051b7f97c15d6cb44ffaf0c926bddef0f6ad9a6a3b432727f01ffd8799f019fd8799f00582090e72810fdc68e243aa97b0e653e26014a4b84af12964fedad7fd1e7bdf6003cffd8799f015820e30d00d6023985756015043f77368d99991600ddc574e89dcf0c6c0c574a5b6affd8799f025820e18dd384031776d32b859022d3a85e8f70271a19ec513fbc1733c0c486d2ceecffffd8799f019f00ffffd8799f029f0001ffffd8799f019f01ffffd8799f019f02ffffd8799f019f01ffffd8799f019f02ffffff001a05265c001a0036ee8000d87980ff"
+}

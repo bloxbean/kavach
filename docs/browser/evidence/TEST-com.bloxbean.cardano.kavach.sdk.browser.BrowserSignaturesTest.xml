@@ -1,0 +1,13 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<testsuite name="com.bloxbean.cardano.kavach.sdk.browser.BrowserSignaturesTest" tests="7" skipped="0" failures="0" errors="0" timestamp="2026-09-07T16:40:18.537Z" hostname="192.168.1.14" time="0.007">
+  <properties/>
+  <testcase name="rejectsEveryTruncationAndTrailingBytes()" classname="com.bloxbean.cardano.kavach.sdk.browser.BrowserSignaturesTest" time="0.002"/>
+  <testcase name="keyParserRejectsDuplicateExtraWrongCurveAndTrailingFields()" classname="com.bloxbean.cardano.kavach.sdk.browser.BrowserSignaturesTest" time="0.0"/>
+  <testcase name="rejectsUnsupportedAndAmbiguousHeaders()" classname="com.bloxbean.cardano.kavach.sdk.browser.BrowserSignaturesTest" time="0.001"/>
+  <testcase name="rejectsMismatchedPayloadKeyNetworkAndSignature()" classname="com.bloxbean.cardano.kavach.sdk.browser.BrowserSignaturesTest" time="0.0"/>
+  <testcase name="[1] 0" classname="com.bloxbean.cardano.kavach.sdk.browser.BrowserSignaturesTest" time="0.001"/>
+  <testcase name="[2] 2" classname="com.bloxbean.cardano.kavach.sdk.browser.BrowserSignaturesTest" time="0.0"/>
+  <testcase name="[3] 6" classname="com.bloxbean.cardano.kavach.sdk.browser.BrowserSignaturesTest" time="0.001"/>
+  <system-out><![CDATA[]]></system-out>
+  <system-err><![CDATA[]]></system-err>
+</testsuite>

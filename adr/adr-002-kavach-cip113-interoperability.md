@@ -53,6 +53,10 @@ The intended extension MUST:
 
 Hash preservation is an **acceptance criterion for the compatibility promise**, not an unconditional promise or an indefinite dependency on an upstream alpha. Record the selected outcome in ADR-001 and the release manifest: (A) validated compatibility for an exact supported profile, or (B) no compatibility guarantee for this V1 deployment, with potential future migration explicitly accepted. Outcome B defers integration without adding an unsafe extension hook. A future core change requires an explicit migration ADR; migration feasibility or preservation of account identity is not presumed.
 
+### 2.1 Selected ordinary V1 qualification outcome (2026-09-07)
+
+The ordinary V1 candidate selects **outcome B**. CIP-113 integration remains planned, but this candidate gives no guarantee that future integration preserves AccountId, state/core hashes or existing addresses. A later implementation may require a new deployment and authorized asset migration; migration feasibility is not presumed. No arbitrary external-operation hook is added to evade this restriction. The outcome A prototype and all real-holdings release gates remain prerequisites if a later release claims hash-preserving compatibility. This decision resolves the ordinary V1 Phase 0 dependency fork; it is not a successful interoperability result.
+
 ## 3. Custody and Script Layout
 
 | Holding | Payment credential | Stake credential |

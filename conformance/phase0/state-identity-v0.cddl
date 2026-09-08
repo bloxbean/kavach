@@ -1,0 +1,12 @@
+; Experimental sealed genesis state only; NOT the Kavach V1 AccountState ABI.
+; Exact constructor tag/field count. The domain is the literal UTF-8 bytes below.
+probe-state = #6.121([schema-version: 0, deployment-domain: bytes .size 22,
+                     creator-payment-key-hash: bytes .size 28])
+; deployment-domain = UTF-8 "KAVACH_PHASE0_STATE_V0"
+; Asset identity = (parameterized mint policy hash, empty token name).
+; State value = positive lovelace + exactly one identity NFT, no other assets.
+; Holder address = enterprise script address, without a stake credential.
+; Datum must be inline; a datum hash is insufficient. No reference script.
+; Public all-zero-creator encoding fixture: state-identity-v0.properties.
+; Constructor fields use indefinite arrays in the canonical fixture. On-chain
+; validation compares Data values, not the external CBOR array-length spelling.

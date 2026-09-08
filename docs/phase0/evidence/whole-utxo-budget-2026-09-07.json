@@ -1,0 +1,7 @@
+{
+  "valueDataBytes" : 8168,
+  "cpu" : 1053842846,
+  "memory" : 1359309,
+  "scope" : "Synthetic 8192-byte-cap whole-value stress; exceeds current ledger value-size limit",
+  "nativeAssets" : 189
+}

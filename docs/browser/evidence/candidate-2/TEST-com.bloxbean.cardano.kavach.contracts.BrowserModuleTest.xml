@@ -1,0 +1,45 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<testsuite name="com.bloxbean.cardano.kavach.contracts.BrowserModuleTest" tests="37" skipped="0" failures="0" errors="0" timestamp="2026-09-07T17:37:09.610Z" hostname="192.168.1.14" time="0.417">
+  <properties/>
+  <testcase name="[1] 1, valid" classname="com.bloxbean.cardano.kavach.contracts.BrowserModuleTest" time="0.009"/>
+  <testcase name="[2] 2, valid" classname="com.bloxbean.cardano.kavach.contracts.BrowserModuleTest" time="0.018"/>
+  <testcase name="[3] 2, valid-legacy" classname="com.bloxbean.cardano.kavach.contracts.BrowserModuleTest" time="0.008"/>
+  <testcase name="[4] 2, valid-base" classname="com.bloxbean.cardano.kavach.contracts.BrowserModuleTest" time="0.009"/>
+  <testcase name="[5] 2, marker" classname="com.bloxbean.cardano.kavach.contracts.BrowserModuleTest" time="0.008"/>
+  <testcase name="[6] 2, strip-kid" classname="com.bloxbean.cardano.kavach.contracts.BrowserModuleTest" time="0.007"/>
+  <testcase name="[7] 1, missing" classname="com.bloxbean.cardano.kavach.contracts.BrowserModuleTest" time="0.007"/>
+  <testcase name="[8] 2, signature" classname="com.bloxbean.cardano.kavach.contracts.BrowserModuleTest" time="0.008"/>
+  <testcase name="[9] 1, wrong-signer" classname="com.bloxbean.cardano.kavach.contracts.BrowserModuleTest" time="0.007"/>
+  <testcase name="[10] 2, network" classname="com.bloxbean.cardano.kavach.contracts.BrowserModuleTest" time="0.008"/>
+  <testcase name="[11] 2, payload" classname="com.bloxbean.cardano.kavach.contracts.BrowserModuleTest" time="0.007"/>
+  <testcase name="[12] 1, wrong-mode" classname="com.bloxbean.cardano.kavach.contracts.BrowserModuleTest" time="0.008"/>
+  <testcase name="[13] 2, wrong-mode" classname="com.bloxbean.cardano.kavach.contracts.BrowserModuleTest" time="0.007"/>
+  <testcase name="[14] 1, duplicate" classname="com.bloxbean.cardano.kavach.contracts.BrowserModuleTest" time="0.007"/>
+  <testcase name="[15] 2, duplicate" classname="com.bloxbean.cardano.kavach.contracts.BrowserModuleTest" time="0.008"/>
+  <testcase name="[16] 1, extra-bytes" classname="com.bloxbean.cardano.kavach.contracts.BrowserModuleTest" time="0.007"/>
+  <testcase name="[17] 2, extra-bytes" classname="com.bloxbean.cardano.kavach.contracts.BrowserModuleTest" time="0.008"/>
+  <testcase name="[1] 1" classname="com.bloxbean.cardano.kavach.contracts.BrowserModuleTest" time="0.013"/>
+  <testcase name="[2] 2" classname="com.bloxbean.cardano.kavach.contracts.BrowserModuleTest" time="0.014"/>
+  <testcase name="[1] 1, valid" classname="com.bloxbean.cardano.kavach.contracts.BrowserModuleTest" time="0.007"/>
+  <testcase name="[2] 2, valid" classname="com.bloxbean.cardano.kavach.contracts.BrowserModuleTest" time="0.009"/>
+  <testcase name="[3] 1, missing-key" classname="com.bloxbean.cardano.kavach.contracts.BrowserModuleTest" time="0.007"/>
+  <testcase name="[4] 2, missing-key" classname="com.bloxbean.cardano.kavach.contracts.BrowserModuleTest" time="0.007"/>
+  <testcase name="[5] 1, missing-witness" classname="com.bloxbean.cardano.kavach.contracts.BrowserModuleTest" time="0.007"/>
+  <testcase name="[6] 2, wrong-domain" classname="com.bloxbean.cardano.kavach.contracts.BrowserModuleTest" time="0.008"/>
+  <testcase name="[1] 1, freeze" classname="com.bloxbean.cardano.kavach.contracts.BrowserModuleTest" time="0.017"/>
+  <testcase name="[2] 2, freeze" classname="com.bloxbean.cardano.kavach.contracts.BrowserModuleTest" time="0.016"/>
+  <testcase name="[3] 1, unfreeze" classname="com.bloxbean.cardano.kavach.contracts.BrowserModuleTest" time="0.016"/>
+  <testcase name="[4] 2, unfreeze" classname="com.bloxbean.cardano.kavach.contracts.BrowserModuleTest" time="0.016"/>
+  <testcase name="[5] 1, config" classname="com.bloxbean.cardano.kavach.contracts.BrowserModuleTest" time="0.017"/>
+  <testcase name="[6] 2, config" classname="com.bloxbean.cardano.kavach.contracts.BrowserModuleTest" time="0.018"/>
+  <testcase name="[7] 1, start" classname="com.bloxbean.cardano.kavach.contracts.BrowserModuleTest" time="0.017"/>
+  <testcase name="[8] 2, start" classname="com.bloxbean.cardano.kavach.contracts.BrowserModuleTest" time="0.017"/>
+  <testcase name="[9] 1, cancel" classname="com.bloxbean.cardano.kavach.contracts.BrowserModuleTest" time="0.016"/>
+  <testcase name="[10] 2, cancel" classname="com.bloxbean.cardano.kavach.contracts.BrowserModuleTest" time="0.017"/>
+  <testcase name="[11] 1, complete" classname="com.bloxbean.cardano.kavach.contracts.BrowserModuleTest" time="0.017"/>
+  <testcase name="[12] 2, complete" classname="com.bloxbean.cardano.kavach.contracts.BrowserModuleTest" time="0.017"/>
+  <system-out><![CDATA[Browser mode 1 full registry / eight-approver one-input transfer: memory=5200673 cpu=2565793068
+Browser mode 2 full registry / eight-approver one-input transfer: memory=5249022 cpu=3006534197
+]]></system-out>
+  <system-err><![CDATA[]]></system-err>
+</testsuite>

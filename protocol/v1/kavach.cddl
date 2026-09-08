@@ -1,0 +1,72 @@
+; Kavach ordinary-account candidate profile v1.0-rc1, Plutus Data CBOR.
+; Normative together with specification.md. Not a production deployment approval.
+; All records use constructor 0 (tag 121); variants 0..6 use tags 121..127; variants 7 and 8 use tags 1280 and 1281.
+; Ledger Address / TxOutRef retain the Plutus V3 ledger representation.
+uint63 = 0..9223372036854775807
+hash28 = bytes .size 28
+hash32 = bytes .size 32
+nothing = #6.122([])
+just-hash32 = #6.121([hash32])
+account-id = #6.121([policy: hash28, name: bytes .size 0])
+deployment-domain = #6.121([network-id: 0..1, network-magic: 0..4294967295, deployment-id: hash32])
+core-binding = #6.121([state-validator: hash28, asset-validator: hash28, checkpoint: hash28])
+auth-module-ref = #6.121([script-hash: hash28, abi-version: 1])
+tx-out-ref = #6.121([tx-id: hash32, output-index: 0..65535])
+credential = #6.121([hash28]) / #6.122([hash28])
+staking-credential = #6.121([credential]) / #6.122([uint63, uint63, uint63])
+optional-staking = #6.121([staking-credential]) / nothing
+address = #6.121([payment: credential, stake: optional-staking])
+asset = #6.121([policy: bytes .size (0..28), name: bytes .size (0..32), quantity: uint63])
+value = [1*12 asset]
+recipient = #6.121([output-index: 0..15, address, value])
+validity = #6.121([not-before: uint63, expires-at: uint63])
+mode = #6.121([]) / #6.122([]) / #6.123([proposal-commitment: hash32, execute-after: uint63, target-config: data])
+account-state = #6.121([schema-version: 1, account-id, deployment-domain, core-binding,
+    state-version: uint63, auth-module-ref, auth-config: data, recovery-sequence: uint63,
+    recovery-delay-ms: uint63, recovery-cooldown-ms: uint63, recovery-not-before: uint63, mode])
+intent-domain = #6.121([protocol-version: 1, deployment-domain, account-id, core-binding,
+    state-version: uint63, state-ref: tx-out-ref])
+; All actions share the envelope domain and finite half-open validity interval.
+spend = #6.121([account-inputs: [1*8 tx-out-ref], recipients: [*8 recipient], max-account-fee: uint63])
+replace-config = #6.122([new-config: data])
+replace-module = #6.123([new-module: auth-module-ref, new-config: data])
+freeze = #6.124([])
+unfreeze = #6.125([])
+start-recovery = #6.126([next-sequence: uint63, replacement-config: data])
+cancel-recovery = #6.127([current-sequence: uint63, proposal-commitment: hash32])
+complete-recovery = #6.1280([current-sequence: uint63, replacement-config: data])
+transfer-whole-utxo = #6.1281([account-input: tx-out-ref, recipient-index: 0..15, recipient-address: address, input-value-digest: hash32])
+action = transfer-whole-utxo / spend / replace-config / replace-module / freeze / unfreeze / start-recovery / cancel-recovery / complete-recovery
+intent-envelope = #6.121([protocol-tag: bytes .size 14, intent-domain, validity, action])
+; protocol-tag = UTF-8 "KAVACH_INTENT" followed by byte 01; total 14 bytes.
+; digest = blake2b_256(serialiseData(intent-envelope)); no unsigned parallel hash.
+key-entry = #6.121([credential-id: 0..15, public-key: bytes .size 32])
+threshold-policy = #6.121([threshold: 1..8, credential-ids: [1*8 0..15]])
+ed25519-config = #6.121([schema-version: 1, keys: [3*16 key-entry],
+    spend: threshold-policy, admin: threshold-policy, freeze: threshold-policy,
+    unfreeze: threshold-policy, recovery: threshold-policy, cancel: threshold-policy])
+signature = #6.121([credential-id: 0..15, signature: bytes .size 64])
+proof = #6.121([scheme: 0, signatures: [1*8 signature]])
+reward-receipt = #6.121([reward-credential: #6.122([hash28]), output-index: 0..15])
+operation-binding = #6.121([account-id, state-version: uint63, action-tag: 0..8, intent-digest: hash32])
+optional-proof = #6.121([proof]) / nothing
+module-redeemer = #6.121([abi-version: 1, intent-envelope, operation-proof: optional-proof,
+    config-possession: [*16 signature], receipts: [*3 reward-receipt]])
+core-redeemer = #6.121([abi-version: 1, intent-envelope, receipts: [*3 reward-receipt]])
+asset-redeemer = #6.121([abi-version: 1, intent-digest: hash32])
+state-redeemer = core-redeemer
+registration-redeemer = #6.122([])
+; Separate successor/target proof domains, never ordinary operation authorization.
+configuration-proof-envelope = #6.121([tag: bytes .size 27, intent-digest: hash32, new-module: auth-module-ref, config-digest: hash32])
+genesis-proof-envelope = #6.121([tag: bytes .size 28, deployment-domain, account-id, core-binding, auth-module-ref, config-digest: hash32])
+target-proof-envelope = #6.121([tag: bytes .size 25, intent-domain, sequence: uint63,
+    proposal-commitment: hash32, replacement-config-digest: hash32])
+; Initial module profile only. Other modules must publish and qualify a separate configuration schema.
+data = ed25519-config
+
+recovery-commitment = #6.121([intent-domain, next-sequence: uint63, auth-module-ref, replacement-config: data, old-delay: uint63, old-cooldown: uint63])
+genesis-module-redeemer = #6.123([abi-version: 1, account-state, config-possession: [1*16 signature], receipts: [*1 reward-receipt]])
+
+; External resolved input for action 8; semantic checks require ADA first, canonical
+; unique ordering, positive quantities, valid policy lengths and the 8192-byte cap.
+resolved-ledger-value = { 1*2048 (bytes .size (0..28)) => { 1*2048 (bytes .size (0..32)) => 1..18446744073709551615 } }

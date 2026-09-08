@@ -1,0 +1,20 @@
+{
+  "profile": "v1.0-rc1",
+  "scope": "Reviewed Phase 0 wire and threat-model baseline; no production deployment hashes",
+  "sha256": {
+    "conformance/v1/deployment-probe.json": "fd9c1d38827b65fabfd0eca0701c6f2a64ba34839673ba375d23af1d831644ff",
+    "conformance/v1/genesis-possession.json": "993a4c1a45daa1f4fa4215940bcc836c9d82a5213285a2e78194e18459210fc1",
+    "conformance/v1/intent-vectors.json": "7aaaea56a1b5d9cec15af214b1bd167164cc420f35c73a08a59eb0aaa5a45252",
+    "conformance/v1/pending-state-rendering.txt": "11cb8e91ed27200786c3de950a10fb1ccfd9f3f4073130a4251b7690cdc3b17a",
+    "conformance/v1/pending-state.hex": "5ef448b36b3328c33dd108186d63e8d76a74fa5ba9b9bb241d03e6197e437745",
+    "conformance/v1/proof-domains.json": "18662fc2ac2f92d1535e19702655a36dc0fd2b44028a0fd7219e6c3d14f3b181",
+    "conformance/v1/state-rendering.txt": "452e45ac8838572796b6335aee375764f75ea0014ae1b61914ecc1cfea9f7120",
+    "conformance/v1/state.hex": "df48d938195e6f69fc262b9a27fdd3f4fa52020e9fe38999def1c0d148e32420",
+    "protocol/v1/deployment.md": "d040b9a7d7ce5086e7818d6676f3e341050c7e2802f24a7811fd44ef8823d554",
+    "protocol/v1/kavach.cddl": "637c6dae0c15dccfe2894675190eecc168ea521f03e9a1709b6cbdcef52cb258",
+    "protocol/v1/module-abi.md": "f6966abb51b2871d5ee94933489d28942e8a134096374a0f2e85ef5c362aa3d3",
+    "protocol/v1/specification.md": "acff6396cb58b4a3bcfbda27e362acfd829ce0577621b4e81166f285f7a7e9a4",
+    "protocol/v1/threat-model.md": "c51daf915ce476b31b6514824fd1d2a7b3800092eb78c980d1137ba8f5386422",
+    "conformance/v1/edge-vectors.json": "908425935a7a7a6985fe86dcd7614c415425e1bf1c08b578d95581295590b182"
+  }
+}

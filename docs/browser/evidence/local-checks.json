@@ -1,0 +1,17 @@
+{
+  "rootSuite": {
+    "tests": 488,
+    "failures": 0,
+    "errors": 0,
+    "skipped": 0
+  },
+  "checks": [
+    "check",
+    "toolchainAcceptance",
+    "verifyProtocolBaseline",
+    "javadoc",
+    ":demo:backend:check",
+    "demoWebBuild"
+  ],
+  "note": "Frontend was visually reviewed at desktop and 390px mobile. Wallet extension signatures remain unqualified."
+}

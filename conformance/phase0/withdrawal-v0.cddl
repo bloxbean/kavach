@@ -1,0 +1,9 @@
+; Experimental Plutus Data encoding, not the Kavach V1 wire schema.
+; Constructors 0 encoded with CBOR tag 121. Exact field counts are required.
+; serialiseData uses indefinite-length nonempty constructor arrays; see golden bytes.
+authorization = #6.121([challenge, signature: bytes .size 64])
+challenge = #6.121([domain: bytes .size 33, consumed-input: tx-out-ref])
+tx-out-ref = #6.121([tx-id: bytes .size 32, output-index: uint])
+; domain = UTF-8 "KAVACH_PHASE0_WITHDRAWAL_PROBE_V0"
+; digest = blake2b-256(serialiseData(challenge)); Ed25519 signs these 32 bytes.
+; consumed-input must equal a complete TxOutRef in txInfo.inputs (not referenceInputs).

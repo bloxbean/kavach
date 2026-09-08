@@ -1,0 +1,27 @@
+{
+  "test": {
+    "tests": 322,
+    "failures": 0,
+    "errors": 0,
+    "skipped": 0
+  },
+  "toolchainAcceptance": {
+    "tests": 1,
+    "failures": 0,
+    "errors": 0,
+    "skipped": 0
+  },
+  "integrationTest": {
+    "tests": 12,
+    "failures": 0,
+    "errors": 0,
+    "skipped": 0
+  },
+  "scope": "Phase 1 acceptance: 322 local tests, one toolchain gate, 12 short live tests and one full positive-reward live test. Javadoc, protocol baseline and reproducibility checks passed.",
+  "phase1RewardReuseIntegrationTest": {
+    "tests": 1,
+    "failures": 0,
+    "errors": 0,
+    "skipped": 0
+  }
+}

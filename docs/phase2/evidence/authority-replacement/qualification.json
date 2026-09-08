@@ -1,0 +1,8 @@
+{
+  "scope": "448 local tests and 3 short DevKit lifecycle tests passed; delayed recovery remains pending",
+  "templates": "../policy-qualified/templates.json",
+  "testSources": {
+    "src/test/java/com/bloxbean/cardano/kavach/contracts/AccountLifecycleDevkitTest.java": "0d30eecae264703935691a6c5e2805b1be9a8d1d99e73776d2a4b46387ba7350",
+    "src/test/java/com/bloxbean/cardano/kavach/contracts/AccountRecoveryBoundaryTest.java": "970201658a662b5152f858df087967a71d696c7cfaefe5617eb312534d38fcb8"
+  }
+}

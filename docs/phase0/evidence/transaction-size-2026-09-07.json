@@ -1,0 +1,46 @@
+{
+  "scope" : "Per-operation serialization upper shapes with reference scripts, not ledger-valid execution or production template sizes",
+  "cases" : [ {
+    "operation" : "Spend",
+    "transactionBytes" : 9698,
+    "ledgerMaximumBytes" : 16384,
+    "maximumOutputMinimumLovelace" : 1314550,
+    "stateByteCap" : 0,
+    "wholeLedgerValueBytes" : 0
+  }, {
+    "operation" : "TransferWholeUtxo",
+    "transactionBytes" : 13369,
+    "ledgerMaximumBytes" : 16384,
+    "maximumOutputMinimumLovelace" : 22368900,
+    "stateByteCap" : 0,
+    "wholeLedgerValueBytes" : 4970
+  }, {
+    "operation" : "StartRecovery",
+    "transactionBytes" : 14072,
+    "ledgerMaximumBytes" : 16384,
+    "maximumOutputMinimumLovelace" : 14597970,
+    "stateByteCap" : 3072,
+    "wholeLedgerValueBytes" : 0
+  }, {
+    "operation" : "ReplaceModule",
+    "transactionBytes" : 15438,
+    "ledgerMaximumBytes" : 16384,
+    "maximumOutputMinimumLovelace" : 7977810,
+    "stateByteCap" : 1536,
+    "wholeLedgerValueBytes" : 0
+  }, {
+    "operation" : "CompleteRecovery",
+    "transactionBytes" : 13104,
+    "ledgerMaximumBytes" : 16384,
+    "maximumOutputMinimumLovelace" : 7977810,
+    "stateByteCap" : 1536,
+    "wholeLedgerValueBytes" : 0
+  }, {
+    "operation" : "Creation",
+    "transactionBytes" : 11374,
+    "ledgerMaximumBytes" : 16384,
+    "maximumOutputMinimumLovelace" : 7977810,
+    "stateByteCap" : 1536,
+    "wholeLedgerValueBytes" : 0
+  } ]
+}

@@ -1,0 +1,11 @@
+{
+  "module" : {
+    "cpu" : 533483356,
+    "memory" : 1491956
+  },
+  "core" : {
+    "cpu" : 466821520,
+    "memory" : 1495240
+  },
+  "scope" : "Paired genesis binding at 16 inputs, 4 reference inputs, 16 outputs, 2 positive withdrawals; synthetic context, no value-conservation claim"
+}

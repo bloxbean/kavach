@@ -1,0 +1,63 @@
+{
+  "scope": "Phase 2 ordered policy validation; compiled profiles, short lifecycle with locator restoration and four transfers passed; full Phase 2 acceptance remains open",
+  "julcVersion": "0.1.0-pre17-6754861-SNAPSHOT",
+  "cclVersion": "0.8.0-pre5",
+  "scripts": {
+    "AccountStateValidator": {
+      "cborBytes": 7883,
+      "sha256": "86586a8000543911e521e321fbddbd757d4059a0777368a17ee479aef676a322",
+      "parameters": "coreVersion:BigInteger,deploymentDomain:DeploymentDomain"
+    },
+    "CoreCheckpoint": {
+      "cborBytes": 10484,
+      "sha256": "3fa02da4c672480e7b2a1ec05dd22ab8e8af9152978733c831ecac21d9fd66a1",
+      "parameters": "coreVersion:BigInteger,deploymentDomain:DeploymentDomain,stateValidatorHash:byte[],rewardSink:Address"
+    },
+    "Ed25519Module": {
+      "cborBytes": 14595,
+      "sha256": "a0710782cfe4aa6e9e89e5484e5f15854aebce06c2bd4fbe22a66c90676107dc",
+      "parameters": "moduleVersion:BigInteger,abiVersion:BigInteger,deploymentDomain:DeploymentDomain,stateValidatorHash:byte[],coreCheckpointHash:byte[],rewardSink:Address"
+    },
+    "AccountAssetValidator": {
+      "cborBytes": 10559,
+      "sha256": "50316d70d5a34c4851a3df3f3a68780ff7bb0ce5e774007c6ff080c738df788b",
+      "parameters": "coreVersion:BigInteger,deploymentDomain:DeploymentDomain,accountId:AccountId,stateValidatorHash:byte[],coreCheckpointHash:byte[]"
+    },
+    "StateNftPolicy": {
+      "cborBytes": 5701,
+      "sha256": "dae8b49dc81f67d0ecd05b1b37b688ab67458f096d98c3806dfe2572e26f1a56",
+      "parameters": "coreVersion:BigInteger,deploymentDomain:DeploymentDomain,seed:TxOutRef,creator:byte[],stateValidatorHash:byte[]"
+    }
+  },
+  "sources": {
+    "src/main/java/com/bloxbean/cardano/kavach/auth/ed25519/Ed25519Lib.java": "1d223e3f573e6bc174ea623221eaa34b009d67beac8d4eb26a5450f329429073",
+    "src/main/java/com/bloxbean/cardano/kavach/auth/ed25519/Ed25519LifecycleLib.java": "7e92c516211a72e30c184d04673912c90f061c35c6fbb0b5b16d9c07b7308138",
+    "src/main/java/com/bloxbean/cardano/kavach/auth/ed25519/Ed25519Module.java": "0cc668653ab56b1f35e5a014b568850e263f01bc9864ad8ebced1560cc5d0837",
+    "src/main/java/com/bloxbean/cardano/kavach/auth/ed25519/package-info.java": "a1c2cbdd5121a56f5c13ae244f8501adf92a650c5617b3f7dda04410015212c7",
+    "src/main/java/com/bloxbean/cardano/kavach/contracts/AccountAssetValidator.java": "4072752c86860af1c64b65e1f195304e45b53cc9d023fcb3e33d6f6a875862fa",
+    "src/main/java/com/bloxbean/cardano/kavach/contracts/AccountLib.java": "f29506d5d38d7ba16d74d40e8b1ed0c268a9d525517093069e2e2c438a5fa0f6",
+    "src/main/java/com/bloxbean/cardano/kavach/contracts/AccountStateValidator.java": "0f5f2f119e4ceb7f442c57d57cc8036e508fc4ee846107a020617628a2bcfe4c",
+    "src/main/java/com/bloxbean/cardano/kavach/contracts/AccountTypes.java": "d967d8ebc61c818ace7d6d174be82f4133315b21596822d7232e81dfe7eedd34",
+    "src/main/java/com/bloxbean/cardano/kavach/contracts/CoreCheckpoint.java": "9659488433929ef1efafd803d5174ca9e1120128dd752339200daea577cf2595",
+    "src/main/java/com/bloxbean/cardano/kavach/contracts/LifecycleLib.java": "981c007e4063c96ed7f2e13858525d230c32ceed91aad6f3242bd3fbef03fa2e",
+    "src/main/java/com/bloxbean/cardano/kavach/contracts/NativeAccountingLib.java": "a7dbc348f26c547d7a1887dabf1ac3bf15d25dee632feb662d863a5b64fa9082",
+    "src/main/java/com/bloxbean/cardano/kavach/contracts/SpendLib.java": "da7219040337aca1fd55f34d70c4be9485131d711019425c59b51210ce1b0bd1",
+    "src/main/java/com/bloxbean/cardano/kavach/contracts/StateNftPolicy.java": "ca2145be97d144f22a8b9f4f4bfe8e9f1bd6e807b1e5ef0d21f52f75949b31fe",
+    "src/main/java/com/bloxbean/cardano/kavach/contracts/StateTransitionLib.java": "56d4e8da3d768ba8eb51964001657d3f48a40cd7122c742f37dd9e64d834cc3b",
+    "src/main/java/com/bloxbean/cardano/kavach/contracts/WholeTransferLib.java": "adc7c0468fe942b75235abc1255db7407aaf786940f71683cb91a173352f5ff8",
+    "src/main/java/com/bloxbean/cardano/kavach/contracts/package-info.java": "a0c3f88dd2469c4cc891a21d94aeb927b308d8f0feb0491b0f164cc1471676cd",
+    "src/main/java/com/bloxbean/cardano/kavach/protocol/ProofDomains.java": "bc5676d8788e1e15b28c92dc85ccd73ce94aad3863a9bb0d057c0dd32f20f9fc",
+    "src/main/java/com/bloxbean/cardano/kavach/protocol/RecoveryModel.java": "65fca7cd660e82e02b610296accb6ac81c916222130abfa8d3201de3d998f2ce",
+    "src/main/java/com/bloxbean/cardano/kavach/protocol/WireFormat.java": "387b61440981433c834270e81440fcbdf274d1d541e639b964afe1b5bc99e591",
+    "src/main/java/com/bloxbean/cardano/kavach/protocol/package-info.java": "a5bfc4ddf031218d60acaad8e6b26ec8190d1fd08209a040fe743b522d19411e",
+    "src/main/java/com/bloxbean/cardano/kavach/sdk/AccountAdministration.java": "cdc191ee71b32d479c31a94d4dbb0a616966fbd0a2f6b14b1df64ad69463e9ff",
+    "src/main/java/com/bloxbean/cardano/kavach/sdk/AccountCodec.java": "e0d44f82653d4573dfefcbec5634def5dbeac0f300a01e209193e1f243931336",
+    "src/main/java/com/bloxbean/cardano/kavach/sdk/AccountDeployment.java": "bf9c04e8e76e1768778cb36de2d5eae02d56cd0bb73952637a1ac0ee41af95cb",
+    "src/main/java/com/bloxbean/cardano/kavach/sdk/AccountMutation.java": "83fe9e549d270fb1bad92dac775f3808aac4eb28deca446dd43869e3418a58fe",
+    "src/main/java/com/bloxbean/cardano/kavach/sdk/AccountTransfer.java": "cccb20f8a19900b60177e01afaf5a820cdb821215e838fb389c90f4fc1a9355b",
+    "src/main/java/com/bloxbean/cardano/kavach/sdk/AdministrationProofs.java": "f8ac132da61abbcd34c76c48248ea697236f5b42facbc1162c678d644de19db1",
+    "src/main/java/com/bloxbean/cardano/kavach/sdk/ExecutionBudgetMargin.java": "3dec2357b60bd102a1527c790b9688ff93d754358b7b25a935b674c3773a6f29",
+    "src/main/java/com/bloxbean/cardano/kavach/sdk/package-info.java": "c38adf7672b63b5b5a89fe249ef78b9a2b0948d4d9a1723aefeb6eaf764c97e3",
+    "src/main/java/com/bloxbean/cardano/kavach/sdk/AccountLocator.java": "9f2c2ec37a3318e4f541beb34f7783d539d901dfc2cc559343178bcd31f38bfa"
+  }
+}

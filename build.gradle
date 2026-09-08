@@ -1,0 +1,316 @@
+import groovy.json.JsonSlurper
+import java.security.MessageDigest
+
+plugins { id 'java' }
+
+group = 'com.bloxbean.cardano.kavach'
+version = '0.0.1-SNAPSHOT'
+
+def julcVersion = providers.gradleProperty('julcVersion').get()
+def cclVersion = providers.gradleProperty('cclVersion').get()
+repositories {
+    exclusiveContent {
+        forRepository { mavenLocal() }
+        filter {
+            includeVersionByRegex('com\\.bloxbean\\.cardano', 'julc-.*', julcVersion.replace('.', '\\.'))
+        }
+    }
+    mavenCentral()
+}
+java { toolchain { languageVersion = JavaLanguageVersion.of(25) } }
+sourceSets.test.resources.srcDir 'conformance'
+
+// Align CCL even on the annotation-processor classpath inherited from JuLC.
+configurations.configureEach {
+    resolutionStrategy.eachDependency {
+        if (requested.group == 'com.bloxbean.cardano' && requested.name.startsWith('cardano-client-')) {
+            useVersion cclVersion
+            because 'Kavach uses one explicitly pinned CCL version across compiler and test tooling'
+        }
+    }
+}
+dependencies {
+    implementation "org.bouncycastle:bcprov-jdk18on:1.83" // Strict off-chain Ed25519 public-key validation.
+    implementation "com.bloxbean.cardano:julc-stdlib:$julcVersion"
+    implementation "com.bloxbean.cardano:julc-ledger-api:$julcVersion"
+    annotationProcessor "com.bloxbean.cardano:julc-annotation-processor:$julcVersion"
+    implementation "com.bloxbean.cardano:julc-cardano-client-lib:$julcVersion"
+    testImplementation "com.bloxbean.cardano:julc-testkit:$julcVersion"
+    testRuntimeOnly "com.bloxbean.cardano:julc-vm-java:$julcVersion"
+    implementation "com.bloxbean.cardano:cardano-client-lib:$cclVersion"
+    testImplementation "com.bloxbean.cardano:cardano-client-backend-blockfrost:$cclVersion"
+    testImplementation platform('org.junit:junit-bom:5.11.4')
+    testImplementation 'org.junit.jupiter:junit-jupiter'
+    testRuntimeOnly 'org.junit.platform:junit-platform-launcher'
+}
+
+test { useJUnitPlatform { excludeTags 'browserDevkit', 'devkit', 'toolchainGate', 'rewardCredit', 'pairedRewardCredit', 'phase1RewardCredit' } }
+tasks.withType(Test).configureEach {
+    systemProperty 'kavach.julcVersion', julcVersion
+    systemProperty 'kavach.cclVersion', cclVersion
+}
+tasks.register('toolchainAcceptance', Test) {
+    description = 'Require compiler output to verify a valid signature without artifact rewriting.'
+    group = 'verification'
+    testClassesDirs = sourceSets.test.output.classesDirs
+    classpath = sourceSets.test.runtimeClasspath
+    useJUnitPlatform { includeTags 'toolchainGate' }
+}
+tasks.named('check') { dependsOn tasks.named('toolchainAcceptance') }
+tasks.register('integrationTest', Test) {
+    description = 'Run live local Yaci DevKit probes; fails if DevKit is unavailable.'
+    group = 'verification'
+    testClassesDirs = sourceSets.test.output.classesDirs
+    classpath = sourceSets.test.runtimeClasspath
+    useJUnitPlatform { includeTags 'devkit'; excludeTags 'phase2DelayedRecovery' }
+    shouldRunAfter test
+    outputs.upToDateWhen { false }
+    testLogging { showStandardStreams = true }
+}
+dependencyLocking { lockAllConfigurations() }
+
+// A SNAPSHOT coordinate alone does not pin bytes. Verify the locally built JuLC
+// binaries before compiling against or executing them; never silently republish it.
+def verifyJulcToolchain = tasks.register('verifyJulcToolchain') {
+    group = 'verification'
+    description = 'Verify the locally published JuLC snapshot against its reviewed artifact hashes.'
+    inputs.file('toolchain/julc/manifest.json')
+    doLast {
+        def manifest = new JsonSlurper().parse(file('toolchain/julc/manifest.json'))
+        if (manifest.version != julcVersion) {
+            throw new GradleException('JuLC version and reviewed toolchain manifest differ')
+        }
+        def seen = new HashSet<String>()
+        [configurations.compileClasspath, configurations.annotationProcessor,
+         configurations.testCompileClasspath, configurations.testRuntimeClasspath].each { configuration ->
+            configuration.resolvedConfiguration.resolvedArtifacts.each { artifact ->
+                def id = artifact.moduleVersion.id
+                if (id.group == 'com.bloxbean.cardano' && id.name.startsWith('julc-')) {
+                    def actual = MessageDigest.getInstance('SHA-256').digest(artifact.file.bytes).encodeHex().toString()
+                    if (id.version != julcVersion || manifest.artifacts[id.name] != actual) {
+                        throw new GradleException("Unreviewed JuLC artifact: ${id}; do not overwrite the pinned snapshot")
+                    }
+                    seen.add(id.name)
+                }
+            }
+        }
+        if (seen != manifest.artifacts.keySet()) {
+            throw new GradleException('Resolved JuLC modules differ from the reviewed manifest')
+        }
+    }
+}
+tasks.withType(JavaCompile).configureEach { dependsOn verifyJulcToolchain }
+
+// Real deposit refunds require epoch transitions. Kept explicit because this can take 95 minutes.
+tasks.register('rewardCreditIntegrationTest', Test) {
+    group = 'verification'
+    description = 'Wait for a disposable information proposal refund, then test real positive rewards.'
+    testClassesDirs = sourceSets.test.output.classesDirs
+    classpath = sourceSets.test.runtimeClasspath
+    useJUnitPlatform { includeTags 'rewardCredit' }
+    outputs.upToDateWhen { false }
+    testLogging { showStandardStreams = true }
+}
+
+tasks.register('generateWireVectors', JavaExec) {
+    description = 'Generate public candidate-profile vectors under build; never overwrites conformance fixtures.'
+    classpath = sourceSets.test.runtimeClasspath
+    mainClass = 'com.bloxbean.cardano.kavach.protocol.WireVectorGenerator'
+    dependsOn testClasses
+}
+
+tasks.register('pairedRewardCreditIntegrationTest', Test) {
+    group = 'verification'
+    description = 'Wait for two real reward credits, then validate distinct shared-sink receipts.'
+    systemProperty 'kavach.resumePairedRewards', providers.gradleProperty('resumePairedRewards').getOrElse('false')
+    testClassesDirs = sourceSets.test.output.classesDirs
+    classpath = sourceSets.test.runtimeClasspath
+    useJUnitPlatform { includeTags 'pairedRewardCredit' }
+    outputs.upToDateWhen { false }
+    testLogging { showStandardStreams = true }
+}
+
+// Capture the compiler actually selected by Gradle, not merely the shell's Java.
+tasks.register('phase0BuildManifest') {
+    group = 'verification'
+    dependsOn tasks.named('classes')
+    doLast {
+        def compiler = tasks.named('compileJava').get().javaCompiler.get().metadata
+        def scripts = [:]
+        fileTree('build/classes/java/main/META-INF/plutus').matching { include '*.plutus.json' }.files.sort().each { artifact ->
+            if (!file('src/main/java/com/bloxbean/cardano/kavach/phase0/' + artifact.name.replace('.plutus.json', '.java')).exists()) return
+            def parsed = new JsonSlurper().parse(artifact)
+            scripts[artifact.name] = [sha256: MessageDigest.getInstance('SHA-256').digest(parsed.cborHex.decodeHex()).encodeHex().toString(),
+                                     templateHash: parsed.hash, cborBytes: parsed.cborHex.length() / 2, params: parsed.params]
+        }
+        def manifest = [scope: 'Phase 0 unapplied probe templates; not production deployment hashes',
+                        gradle: gradle.gradleVersion, javaRuntimeVersion: compiler.javaRuntimeVersion,
+                        jvmVersion: compiler.jvmVersion, javaVendor: compiler.vendor,
+                        compilerArgs: tasks.named('compileJava').get().options.compilerArgs,
+                        julcVersion: julcVersion, cclVersion: cclVersion, scripts: scripts]
+        def output = file('build/phase0/build-manifest.json'); output.parentFile.mkdirs()
+        output.text = groovy.json.JsonOutput.prettyPrint(groovy.json.JsonOutput.toJson(manifest)) + '\n'
+    }
+}
+
+// Normative baseline changes must be reviewed together with their conformance fixtures.
+tasks.register('verifyProtocolBaseline') {
+    group = 'verification'
+    doLast {
+        def manifest = new JsonSlurper().parse(file('protocol/v1/manifest.json'))
+        def paths = fileTree('protocol/v1').matching { include '*.md', '*.cddl' }.files.collect { relativePath(it) }.toSet()
+        paths.addAll(fileTree('conformance/v1').files.collect { relativePath(it) })
+        if (paths != manifest.sha256.keySet()) throw new GradleException('Protocol baseline file set changed; review the manifest')
+        manifest.sha256.each { path, expected ->
+            def actual = MessageDigest.getInstance('SHA-256').digest(file(path).bytes).encodeHex().toString()
+            if (actual != expected) throw new GradleException("Protocol baseline changed: ${path}; review schema and fixtures together")
+        }
+    }
+}
+tasks.named('check') { dependsOn tasks.named('verifyProtocolBaseline') }
+
+// Validate documentation syntax and links. Missing-comment lint includes synthetic record
+// accessors and implicit constructors; useful API documentation is reviewed in source.
+tasks.named('javadoc') {
+    options.addStringOption('Xdoclint:all,-missing', '-quiet')
+    options.addBooleanOption('Werror', true)
+}
+tasks.named('check') { dependsOn tasks.named('javadoc') }
+
+// Explicit long-running Phase 1 ledger gate; it does not reset or accelerate DevKit.
+tasks.register('phase1RewardCreditIntegrationTest', Test) {
+    group = 'verification'
+    description = 'Validate a full Phase 1 spend after two actual proposal reward refunds.'
+    testClassesDirs = sourceSets.test.output.classesDirs
+    classpath = sourceSets.test.runtimeClasspath
+    useJUnitPlatform { includeTags 'phase1RewardCredit' }
+    outputs.upToDateWhen { false }
+    testLogging { showStandardStreams = true }
+}
+
+// Record exactly the implementation artifacts qualified by Phase 1 evidence.
+tasks.register('phase1BuildManifest') {
+    group = 'verification'
+    dependsOn tasks.named('classes')
+    doLast {
+        def names = ['AccountStateValidator', 'AccountAssetValidator', 'StateNftPolicy', 'CoreCheckpoint', 'Ed25519Module']
+        def scripts = [:]
+        names.each { name ->
+            def artifact = file("build/classes/java/main/META-INF/plutus/${name}.plutus.json")
+            def parsed = new JsonSlurper().parse(artifact)
+            scripts[name] = [sha256: MessageDigest.getInstance('SHA-256').digest(parsed.cborHex.decodeHex()).encodeHex().toString(),
+                             templateHash: parsed.hash, cborBytes: parsed.cborHex.length() / 2, params: parsed.params]
+        }
+        def sources = [:]
+        fileTree('src/main/java/com/bloxbean/cardano/kavach').matching { include '**/*.java'; exclude 'phase0/**' }.files.sort().each { source ->
+            sources[relativePath(source)] = MessageDigest.getInstance('SHA-256').digest(source.bytes).encodeHex().toString()
+        }
+        def compiler = tasks.named('compileJava').get().javaCompiler.get().metadata
+        def manifest = [scope: 'Phase 1 development templates; state is sealed; not production deployment hashes',
+                        gradle: gradle.gradleVersion, javaRuntimeVersion: compiler.javaRuntimeVersion, javaVendor: compiler.vendor,
+                        compilerArgs: tasks.named('compileJava').get().options.compilerArgs,
+                        julcVersion: julcVersion, cclVersion: cclVersion, scripts: scripts, sources: sources]
+        def output = file('build/phase1/build-manifest.json'); output.parentFile.mkdirs()
+        output.text = groovy.json.JsonOutput.prettyPrint(groovy.json.JsonOutput.toJson(manifest)) + '\n'
+    }
+}
+
+// Full ledger gate using still-pending public refunds at unchanged checkpoint hashes.
+// Creates a new account and uses new private keys; it does not resume the old account.
+tasks.register('phase1RewardReuseIntegrationTest', Test) {
+    group = 'verification'
+    description = 'Qualify current asset scripts using pending refunds at identical core/module checkpoints.'
+    systemProperty 'kavach.reusePhase1RewardSetup', 'true'
+    testClassesDirs = sourceSets.test.output.classesDirs
+    classpath = sourceSets.test.runtimeClasspath
+    useJUnitPlatform { includeTags 'phase1RewardCredit' }
+    outputs.upToDateWhen { false }
+    testLogging { showStandardStreams = true }
+}
+
+// Fee qualification preserves the completed Phase 1 pending files and public evidence.
+tasks.register('feeOptimizationIntegrationTest', Test) {
+    group = 'verification'
+    description = 'Measure all four complete account transfer profiles for fee qualification.'
+    systemProperty 'kavach.phase1EvidenceDirectory', 'build/fee-optimization'
+    testClassesDirs = sourceSets.test.output.classesDirs
+    classpath = sourceSets.test.runtimeClasspath
+    useJUnitPlatform { includeTags 'devkit'; excludeTags 'phase2DelayedRecovery' }
+    filter { includeTestsMatching 'com.bloxbean.cardano.kavach.contracts.AccountDevkitTest' }
+    outputs.upToDateWhen { false }
+    testLogging { showStandardStreams = true }
+}
+tasks.register('feeOptimizationRewardIntegrationTest', Test) {
+    group = 'verification'
+    description = 'Qualify optimized scripts with fresh actual checkpoint reward refunds.'
+    systemProperty 'kavach.phase1EvidenceDirectory', 'build/fee-optimization'
+    testClassesDirs = sourceSets.test.output.classesDirs
+    classpath = sourceSets.test.runtimeClasspath
+    useJUnitPlatform { includeTags 'phase1RewardCredit' }
+    outputs.upToDateWhen { false }
+    testLogging { showStandardStreams = true }
+}
+
+// Fresh Phase 2 deployments retain their own evidence, separate from archived qualifications.
+tasks.register('phase2TransferIntegrationTest', Test) {
+    group = 'verification'
+    description = 'Qualify publication, creation and ordinary transfers using current Phase 2 scripts.'
+    systemProperty 'kavach.phase1EvidenceDirectory', 'build/phase2/transfers'
+    testClassesDirs = sourceSets.test.output.classesDirs
+    classpath = sourceSets.test.runtimeClasspath
+    useJUnitPlatform { includeTags 'devkit'; excludeTags 'phase2DelayedRecovery' }
+    filter { includeTestsMatching 'com.bloxbean.cardano.kavach.contracts.AccountDevkitTest' }
+    outputs.upToDateWhen { false }
+    testLogging { showStandardStreams = true }
+}
+
+// Short mutations only; a separate gate must prove the actual recovery delay and completion.
+tasks.register('phase2LifecycleIntegrationTest', Test) {
+    group = 'verification'
+    description = 'Qualify short Phase 2 state mutations through the canonical SDK on local DevKit.'
+    testClassesDirs = sourceSets.test.output.classesDirs
+    classpath = sourceSets.test.runtimeClasspath
+    useJUnitPlatform { includeTags 'devkit'; excludeTags 'phase2DelayedRecovery' }
+    filter { includeTestsMatching 'com.bloxbean.cardano.kavach.contracts.AccountLifecycleDevkitTest' }
+    outputs.upToDateWhen { false }
+    testLogging { showStandardStreams = true }
+}
+
+// Explicit long-running gate: never shorten the protocol delay or reset DevKit.
+tasks.register('phase2DelayedRecoveryIntegrationTest', Test) {
+    group = 'verification'
+    description = 'Prove recovery completion after the actual 24-hour minimum delay on DevKit.'
+    testClassesDirs = sourceSets.test.output.classesDirs
+    classpath = sourceSets.test.runtimeClasspath
+    useJUnitPlatform { includeTags 'phase2DelayedRecovery' }
+    filter { includeTestsMatching 'com.bloxbean.cardano.kavach.contracts.AccountLifecycleDevkitTest' }
+    outputs.upToDateWhen { false }
+    testLogging { showStandardStreams = true }
+}
+
+[transactionWitness: 1, cose: 2].each { label, mode ->
+    tasks.register("${label}IntegrationTest", Test) {
+        group = 'verification'
+        description = "Qualify browser ${label} authentication and account lifecycle on DevKit."
+        testClassesDirs = sourceSets.test.output.classesDirs
+        classpath = sourceSets.test.runtimeClasspath
+        systemProperty 'kavach.browserMode', mode
+        useJUnitPlatform { includeTags 'browserDevkit' }
+        outputs.upToDateWhen { false }
+        testLogging { showStandardStreams = true }
+    }
+}
+
+// Frontend tools remain npm-native; Gradle exposes reproducible install/build entry points.
+tasks.register('demoWebInstall', Exec) {
+    group = 'build setup'
+    description = 'Install the demo frontend from its pinned package-lock.json.'
+    workingDir layout.projectDirectory.dir('demo/web')
+    commandLine 'npm', 'ci'
+}
+tasks.register('demoWebBuild', Exec) {
+    group = 'build'
+    description = 'Type-check and bundle the demo frontend (run demoWebInstall first).'
+    workingDir layout.projectDirectory.dir('demo/web')
+    commandLine 'npm', 'run', 'build'
+}

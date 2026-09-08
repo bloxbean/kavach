@@ -1,0 +1,32 @@
+{
+  "scope": "Phase 2 development templates used for initial publication, creation and transfer only; administration/recovery ledger qualification pending",
+  "julcVersion": "0.1.0-pre17-6754861-SNAPSHOT",
+  "scripts": {
+    "AccountStateValidator": {
+      "cborBytes": 8052,
+      "sha256": "fd1780aa55993aa9eda2c887e281975ec1fb6dc15c834b050248fbdeada41d81",
+      "parameters": "coreVersion:BigInteger,deploymentDomain:DeploymentDomain"
+    },
+    "CoreCheckpoint": {
+      "cborBytes": 10910,
+      "sha256": "dffdc0453b4b35829b87b8f6fba2def3110250239967fcc4319a38193dc44b91",
+      "parameters": "coreVersion:BigInteger,deploymentDomain:DeploymentDomain,stateValidatorHash:byte[],rewardSink:Address"
+    },
+    "Ed25519Module": {
+      "cborBytes": 15789,
+      "sha256": "73daa58785cdd48917246bc449eafa28c26e1393bac79f42ab5752c5b6fa83ea",
+      "parameters": "moduleVersion:BigInteger,abiVersion:BigInteger,deploymentDomain:DeploymentDomain,stateValidatorHash:byte[],coreCheckpointHash:byte[],rewardSink:Address"
+    },
+    "AccountAssetValidator": {
+      "cborBytes": 10569,
+      "sha256": "2692779b602cff59705df85f0aa41eb0dc95edec0090738f8236fd6b87f11e48",
+      "parameters": "coreVersion:BigInteger,deploymentDomain:DeploymentDomain,accountId:AccountId,stateValidatorHash:byte[],coreCheckpointHash:byte[]"
+    },
+    "StateNftPolicy": {
+      "cborBytes": 6017,
+      "sha256": "eed1262b0ffc056d76f4787b7d70d23e1498be2e74c92dd2970ae4c9b65bbf8b",
+      "parameters": "coreVersion:BigInteger,deploymentDomain:DeploymentDomain,seed:TxOutRef,creator:byte[],stateValidatorHash:byte[]"
+    }
+  },
+  "cclVersion": "0.8.0-pre5"
+}

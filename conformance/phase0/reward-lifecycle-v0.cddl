@@ -1,0 +1,9 @@
+; Experimental redeemer for RewardLifecycleProbe, not the V1 checkpoint/module ABI.
+; Semantic constraints depend on purpose and withdrawal amount.
+reward-lifecycle-redeemer = int
+; Certifying: only deposit-bearing script stake registration; redeemer = -1.
+; Rewarding, amount = 0: redeemer = -1; no receipt.
+; Rewarding, amount > 0: 0 <= redeemer < output count; receipt at that index.
+; Exactly one withdrawal; authority required signer; fixed full key-address sink.
+; Receipt: ADA >= withdrawn amount, no other assets, no datum/reference script.
+; Scalar canonical CBOR vectors: -1 -> 20; 0 -> 00; 1 -> 01.

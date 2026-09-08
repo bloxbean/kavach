@@ -1,0 +1,299 @@
+{
+  "scope": "Disposable CIP-30-shaped signer responses, actual DevKit ledger; not real extension compatibility. Custom six-role policies, chosen threshold subset, native tokens, consolidation, whole-account transfer, rotations, cross-mode replacement, freeze/unfreeze, recovery start/cancel; changed-body signatures and premature submission rejected.",
+  "transactions": [
+    {
+      "initialSigningMode": 1,
+      "action": "Create account \u00b7 publish script 1 of 5",
+      "txHash": "5c5079ff98cae5ba7d14e476d19c8aa5a0b738ab42741e2c83e94cd5bb7ce70a",
+      "feeLovelace": "520933",
+      "transactionBytes": null
+    },
+    {
+      "initialSigningMode": 1,
+      "action": "Create account \u00b7 publish script 2 of 5",
+      "txHash": "ecdd536b773ead5deddf41316630c49eae566beb94d946360789b3b8e831662c",
+      "feeLovelace": "640569",
+      "transactionBytes": null
+    },
+    {
+      "initialSigningMode": 1,
+      "action": "Create account \u00b7 publish script 3 of 5",
+      "txHash": "1b988309b01bec7689a7f6bd9e5a1d38840b96662ba8fee58fa3188e406c020b",
+      "feeLovelace": "854145",
+      "transactionBytes": null
+    },
+    {
+      "initialSigningMode": 1,
+      "action": "Create account \u00b7 publish script 4 of 5",
+      "txHash": "fd83b36332a0e610c462543097e2b2180805b5c687d7d1c52588dd0a014dcd26",
+      "feeLovelace": "429853",
+      "transactionBytes": null
+    },
+    {
+      "initialSigningMode": 1,
+      "action": "Create account \u00b7 publish script 5 of 5",
+      "txHash": "b71a9545db9f2f64ca9fa0b53a293c567e5dddd3dcc16469dcf471e986389310",
+      "feeLovelace": "643429",
+      "transactionBytes": null
+    },
+    {
+      "initialSigningMode": 1,
+      "action": "Register authorization checkpoints",
+      "txHash": "00fdc12d428af8256efa16a02766223b4e20afccbf3e40de17866a9a44b4d94b",
+      "feeLovelace": "172937",
+      "transactionBytes": null
+    },
+    {
+      "initialSigningMode": 1,
+      "action": "Create account \u00b7 approve genesis",
+      "txHash": "b57cbf9ebf2f2a4fe95e0bf30833aea3009988dce6eb642cdea2cb2bfabc0845",
+      "feeLovelace": "775803",
+      "transactionBytes": null
+    },
+    {
+      "initialSigningMode": 1,
+      "action": "Send assets",
+      "txHash": "b724c839cce69881b2644f34b48abe1077fa5b4d08ba4c25440e996b2d249207",
+      "feeLovelace": "1220711",
+      "transactionBytes": null
+    },
+    {
+      "initialSigningMode": 1,
+      "action": "Send assets",
+      "txHash": "3339a97f8588d73de6bbc990f575f9b116df68b0b52d089a29a1646539e2c2b6",
+      "feeLovelace": "1214413",
+      "transactionBytes": null
+    },
+    {
+      "initialSigningMode": 1,
+      "action": "Consolidate assets",
+      "txHash": "6583d59b638a516d291ed45fb5e0125ace662dec8cce122bc78f8a3d12084fe8",
+      "feeLovelace": "1144991",
+      "transactionBytes": null
+    },
+    {
+      "initialSigningMode": 1,
+      "action": "Freeze account",
+      "txHash": "a2b2d930ce0315f432bb6fe322c00c7c356eaab8906e70992829d9834e1c884e",
+      "feeLovelace": "1158763",
+      "transactionBytes": null
+    },
+    {
+      "initialSigningMode": 1,
+      "action": "Unfreeze account",
+      "txHash": "f5245678b4267378cd606a31548d016caa4c44deec73d4d16dcd6fcf972b2cf3",
+      "feeLovelace": "1158095",
+      "transactionBytes": null
+    },
+    {
+      "initialSigningMode": 1,
+      "action": "Rotate keys",
+      "txHash": "97b0c317678053c57ef6e92fe3a89641d5e0ae4a38e3386e1a73a257d1e02e64",
+      "feeLovelace": "1300722",
+      "transactionBytes": null
+    },
+    {
+      "initialSigningMode": 1,
+      "action": "Publish candidate module",
+      "txHash": "f74b5d5f35d46665f91fb625cd2e062d4539b86ec8c82b51a9dfdb55f4460a36",
+      "feeLovelace": "854145",
+      "transactionBytes": null
+    },
+    {
+      "initialSigningMode": 1,
+      "action": "Register authorization checkpoints",
+      "txHash": "e58fbbbbdba280bcdd04737a49b607c75d67f564e29d0d323a7f3adb40570a2a",
+      "feeLovelace": "171441",
+      "transactionBytes": null
+    },
+    {
+      "initialSigningMode": 1,
+      "action": "Replace module",
+      "txHash": "2f19712fa5242db4ec16b349324bb74f6083a34e7ed84593b240c37d9ae8558f",
+      "feeLovelace": "1750951",
+      "transactionBytes": null
+    },
+    {
+      "initialSigningMode": 1,
+      "action": "Send assets",
+      "txHash": "085fc694285d585f0b6829fe717d0e569ff1aebb5ff712bbd4bbc8a2191ba3df",
+      "feeLovelace": "1180670",
+      "transactionBytes": null
+    },
+    {
+      "initialSigningMode": 1,
+      "action": "Start recovery",
+      "txHash": "9bbacc44c682caac8bbbd3a3c2566b96789b75a36c8515b44d6697d6b975b62b",
+      "feeLovelace": "1278785",
+      "transactionBytes": null
+    },
+    {
+      "initialSigningMode": 1,
+      "action": "Cancel recovery",
+      "txHash": "232ea4f1bfa38181d1f10a812f806efe242bc26c71c357e00ea191018da5cef9",
+      "feeLovelace": "1195453",
+      "transactionBytes": null
+    },
+    {
+      "initialSigningMode": 1,
+      "action": "Unfreeze account",
+      "txHash": "61c620a4aaeed88e641c59649026cf52f84c1f5de049a7c2ded899c36e96682e",
+      "feeLovelace": "1161316",
+      "transactionBytes": null
+    },
+    {
+      "initialSigningMode": 1,
+      "action": "Send assets",
+      "txHash": "40fcd96ce1372e7dad051dc234b7a9e6831e44435d0bc467328d8565fef2bda2",
+      "feeLovelace": "1192350",
+      "transactionBytes": null
+    },
+    {
+      "initialSigningMode": 2,
+      "action": "Create account \u00b7 publish script 1 of 5",
+      "txHash": "b84f7b9a6d3031e5fc2da27e252f6fedcbcfd2dd5d08454ce17aa33a99103b10",
+      "feeLovelace": "520933",
+      "transactionBytes": null
+    },
+    {
+      "initialSigningMode": 2,
+      "action": "Create account \u00b7 publish script 2 of 5",
+      "txHash": "2190a1df49d6c51a82c6dd5643d01ddef353efe1b9364d2ae72ae10821a65cc1",
+      "feeLovelace": "640569",
+      "transactionBytes": null
+    },
+    {
+      "initialSigningMode": 2,
+      "action": "Create account \u00b7 publish script 3 of 5",
+      "txHash": "9c5cdeeb1feb75f4901624e0e12fed9de890b2d759906cd8221be423e1fbffc8",
+      "feeLovelace": "854145",
+      "transactionBytes": null
+    },
+    {
+      "initialSigningMode": 2,
+      "action": "Create account \u00b7 publish script 4 of 5",
+      "txHash": "6561b91ce33288b8d3c8285364bf03ebb92cc1edbf30219b8290cfbab15e975a",
+      "feeLovelace": "429853",
+      "transactionBytes": null
+    },
+    {
+      "initialSigningMode": 2,
+      "action": "Create account \u00b7 publish script 5 of 5",
+      "txHash": "6c877ecc461a655f6fc2fdebe9465112d0aa10e9bcc654745907697bc4d38b77",
+      "feeLovelace": "643429",
+      "transactionBytes": null
+    },
+    {
+      "initialSigningMode": 2,
+      "action": "Register authorization checkpoints",
+      "txHash": "3296c3db85df047971b86e4d7ad60ca9f60ed8da209e80119515f20279e33beb",
+      "feeLovelace": "172937",
+      "transactionBytes": null
+    },
+    {
+      "initialSigningMode": 2,
+      "action": "Create account \u00b7 approve genesis",
+      "txHash": "e99d94e8c35efcff179dca398063f2586a17b6a444358fd9204de9a7d7a993e6",
+      "feeLovelace": "783964",
+      "transactionBytes": null
+    },
+    {
+      "initialSigningMode": 2,
+      "action": "Send assets",
+      "txHash": "0885fe112f4a42aa0e1f0de0e6bc8a493c5f2b36823fa6d23548ab8e6680712b",
+      "feeLovelace": "1224761",
+      "transactionBytes": null
+    },
+    {
+      "initialSigningMode": 2,
+      "action": "Send assets",
+      "txHash": "2f5bef62708a6a8f9345fbd7b98ff37bddb7af6d0cb859d8a502a0d63a46e374",
+      "feeLovelace": "1219377",
+      "transactionBytes": null
+    },
+    {
+      "initialSigningMode": 2,
+      "action": "Consolidate assets",
+      "txHash": "d5ee524fbb704e0991d9b5682b309cc0d852abf2547e9eb567e6317d63804d73",
+      "feeLovelace": "1149955",
+      "transactionBytes": null
+    },
+    {
+      "initialSigningMode": 2,
+      "action": "Freeze account",
+      "txHash": "179bdce9af06254726d65fddbb533c1babf789cb2e4b2445d115f5890807eb91",
+      "feeLovelace": "1161099",
+      "transactionBytes": null
+    },
+    {
+      "initialSigningMode": 2,
+      "action": "Unfreeze account",
+      "txHash": "88f5d846533eecc67f426b5a29d8cc446c6b76e05804cfcf9b7c0a0d48bc5df4",
+      "feeLovelace": "1160155",
+      "transactionBytes": null
+    },
+    {
+      "initialSigningMode": 2,
+      "action": "Rotate keys",
+      "txHash": "1d7f7939255fabda70f44cae0a9b2a231ad86b3b3ae0dd2e9fd3b738799aa090",
+      "feeLovelace": "1313031",
+      "transactionBytes": null
+    },
+    {
+      "initialSigningMode": 2,
+      "action": "Publish candidate module",
+      "txHash": "12d6f51871d07d4915f830ca2f9912a669109f3d2a843b8ff67ba5cbe1db925d",
+      "feeLovelace": "854145",
+      "transactionBytes": null
+    },
+    {
+      "initialSigningMode": 2,
+      "action": "Register authorization checkpoints",
+      "txHash": "4e396d1f0c8ed03a1917ac5ba1abc5a3d0bdb34356547aa12516f42bebec4a02",
+      "feeLovelace": "171441",
+      "transactionBytes": null
+    },
+    {
+      "initialSigningMode": 2,
+      "action": "Replace module",
+      "txHash": "bfeb859464711485f7b942a64ea813dae0b473ec4bfb277c8d7f9363d6c799f5",
+      "feeLovelace": "1747049",
+      "transactionBytes": null
+    },
+    {
+      "initialSigningMode": 2,
+      "action": "Send assets",
+      "txHash": "a0a9011ce92de68fdd882bc7b9a806a8fd76c42d4f48b22dfb78efdba0054155",
+      "feeLovelace": "1181777",
+      "transactionBytes": null
+    },
+    {
+      "initialSigningMode": 2,
+      "action": "Start recovery",
+      "txHash": "95e7175f9a463101bbb8cf7217d0a332d4eb49e9aba7a8ca96aefb4cfee33e5e",
+      "feeLovelace": "1275536",
+      "transactionBytes": null
+    },
+    {
+      "initialSigningMode": 2,
+      "action": "Cancel recovery",
+      "txHash": "30de1210b00d6844bab6e7cc6d5f0c721210126b80c98bda55d625d3c18c8d9d",
+      "feeLovelace": "1192203",
+      "transactionBytes": null
+    },
+    {
+      "initialSigningMode": 2,
+      "action": "Unfreeze account",
+      "txHash": "3ca5743fe7ef2eff4b5087aa8d3964f9d7e8bd12affc00f349aa4c9edc43d5c3",
+      "feeLovelace": "1158066",
+      "transactionBytes": null
+    },
+    {
+      "initialSigningMode": 2,
+      "action": "Send assets",
+      "txHash": "118687a80397308cbd4df29341d922d1369667d4f6b0de309036f8273b68bb21",
+      "feeLovelace": "1192004",
+      "transactionBytes": null
+    }
+  ]
+}

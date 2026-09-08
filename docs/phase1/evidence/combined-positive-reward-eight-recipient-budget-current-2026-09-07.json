@@ -1,0 +1,19 @@
+{
+  "asset0" : "ExBudget{cpu=2652653560, mem=7549123}",
+  "asset1" : "ExBudget{cpu=255778327, mem=178872}",
+  "asset2" : "ExBudget{cpu=255778327, mem=178872}",
+  "asset3" : "ExBudget{cpu=255778327, mem=178872}",
+  "asset4" : "ExBudget{cpu=255778327, mem=178872}",
+  "asset5" : "ExBudget{cpu=255778327, mem=178872}",
+  "asset6" : "ExBudget{cpu=255778327, mem=178872}",
+  "asset7" : "ExBudget{cpu=255778327, mem=178872}",
+  "core8" : "ExBudget{cpu=1450148947, mem=2527790}",
+  "module9" : "ExBudget{cpu=2484301540, mem=3938535}",
+  "positiveRewards" : true,
+  "recipientCount" : 8,
+  "totalMemory" : 15267552,
+  "totalCpu" : 8377552336,
+  "memoryWithFivePercentAllowance" : 16030934,
+  "cpuWithFivePercentAllowance" : 8796429958,
+  "scope" : "8 account + 8 sponsor inputs, 4 references, 16 outputs, 16 transaction signatories, 12 native entries with 32-byte names, 16 registry keys, all six roles at 8 members, 8 spend signatures, base-address recipients; synthetic full script-context composition"
+}

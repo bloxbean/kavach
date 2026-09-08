@@ -1,0 +1,113 @@
+{
+  "validator": "cddl 0.12.14",
+  "schemaSha256": "637c6dae0c15dccfe2894675190eecc168ea521f03e9a1709b6cbdcef52cb258",
+  "cases": [
+    {
+      "rule": "intent-envelope",
+      "case": "0",
+      "accepted": true
+    },
+    {
+      "rule": "intent-envelope",
+      "case": "1",
+      "accepted": true
+    },
+    {
+      "rule": "intent-envelope",
+      "case": "2",
+      "accepted": true
+    },
+    {
+      "rule": "intent-envelope",
+      "case": "3",
+      "accepted": true
+    },
+    {
+      "rule": "intent-envelope",
+      "case": "4",
+      "accepted": true
+    },
+    {
+      "rule": "intent-envelope",
+      "case": "5",
+      "accepted": true
+    },
+    {
+      "rule": "intent-envelope",
+      "case": "6",
+      "accepted": true
+    },
+    {
+      "rule": "intent-envelope",
+      "case": "7",
+      "accepted": true
+    },
+    {
+      "rule": "intent-envelope",
+      "case": "8",
+      "accepted": true
+    },
+    {
+      "rule": "intent-envelope",
+      "case": "native-boundaries-and-staked-recipient",
+      "accepted": true
+    },
+    {
+      "rule": "intent-envelope",
+      "case": "consolidation",
+      "accepted": true
+    },
+    {
+      "rule": "intent-envelope",
+      "case": "whole-uint64-native-token",
+      "accepted": true
+    },
+    {
+      "rule": "resolved-ledger-value",
+      "case": "whole-uint64-native-token-value",
+      "accepted": true
+    },
+    {
+      "rule": "account-state",
+      "case": "state",
+      "accepted": true
+    },
+    {
+      "rule": "genesis-proof-envelope",
+      "case": "genesis-proof-envelope",
+      "accepted": true
+    },
+    {
+      "rule": "configuration-proof-envelope",
+      "case": "configuration-proof-envelope",
+      "accepted": true
+    },
+    {
+      "rule": "recovery-commitment",
+      "case": "recovery-commitment",
+      "accepted": true
+    },
+    {
+      "rule": "target-proof-envelope",
+      "case": "target-proof-envelope",
+      "accepted": true
+    },
+    {
+      "rule": "genesis-module-redeemer",
+      "case": "genesis-possession",
+      "accepted": true
+    },
+    {
+      "rule": "resolved-ledger-value",
+      "case": "whole-input-value",
+      "accepted": true
+    },
+    {
+      "rule": "account-state",
+      "case": "pending-state",
+      "accepted": true
+    }
+  ],
+  "invalidRootRejected": true,
+  "scope": "Structural CDDL validation; semantic and canonical serialization rules are checked separately by Gradle tests"
+}
