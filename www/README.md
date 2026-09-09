@@ -44,49 +44,55 @@ Expected URL: https://bloxbean.github.io/kavach/ . The `/kavach` base is require
 project site. If the repository is renamed or a custom domain is introduced, update the
 Astro configuration, authored links, synchronization script and link checker together.
 
-### One-time repository setup
+### First deployment and repository setup
 
-1. In **Settings → Pages → Build and deployment**, select **GitHub Actions** as the source.
-2. In **Settings → Environments → github-pages**, check **Deployment branches and tags**.
-   If restricted, choose **Selected branches and tags** and add a **Tag** rule matching
-   `v*`. A rule allowing only the `main` branch does not allow tag deployments. If the
-   environment does not exist yet, create it with this name and rule.
-3. Ensure GitHub Actions is enabled for the repository and the workflow's official
-   `actions/*` actions are permitted. No personal access token or custom secret is needed;
-   the deploy job uses GitHub's built-in token and OIDC permissions.
+Kavach follows JuLC's docs-release flow: a `dv*` tag builds the source snapshot, then
+`peaceiris/actions-gh-pages@v4` commits the generated site to **`gh-pages`**. GitHub Pages
+serves that branch. The branch contains generated files only; edit source on `main`.
 
-See GitHub's [Pages source configuration](https://docs.github.com/en/pages/getting-started-with-github-pages/configuring-a-publishing-source-for-your-github-pages-site)
-and [environment rules](https://docs.github.com/en/actions/reference/workflows-and-actions/deployments-and-environments).
+1. Ensure GitHub Actions is enabled and permits `actions/*` and
+   `peaceiris/actions-gh-pages@v4`. The publish job requests `contents: write` for the
+   built-in `GITHUB_TOKEN`; no personal access token or custom secret is needed.
+2. Push the first docs tag using the commands below. Wait for **Actions → Documentation**
+   to finish publishing. This creates `gh-pages` if it does not exist yet.
+3. In **Settings → Pages → Build and deployment**, set **Source** to
+   **Deploy from a branch**, choose **gh-pages**, choose **/ (root)**, and click **Save**.
+   If you previously selected **GitHub Actions**, change it to this branch-based source.
+4. If the `github-pages` environment has deployment restrictions from the previous setup,
+   allow the **gh-pages branch**. The Pages deployment runs from that branch, not the docs
+   tag; the earlier `v*` tag environment rule is no longer the relevant rule.
+5. Wait for GitHub's **pages build and deployment** run to finish, then visit
+   https://bloxbean.github.io/kavach/ .
+
+The publisher adds `.nojekyll` so GitHub serves Astro's generated assets directly.
+See [GitHub's publishing-source instructions](https://docs.github.com/en/pages/getting-started-with-github-pages/configuring-a-publishing-source-for-your-github-pages-site)
+and the [publishing action documentation](https://github.com/peaceiris/actions-gh-pages).
 
 ### Publish an update
 
 Commit and push the documentation changes to `main`, then tag that commit. For example,
-use `v0.1.0` if that is the release you want to publish and the tag is not already in use:
+use `dv0.1.0` if that is the docs release you want and the tag is not already in use:
 
 ```sh
 git switch main
 git pull --ff-only origin main
-git tag -a v0.1.0 -m "Kavach v0.1.0"
-git push origin v0.1.0
+git tag -a dv0.1.0 -m "Kavach docs v0.1.0"
+git push origin dv0.1.0
 ```
 
-Open **Actions → Documentation** and watch the tag's build and deploy jobs. After a
-successful deployment, visit https://bloxbean.github.io/kavach/ . Later updates use a new
-`v*` tag; do not move an existing release tag. The tag selects the exact repository
-snapshot to build, including the committed white-paper PDF and figures.
+Watch **Actions → Documentation**, followed by **pages build and deployment**. Later
+updates use a new `dv*` tag; do not move existing release tags. The tag selects the exact
+source snapshot, including the committed white-paper PDF and figures.
 
 ### Trigger behavior
 
-- **Push a `v*` tag:** build, validate and deploy the tagged snapshot.
-- **Pull request touching documentation:** build and validate only.
-- **Push to `main`:** no documentation deployment.
-- There is no manual deployment trigger. Retry a failed tag run from Actions after fixing
-  repository settings, or publish a new tag if the source needs changes.
+- **Push a `dv*` tag:** build, validate and publish the tagged snapshot to `gh-pages`.
+- **Pull request touching documentation:** build and validate only; no write permissions.
+- **Push to `main` or push a `v*` tag:** no documentation deployment.
+- There is no manual deployment trigger. Retry a failed tag run after fixing repository
+  settings, or publish a new docs tag if the source needs changes.
 
-This deploys one current site, not separate versioned sites. Deployments share a concurrency
-lock; wait for one release deployment to finish before pushing the next. A tag version does
-not automatically change the white paper's document version or protocol schema versions.
-
-JuLC uses a similar tag-driven process with `dv*` tags and branch-based publication. Kavach
-uses `v*` tags and GitHub's Pages artifact/deployment actions, so select **GitHub Actions**
-as its publishing source; no `gh-pages` branch or custom domain is required.
+This publishes one current site, not separate versioned sites. Publishing jobs share a
+concurrency lock; wait for one release deployment to finish before pushing the next.
+Docs tags are independent of software release tags. They do not automatically change the
+white paper's document version or protocol schema versions. No custom domain is configured.

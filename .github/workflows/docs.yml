@@ -1,7 +1,7 @@
 name: Documentation
 on:
   push:
-    tags: ["v*"]
+    tags: ["dv*"]
   pull_request:
     paths:
       [
@@ -31,23 +31,30 @@ jobs:
         working-directory: www
       - run: npm run build
         working-directory: www
-      - uses: actions/upload-pages-artifact@v3
+      - uses: actions/upload-artifact@v4
         with:
+          name: documentation-site
           path: www/dist
+          retention-days: 3
   deploy:
-    if: github.event_name == 'push' && startsWith(github.ref, 'refs/tags/v')
+    if: github.event_name == 'push' && startsWith(github.ref, 'refs/tags/dv')
     needs: build
     concurrency:
       group: github-pages
       cancel-in-progress: false
     runs-on: ubuntu-latest
     permissions:
-      pages: write
-      id-token: write
-    environment:
-      name: github-pages
-      url: ${{ steps.deployment.outputs.page_url }}
+      contents: write
     steps:
-      - name: Deploy documentation
-        id: deployment
-        uses: actions/deploy-pages@v4
+      - uses: actions/checkout@v4
+      - uses: actions/download-artifact@v4
+        with:
+          name: documentation-site
+          path: www/dist
+      - name: Publish documentation to gh-pages
+        uses: peaceiris/actions-gh-pages@v4
+        with:
+          github_token: ${{ secrets.GITHUB_TOKEN }}
+          publish_branch: gh-pages
+          publish_dir: ./www/dist
+          enable_jekyll: false
