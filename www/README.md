@@ -46,21 +46,21 @@ Astro configuration, authored links, synchronization script and link checker tog
 
 ### First deployment and repository setup
 
-Kavach follows JuLC's docs-release flow: a `dv*` tag builds the source snapshot, then
+Every push to `main` (including a merged pull request) builds the source snapshot, then
 `peaceiris/actions-gh-pages@v4` commits the generated site to **`gh-pages`**. GitHub Pages
 serves that branch. The branch contains generated files only; edit source on `main`.
 
 1. Ensure GitHub Actions is enabled and permits `actions/*` and
    `peaceiris/actions-gh-pages@v4`. The publish job requests `contents: write` for the
    built-in `GITHUB_TOKEN`; no personal access token or custom secret is needed.
-2. Push the first docs tag using the commands below. Wait for **Actions → Documentation**
+2. Push or merge the workflow and site to `main`. Wait for **Actions → Documentation**
    to finish publishing. This creates `gh-pages` if it does not exist yet.
 3. In **Settings → Pages → Build and deployment**, set **Source** to
    **Deploy from a branch**, choose **gh-pages**, choose **/ (root)**, and click **Save**.
    If you previously selected **GitHub Actions**, change it to this branch-based source.
 4. If the `github-pages` environment has deployment restrictions from the previous setup,
-   allow the **gh-pages branch**. The Pages deployment runs from that branch, not the docs
-   tag; the earlier `v*` tag environment rule is no longer the relevant rule.
+   allow the **gh-pages branch**. The Pages deployment runs from that branch; previous
+   tag-based environment rules are no longer relevant.
 5. Wait for GitHub's **pages build and deployment** run to finish, then visit
    https://bloxbean.github.io/kavach/ .
 
@@ -70,29 +70,19 @@ and the [publishing action documentation](https://github.com/peaceiris/actions-g
 
 ### Publish an update
 
-Commit and push the documentation changes to `main`, then tag that commit. For example,
-use `dv0.1.0` if that is the docs release you want and the tag is not already in use:
-
-```sh
-git switch main
-git pull --ff-only origin main
-git tag -a dv0.1.0 -m "Kavach docs v0.1.0"
-git push origin dv0.1.0
-```
-
-Watch **Actions → Documentation**, followed by **pages build and deployment**. Later
-updates use a new `dv*` tag; do not move existing release tags. The tag selects the exact
-source snapshot, including the committed white-paper PDF and figures.
+Merge a pull request into `main`, or commit and push changes to `main`. No release tag is
+required. Watch **Actions → Documentation**, followed by **pages build and deployment**.
+The build uses that commit's source, including the committed white-paper PDF and figures.
 
 ### Trigger behavior
 
-- **Push a `dv*` tag:** build, validate and publish the tagged snapshot to `gh-pages`.
+- **Every push to `main`:** build, validate and publish to `gh-pages`.
 - **Pull request touching documentation:** build and validate only; no write permissions.
-- **Push to `main` or push a `v*` tag:** no documentation deployment.
-- There is no manual deployment trigger. Retry a failed tag run after fixing repository
-  settings, or publish a new docs tag if the source needs changes.
+- **Push a tag (including `dv*` and `v*`):** no documentation deployment.
+- There is no manual deployment trigger. Retry a failed run after fixing repository
+  settings, or merge a fix if the source needs changes.
 
 This publishes one current site, not separate versioned sites. Publishing jobs share a
-concurrency lock; wait for one release deployment to finish before pushing the next.
-Docs tags are independent of software release tags. They do not automatically change the
-white paper's document version or protocol schema versions. No custom domain is configured.
+concurrency lock. Tags may still mark milestones, but do not publish documentation or
+change the white paper's document version or protocol schema versions. No custom domain
+is configured.

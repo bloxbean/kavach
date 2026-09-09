@@ -1,7 +1,7 @@
 name: Documentation
 on:
   push:
-    tags: ["dv*"]
+    branches: [main]
   pull_request:
     paths:
       [
@@ -16,7 +16,7 @@ permissions:
   contents: read
 concurrency:
   group: docs-${{ github.ref }}
-  cancel-in-progress: true
+  cancel-in-progress: ${{ github.event_name == 'pull_request' }}
 jobs:
   build:
     runs-on: ubuntu-latest
@@ -37,7 +37,7 @@ jobs:
           path: www/dist
           retention-days: 3
   deploy:
-    if: github.event_name == 'push' && startsWith(github.ref, 'refs/tags/dv')
+    if: github.event_name == 'push' && github.ref == 'refs/heads/main'
     needs: build
     concurrency:
       group: github-pages
