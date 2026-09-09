@@ -91,13 +91,13 @@ confirms, prepare a fresh request for the second and collect its required signat
 ## Automated checks and evidence
 
 ```sh
-./gradlew check demoWebBuild :demo:backend:demoIntegrationTest
+./gradlew check dashboardWebBuild :dashboard-app:backend:dashboardIntegrationTest
 ```
 
 For the periodic lifecycle alone:
 
 ```sh
-./gradlew :demo:backend:demoIntegrationTest --tests '*periodicBudgetFullFlow'
+./gradlew :dashboard-app:backend:dashboardIntegrationTest --tests '*periodicBudgetFullFlow'
 ```
 
 This test creates a disposable account and counter, installs mixed approval, exercises both
@@ -167,7 +167,7 @@ a different sponsor requires preparing a fresh request; a funding signature does
 an account approval. Existing transaction-based accounts are explicitly labeled with their
 remaining authority roles.
 
-Run `./gradlew :demo:backend:demoIntegrationTest --tests '*allCoseMigrationWithIndependentFeePayer'`
+Run `./gradlew :dashboard-app:backend:dashboardIntegrationTest --tests '*allCoseMigrationWithIndependentFeePayer'`
 for mixed creation, same-address all-COSE update and 15/35 ADA transfers with a 30 ADA tier.
 The sponsor is outside the authority registry. Assertions require one/two COSE proofs,
 reject premature submission, and verify independent funding metadata and ledger balances.

@@ -153,7 +153,7 @@ from a functioning demo.
 
 ## Implementation evidence
 
-The [demo](../demo/README.md) and [bounded module profile](../protocol/browser/specification.md)
+The [dashboard app](../dashboard-app/README.md) and [bounded module profile](../protocol/browser/specification.md)
 are implemented as development candidates. Both modes have passed compiled checks and full
 DevKit short lifecycle tests, including cross-mode installation through the demo API. The
 existing immutable validator sources and raw scheme-zero encoding are retained. This does

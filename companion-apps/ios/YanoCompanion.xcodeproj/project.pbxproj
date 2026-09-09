@@ -1,0 +1,270 @@
+// !$*UTF8*$!
+{
+	archiveVersion = 1;
+	classes = {
+	};
+	objectVersion = 56;
+	objects = {
+
+/* Begin PBXBuildFile section */
+		10445B4D5C8194CD7D4FB007 /* App/Design.swift in Sources */ = {isa = PBXBuildFile; fileRef = 6EBAF5F104D29C6864CD53DD /* App/Design.swift */; };
+		142AF80AB3431E12BBB0A303 /* App/KeyVault.swift in Sources */ = {isa = PBXBuildFile; fileRef = B0410FB49615F943B11A6DAD /* App/KeyVault.swift */; };
+		61C2E900A3FD46AD23B93AA4 /* App/sample-intent.json in Resources */ = {isa = PBXBuildFile; fileRef = 0DA4D0C62EB6E4B233F6DA31 /* App/sample-intent.json */; };
+		6D8F8F4F03698B22598CFD43 /* App/AppIcon60x60@3x.png in Resources */ = {isa = PBXBuildFile; fileRef = 1B17253069F81906F0D060B1 /* App/AppIcon60x60@3x.png */; };
+		84A2340B12E8CCF48E3153C4 /* App/SimulatorChecks.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3F17B6DEE8DA125F2133D6EA /* App/SimulatorChecks.swift */; };
+		88A8E713F3E02EA8FE2C3F13 /* App/ReviewSheets.swift in Sources */ = {isa = PBXBuildFile; fileRef = BAC530CD3512ED086AF220FC /* App/ReviewSheets.swift */; };
+		989358DED526136486CE6BCA /* Sources/CompanionCore/Bytes.swift in Sources */ = {isa = PBXBuildFile; fileRef = D7AFAF5B0C7CEB1577BE7D4F /* Sources/CompanionCore/Bytes.swift */; };
+		A4981123561AA0878B858C88 /* App/AppIcon60x60@2x.png in Resources */ = {isa = PBXBuildFile; fileRef = 8F05C2A1E0BADB5804A99BCC /* App/AppIcon60x60@2x.png */; };
+		B84EF0BFA69B047BE33D845E /* Sources/CompanionCore/Exchange.swift in Sources */ = {isa = PBXBuildFile; fileRef = E942FDE8E048457902C71FC4 /* Sources/CompanionCore/Exchange.swift */; };
+		C6B4B21FB3BFC11CC96195CD /* App/CompanionStore.swift in Sources */ = {isa = PBXBuildFile; fileRef = 97181890008A1A7527438DD7 /* App/CompanionStore.swift */; };
+		CB7D4D348F022B47748E48F2 /* Sources/CompanionCore/KavachIntent.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3105846F40D9376CDAA51A05 /* Sources/CompanionCore/KavachIntent.swift */; };
+		B77F4D348F022B47748E4801 /* Sources/CompanionCore/KavachPolicyChange.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3105846F40D9376CDAA51001 /* Sources/CompanionCore/KavachPolicyChange.swift */; };
+		D409E04385FE4B50EB10E332 /* Sources/CompanionCore/Blake2b.swift in Sources */ = {isa = PBXBuildFile; fileRef = D4C3E79256AA235DE3D1E3DA /* Sources/CompanionCore/Blake2b.swift */; };
+		DBB70AED537258F8805C6701 /* App/ScannerView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 8C738A4ABA223D072E9E0CE3 /* App/ScannerView.swift */; };
+		ECB8C0F90BA69460A8BB5963 /* Sources/CompanionCore/PlutusData.swift in Sources */ = {isa = PBXBuildFile; fileRef = 82B9E0BF0B12AC71DFF3AFB3 /* Sources/CompanionCore/PlutusData.swift */; };
+		F43BC705D7652937189F5026 /* App/YanoCompanionApp.swift in Sources */ = {isa = PBXBuildFile; fileRef = 4042973024ABABCDE6230E3E /* App/YanoCompanionApp.swift */; };
+/* End PBXBuildFile section */
+
+/* Begin PBXFileReference section */
+		B9B9CDD934EBC459CDDE2DFE /* Signing.xcconfig */ = {isa = PBXFileReference; lastKnownFileType = text.xcconfig; path = Config/Signing.xcconfig; sourceTree = "<group>"; };
+		0DA4D0C62EB6E4B233F6DA31 /* App/sample-intent.json */ = {isa = PBXFileReference; lastKnownFileType = text.json; path = "App/sample-intent.json"; sourceTree = "<group>"; };
+		1B17253069F81906F0D060B1 /* App/AppIcon60x60@3x.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = "App/AppIcon60x60@3x.png"; sourceTree = "<group>"; };
+		3105846F40D9376CDAA51A05 /* Sources/CompanionCore/KavachIntent.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Sources/CompanionCore/KavachIntent.swift; sourceTree = "<group>"; };
+		3105846F40D9376CDAA51001 /* Sources/CompanionCore/KavachPolicyChange.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Sources/CompanionCore/KavachPolicyChange.swift; sourceTree = "<group>"; };
+		3F17B6DEE8DA125F2133D6EA /* App/SimulatorChecks.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = App/SimulatorChecks.swift; sourceTree = "<group>"; };
+		4042973024ABABCDE6230E3E /* App/YanoCompanionApp.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = App/YanoCompanionApp.swift; sourceTree = "<group>"; };
+		6EBAF5F104D29C6864CD53DD /* App/Design.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = App/Design.swift; sourceTree = "<group>"; };
+		82B9E0BF0B12AC71DFF3AFB3 /* Sources/CompanionCore/PlutusData.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Sources/CompanionCore/PlutusData.swift; sourceTree = "<group>"; };
+		8C738A4ABA223D072E9E0CE3 /* App/ScannerView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = App/ScannerView.swift; sourceTree = "<group>"; };
+		8F05C2A1E0BADB5804A99BCC /* App/AppIcon60x60@2x.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = "App/AppIcon60x60@2x.png"; sourceTree = "<group>"; };
+		97181890008A1A7527438DD7 /* App/CompanionStore.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = App/CompanionStore.swift; sourceTree = "<group>"; };
+		A8792157CB4F27FB949C035F /* YanoCompanion.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; path = YanoCompanion.app; sourceTree = BUILT_PRODUCTS_DIR; };
+		B0410FB49615F943B11A6DAD /* App/KeyVault.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = App/KeyVault.swift; sourceTree = "<group>"; };
+		BAC530CD3512ED086AF220FC /* App/ReviewSheets.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = App/ReviewSheets.swift; sourceTree = "<group>"; };
+		D4C3E79256AA235DE3D1E3DA /* Sources/CompanionCore/Blake2b.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Sources/CompanionCore/Blake2b.swift; sourceTree = "<group>"; };
+		D7AFAF5B0C7CEB1577BE7D4F /* Sources/CompanionCore/Bytes.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Sources/CompanionCore/Bytes.swift; sourceTree = "<group>"; };
+		E942FDE8E048457902C71FC4 /* Sources/CompanionCore/Exchange.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Sources/CompanionCore/Exchange.swift; sourceTree = "<group>"; };
+/* End PBXFileReference section */
+
+/* Begin PBXFrameworksBuildPhase section */
+		E2AA269EB967A8853A258BFA /* Frameworks */ = {
+			isa = PBXFrameworksBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+/* End PBXFrameworksBuildPhase section */
+
+/* Begin PBXGroup section */
+		0A3E27B8CA818264D75C8D81 /* Products */ = {
+			isa = PBXGroup;
+			children = (
+				A8792157CB4F27FB949C035F /* YanoCompanion.app */,
+			);
+			name = Products;
+			sourceTree = "<group>";
+		};
+		AD936FCBED631FA67E05C3EA = {
+			isa = PBXGroup;
+			children = (
+				97181890008A1A7527438DD7 /* App/CompanionStore.swift */,
+				6EBAF5F104D29C6864CD53DD /* App/Design.swift */,
+				B0410FB49615F943B11A6DAD /* App/KeyVault.swift */,
+				BAC530CD3512ED086AF220FC /* App/ReviewSheets.swift */,
+				8C738A4ABA223D072E9E0CE3 /* App/ScannerView.swift */,
+				3F17B6DEE8DA125F2133D6EA /* App/SimulatorChecks.swift */,
+				4042973024ABABCDE6230E3E /* App/YanoCompanionApp.swift */,
+				D4C3E79256AA235DE3D1E3DA /* Sources/CompanionCore/Blake2b.swift */,
+				D7AFAF5B0C7CEB1577BE7D4F /* Sources/CompanionCore/Bytes.swift */,
+				E942FDE8E048457902C71FC4 /* Sources/CompanionCore/Exchange.swift */,
+				3105846F40D9376CDAA51A05 /* Sources/CompanionCore/KavachIntent.swift */,
+				3105846F40D9376CDAA51001 /* Sources/CompanionCore/KavachPolicyChange.swift */,
+				82B9E0BF0B12AC71DFF3AFB3 /* Sources/CompanionCore/PlutusData.swift */,
+				0DA4D0C62EB6E4B233F6DA31 /* App/sample-intent.json */,
+				8F05C2A1E0BADB5804A99BCC /* App/AppIcon60x60@2x.png */,
+				1B17253069F81906F0D060B1 /* App/AppIcon60x60@3x.png */,
+				0A3E27B8CA818264D75C8D81 /* Products */,
+			);
+			sourceTree = "<group>";
+		};
+/* End PBXGroup section */
+
+/* Begin PBXNativeTarget section */
+		34A04005BCAF206EEC990BD9 /* YanoCompanion */ = {
+			isa = PBXNativeTarget;
+			buildConfigurationList = 1B672BF3DA427763BF644BE3 /* Build configuration list for PBXNativeTarget "YanoCompanion" */;
+			buildPhases = (
+				878A52FC5FF6A57D50B7B870 /* Sources */,
+				E2AA269EB967A8853A258BFA /* Frameworks */,
+				41D311A605520FC7B8B9A980 /* Resources */,
+			);
+			buildRules = (
+			);
+			dependencies = (
+			);
+			name = YanoCompanion;
+			productName = YanoCompanion;
+			productReference = A8792157CB4F27FB949C035F /* YanoCompanion.app */;
+			productType = "com.apple.product-type.application";
+		};
+/* End PBXNativeTarget section */
+
+/* Begin PBXProject section */
+		244210E48437B6556980A702 /* Project object */ = {
+			isa = PBXProject;
+			attributes = {
+				LastUpgradeCheck = 2630;
+			};
+			buildConfigurationList = 76F8DEC3DFE0BDB465198890 /* Build configuration list for PBXProject "YanoCompanion" */;
+			compatibilityVersion = "Xcode 14.0";
+			developmentRegion = en;
+			hasScannedForEncodings = 0;
+			knownRegions = (
+				en,
+				Base,
+			);
+			mainGroup = AD936FCBED631FA67E05C3EA;
+			productRefGroup = 0A3E27B8CA818264D75C8D81 /* Products */;
+			projectDirPath = "";
+			projectRoot = "";
+			targets = (
+				34A04005BCAF206EEC990BD9 /* YanoCompanion */,
+			);
+		};
+/* End PBXProject section */
+
+/* Begin PBXResourcesBuildPhase section */
+		41D311A605520FC7B8B9A980 /* Resources */ = {
+			isa = PBXResourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				61C2E900A3FD46AD23B93AA4 /* App/sample-intent.json in Resources */,
+				A4981123561AA0878B858C88 /* App/AppIcon60x60@2x.png in Resources */,
+				6D8F8F4F03698B22598CFD43 /* App/AppIcon60x60@3x.png in Resources */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+/* End PBXResourcesBuildPhase section */
+
+/* Begin PBXSourcesBuildPhase section */
+		878A52FC5FF6A57D50B7B870 /* Sources */ = {
+			isa = PBXSourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				C6B4B21FB3BFC11CC96195CD /* App/CompanionStore.swift in Sources */,
+				10445B4D5C8194CD7D4FB007 /* App/Design.swift in Sources */,
+				142AF80AB3431E12BBB0A303 /* App/KeyVault.swift in Sources */,
+				88A8E713F3E02EA8FE2C3F13 /* App/ReviewSheets.swift in Sources */,
+				DBB70AED537258F8805C6701 /* App/ScannerView.swift in Sources */,
+				84A2340B12E8CCF48E3153C4 /* App/SimulatorChecks.swift in Sources */,
+				F43BC705D7652937189F5026 /* App/YanoCompanionApp.swift in Sources */,
+				D409E04385FE4B50EB10E332 /* Sources/CompanionCore/Blake2b.swift in Sources */,
+				989358DED526136486CE6BCA /* Sources/CompanionCore/Bytes.swift in Sources */,
+				B84EF0BFA69B047BE33D845E /* Sources/CompanionCore/Exchange.swift in Sources */,
+				CB7D4D348F022B47748E48F2 /* Sources/CompanionCore/KavachIntent.swift in Sources */,
+				B77F4D348F022B47748E4801 /* Sources/CompanionCore/KavachPolicyChange.swift in Sources */,
+				ECB8C0F90BA69460A8BB5963 /* Sources/CompanionCore/PlutusData.swift in Sources */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+/* End PBXSourcesBuildPhase section */
+
+/* Begin XCBuildConfiguration section */
+		0B0C687DF8B6B8DC790B519C /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				CLANG_ENABLE_MODULES = YES;
+				DEBUG_INFORMATION_FORMAT = dwarf;
+				IPHONEOS_DEPLOYMENT_TARGET = 17.0;
+				SDKROOT = iphoneos;
+				SWIFT_OPTIMIZATION_LEVEL = "-O";
+				SWIFT_VERSION = 5.0;
+			};
+			name = Release;
+		};
+		6C7EFF6369083C8E1F2B1994 /* Debug */ = {
+			isa = XCBuildConfiguration;
+			baseConfigurationReference = B9B9CDD934EBC459CDDE2DFE;
+			buildSettings = {
+				CLANG_ENABLE_MODULES = YES;
+				CODE_SIGN_STYLE = Automatic;
+				CURRENT_PROJECT_VERSION = 1;
+				DEBUG_INFORMATION_FORMAT = dwarf;
+				INFOPLIST_FILE = App/Info.plist;
+				IPHONEOS_DEPLOYMENT_TARGET = 17.0;
+				MARKETING_VERSION = 0.1.0;
+				PRODUCT_BUNDLE_IDENTIFIER = com.bloxbean.yano.companion;
+				PRODUCT_NAME = YanoCompanion;
+				SDKROOT = iphoneos;
+				SUPPORTED_PLATFORMS = "iphoneos iphonesimulator";
+				SUPPORTS_MACCATALYST = NO;
+				SWIFT_ACTIVE_COMPILATION_CONDITIONS = DEBUG;
+				SWIFT_EMIT_LOC_STRINGS = YES;
+				SWIFT_OPTIMIZATION_LEVEL = "-Onone";
+				SWIFT_VERSION = 5.0;
+				TARGETED_DEVICE_FAMILY = 1;
+			};
+			name = Debug;
+		};
+		73EBF6644258C120893E685D /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				CLANG_ENABLE_MODULES = YES;
+				DEBUG_INFORMATION_FORMAT = dwarf;
+				IPHONEOS_DEPLOYMENT_TARGET = 17.0;
+				SDKROOT = iphoneos;
+				SWIFT_ACTIVE_COMPILATION_CONDITIONS = DEBUG;
+				SWIFT_OPTIMIZATION_LEVEL = "-Onone";
+				SWIFT_VERSION = 5.0;
+			};
+			name = Debug;
+		};
+		DD75E2CB1C510A828AC72D96 /* Release */ = {
+			isa = XCBuildConfiguration;
+			baseConfigurationReference = B9B9CDD934EBC459CDDE2DFE;
+			buildSettings = {
+				CLANG_ENABLE_MODULES = YES;
+				CODE_SIGN_STYLE = Automatic;
+				CURRENT_PROJECT_VERSION = 1;
+				DEBUG_INFORMATION_FORMAT = dwarf;
+				INFOPLIST_FILE = App/Info.plist;
+				IPHONEOS_DEPLOYMENT_TARGET = 17.0;
+				MARKETING_VERSION = 0.1.0;
+				PRODUCT_BUNDLE_IDENTIFIER = com.bloxbean.yano.companion;
+				PRODUCT_NAME = YanoCompanion;
+				SDKROOT = iphoneos;
+				SUPPORTED_PLATFORMS = "iphoneos iphonesimulator";
+				SUPPORTS_MACCATALYST = NO;
+				SWIFT_EMIT_LOC_STRINGS = YES;
+				SWIFT_OPTIMIZATION_LEVEL = "-O";
+				SWIFT_VERSION = 5.0;
+				TARGETED_DEVICE_FAMILY = 1;
+			};
+			name = Release;
+		};
+/* End XCBuildConfiguration section */
+
+/* Begin XCConfigurationList section */
+		1B672BF3DA427763BF644BE3 /* Build configuration list for PBXNativeTarget "YanoCompanion" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				6C7EFF6369083C8E1F2B1994 /* Debug */,
+				DD75E2CB1C510A828AC72D96 /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
+		};
+		76F8DEC3DFE0BDB465198890 /* Build configuration list for PBXProject "YanoCompanion" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				73EBF6644258C120893E685D /* Debug */,
+				0B0C687DF8B6B8DC790B519C /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
+		};
+/* End XCConfigurationList section */
+	};
+	rootObject = 244210E48437B6556980A702 /* Project object */;
+}

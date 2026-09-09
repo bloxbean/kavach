@@ -54,9 +54,15 @@ profiles. `phase2DelayedRecoveryIntegrationTest` is an explicit real 24-hour gat
 public pending manifest does not back up the worker's signing keys. Keep a running worker
 alive and never run `clean` or reset DevKit during qualification.
 
-## Browser wallet demo
+## Dashboard app
 
-The same-repository [Kavach demo](demo/README.md) provides a React/CF Connect interface and
+The same-repository [Kavach dashboard app](dashboard-app/README.md) provides a React/CF Connect interface and
 a local Java API for transaction-witness or bounded CIP-8/COSE authentication, transfers
 and account management. See its setup guide and [qualification status](docs/browser/completion-checklist.md)
 before treating a wallet/version or deployment as supported.
+
+## Companion apps
+
+The [iOS Yano Companion](companion-apps/ios/README.md) lives alongside the dashboard in
+`companion-apps/ios`. Open its Xcode project to build for an iPhone; run `swift test` from
+that folder for the shared signing-core tests.

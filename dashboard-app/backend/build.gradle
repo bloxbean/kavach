@@ -1,0 +1,50 @@
+plugins { id 'application' }
+group = 'com.bloxbean.cardano.kavach'
+version = '0.0.1-SNAPSHOT'
+java { toolchain { languageVersion = JavaLanguageVersion.of(25) } }
+repositories {
+    exclusiveContent {
+        forRepository { mavenLocal() }
+        filter { includeVersionByRegex('com\\.bloxbean\\.cardano', 'julc-.*', rootProject.property('julcVersion').replace('.', '\\.')) }
+    }
+    mavenCentral()
+}
+dependencyLocking { lockAllConfigurations() }
+configurations.configureEach {
+    resolutionStrategy.eachDependency {
+        if (requested.group == 'com.bloxbean.cardano' && requested.name.startsWith('cardano-client-')) {
+            useVersion rootProject.property('cclVersion')
+        }
+    }
+}
+dependencies {
+    implementation project(':')
+    implementation "com.bloxbean.cardano:cardano-client-lib:${rootProject.property('cclVersion')}"
+    implementation "com.bloxbean.cardano:cardano-client-backend-blockfrost:${rootProject.property('cclVersion')}"
+    implementation "com.bloxbean.cardano:julc-cardano-client-lib:${rootProject.property('julcVersion')}"
+    implementation "com.bloxbean.cardano:julc-stdlib:${rootProject.property('julcVersion')}"
+    implementation "com.bloxbean.cardano:julc-ledger-api:${rootProject.property('julcVersion')}"
+    implementation 'org.bouncycastle:bcprov-jdk18on:1.83'
+    testImplementation platform('org.junit:junit-bom:5.11.4')
+    testImplementation 'org.junit.jupiter:junit-jupiter'
+    testRuntimeOnly 'org.junit.platform:junit-platform-launcher'
+}
+application { mainClass = 'com.bloxbean.cardano.kavach.demo.DemoServer' }
+tasks.named('run') { workingDir = rootProject.projectDir }
+test { useJUnitPlatform { excludeTags 'demoDevkit' } }
+tasks.register('dashboardIntegrationTest', Test) {
+    group = 'verification'
+    description = 'Qualify dashboard workflows with disposable CIP-30-shaped signer responses on DevKit.'
+    testClassesDirs = sourceSets.test.output.classesDirs
+    classpath = sourceSets.test.runtimeClasspath
+    useJUnitPlatform { includeTags 'demoDevkit' }
+    workingDir = rootProject.projectDir
+    outputs.upToDateWhen { false }
+    testLogging { showStandardStreams = true; exceptionFormat = 'full' }
+}
+
+tasks.named('javadoc') {
+    options.addStringOption('Xdoclint:all,-missing', '-quiet')
+    options.addBooleanOption('Werror', true)
+}
+tasks.named('check') { dependsOn tasks.named('javadoc') }

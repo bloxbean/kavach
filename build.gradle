@@ -302,15 +302,15 @@ tasks.register('phase2DelayedRecoveryIntegrationTest', Test) {
 }
 
 // Frontend tools remain npm-native; Gradle exposes reproducible install/build entry points.
-tasks.register('demoWebInstall', Exec) {
+tasks.register('dashboardWebInstall', Exec) {
     group = 'build setup'
-    description = 'Install the demo frontend from its pinned package-lock.json.'
-    workingDir layout.projectDirectory.dir('demo/web')
+    description = 'Install the dashboard frontend from its pinned package-lock.json.'
+    workingDir layout.projectDirectory.dir('dashboard-app/web')
     commandLine 'npm', 'ci'
 }
-tasks.register('demoWebBuild', Exec) {
+tasks.register('dashboardWebBuild', Exec) {
     group = 'build'
-    description = 'Type-check and bundle the demo frontend (run demoWebInstall first).'
-    workingDir layout.projectDirectory.dir('demo/web')
+    description = 'Type-check and bundle the dashboard frontend (run dashboardWebInstall first).'
+    workingDir layout.projectDirectory.dir('dashboard-app/web')
     commandLine 'npm', 'run', 'build'
 }

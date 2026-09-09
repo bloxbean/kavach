@@ -24,7 +24,7 @@ approval follows from these results.
 | Independent frontend CBOR review | **Pending**; canonical review is rendered by the trusted Java SDK, not independently decoded by the browser |
 | Full adversarial candidate/new-key matrix, model testing and audit | **Pending**; retain the pre-production gate |
 
-Reproducible commands and practical setup constraints are in the [demo guide](../../demo/README.md).
+Reproducible commands and practical setup constraints are in the [demo guide](../../dashboard-app/README.md).
 Public transaction IDs, actual paid fees and transaction sizes, initial browser workflow reports and focused compiled/parser test
 reports are archived under [evidence](evidence/). These are disposable DevKit results, not
 mainnet deployments. [ADR-005](../../adr/adr-005-browser-wallet-authentication-and-demo.md)
@@ -44,7 +44,7 @@ archived separately under [candidate-2 evidence](evidence/candidate-2/), preserv
 original candidate's script and fee evidence.
 
 Candidate-2 live regression: `coseIntegrationTest` passed all three workflows and
-`:demo:backend:demoIntegrationTest` passed both modes (42 confirmed demo transactions).
+`:dashboard-app:backend:dashboardIntegrationTest` passed both modes (42 confirmed demo transactions).
 COSE proofs in these runs come from the pinned CCL signer rather than handcrafted wrappers.
 The original no-kid form remains covered by compiled positive tests and SDK parser tests.
 Full `check` passes; immutable contract source hashes match the previous browser evidence.
@@ -55,10 +55,10 @@ Implemented dashboard pairing and bounded request/approval exchange for mode-2 g
 and ordinary single-recipient ADA Spend; see [ADR-006](../../adr/adr-006-offline-iphone-companion.md).
 No contract/profile identity changes or heterogeneous signing-module claims.
 
-- `demoWebBuild`, `:demo:backend:check` and frontend local-registry tests pass.
+- `dashboardWebBuild`, `:dashboard-app:backend:check` and frontend local-registry tests pass.
 - Backend transport tests cover persistent identity, exact signed envelope bytes,
   compact QR round-trip and rejection of mismatched, expired and forged approvals.
-- `:demo:backend:demoIntegrationTest` passes both modes, 42 confirmed transactions.
+- `:dashboard-app:backend:dashboardIntegrationTest` passes both modes, 42 confirmed transactions.
   Supported COSE operations use the new export/import endpoints with synthetic CCL
   signer responses, including wrong-ticket and duplicate-import rejection. This is
   ledger evidence for the transport path, **not physical iPhone ledger evidence**.
@@ -79,7 +79,7 @@ plain-JSON response QR is decoded locally with pinned `jsqr` 1.4.0; matching fra
 uses the same backend signature/request verification as paste. Successful scanning adds
 an approval only, never submits. Camera frames are not uploaded and audio is not requested.
 
-`demoWebBuild` and all nine frontend tests pass. Tests decode a generated phone-sized
+`dashboardWebBuild` and all nine frontend tests pass. Tests decode a generated phone-sized
 approval QR and check exact JSON preservation, malformed/wrong-key/request rejection,
 and camera cleanup including late permission resolution. Physical camera scanning still
 requires a hands-on check; no camera compatibility claim follows from the decoder test.

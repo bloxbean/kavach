@@ -44,7 +44,7 @@ flow. This is not Secure Enclave Ed25519 signing and is not production-qualified
 Replacing/rotating keys, recovery, transaction-witness accounts, ordinary Yano transaction
 signing and heterogeneous module composition require separate work.
 
-Validation and usage are recorded in the [demo guide](../demo/README.md) and
+Validation and usage are recorded in the [demo guide](../dashboard-app/README.md) and
 [browser acceptance ledger](../docs/browser/completion-checklist.md). Do not equate
 synthetic CCL signatures with physical iPhone ledger acceptance.
 
@@ -58,3 +58,9 @@ signature domain or automatic ledger submission is introduced.
 A subsequent recipient/fee-payer collision in the demo builder was diagnosed independently
 of QR decoding. The fix preserves signed allocation outputs and adds explicit separate
 fee funding, without changing the protocol. See the [diagnosis](../docs/browser/evidence/companion/sponsor-recipient-rejection.md).
+
+## Repository organization
+
+The native iPhone app and Swift core live in [companion-apps/ios](../companion-apps/ios/README.md).
+The product remains Yano Companion. This source move preserves bundle identity, signature
+profiles and transport boundaries; it does not add support for new signing operations.

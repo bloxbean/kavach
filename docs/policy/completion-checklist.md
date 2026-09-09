@@ -104,7 +104,7 @@ Per-key creation qualification passed:
 - Creation supports 3–8 keys, with add/remove controls and per-key methods. Assigned keys
   cannot be removed; membership IDs are remapped without changing signer identities or thresholds.
 - Frontend browser checks verified add/remove and bounds; all 11 frontend tests passed,
-  including removal remapping and rejection. `check demoWebBuild` passed.
+  including removal remapping and rejection. `check dashboardWebBuild` passed.
 - Live eight-key all-COSE creation completed all ten steps, resumed across backend recreation,
   activated, and confirmed two transfers. Invalid registry counts reject before funding.
   See [live evidence](evidence/dynamic-signers-devkit.log) and [checks](evidence/dynamic-signers-check.log).
@@ -121,7 +121,7 @@ Per-key creation qualification passed:
 - Explicit combined sign/submit uses the backend's fully witnessed status. Confirmation
   can prepare the next setup request once, with a persistent user opt-out. Transaction and
   signature counts are unchanged.
-- `check demoWebBuild` and 14 frontend tests passed. Isolated browser fixtures covered
+- `check dashboardWebBuild` and 14 frontend tests passed. Isolated browser fixtures covered
   operation/candidate routing, two successive phone requests and import, partial wallet
   signatures, confirmation gating, single advancement and manual opt-out. Visual layout
   was inspected. Browser fixtures used mocked signing/backend responses, not a new live
@@ -139,7 +139,7 @@ Per-key creation qualification passed:
   funding identity is never inferred to be an authority.
 - [x] Plain-language approval/funding/confirmation explanation appears alongside request
   details; separate administrator and possession signatures are explained.
-- [x] `./gradlew check demoWebBuild` and all 15 frontend tests passed.
+- [x] `./gradlew check dashboardWebBuild` and all 15 frontend tests passed.
 - [x] Live synthetic-wallet test confirmed all-COSE migration and separate-sponsor
   15/35 ADA transfers, requiring one/two intent approvals at a 30 ADA threshold.
   [Evidence](evidence/cose-independent-sponsor-devkit.log).

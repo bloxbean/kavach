@@ -74,9 +74,18 @@ restart an active worker just to rerun checks. Other tests must use separate acc
 Browser signing is a separate development candidate: read [ADR-005](adr/adr-005-browser-wallet-authentication-and-demo.md),
 the [bounded profile](protocol/browser/specification.md), and its [acceptance ledger](docs/browser/completion-checklist.md).
 `transactionWitnessIntegrationTest` and `coseIntegrationTest` exercise the two explicit
-module modes; `:demo:backend:demoIntegrationTest` exercises the local API on disposable DevKit
+module modes; `:dashboard-app:backend:dashboardIntegrationTest` exercises the local API on disposable DevKit
 accounts. These are synthetic wallet responses with actual ledger validation, not named
-wallet/hardware compatibility evidence. The same-repo [demo](demo/README.md) keeps private
+wallet/hardware compatibility evidence. The same-repo [dashboard app](dashboard-app/README.md) keeps private
 keys in browser wallets. Preserve scheme 0, immutable sources and historical evidence.
-Use `demoWebInstall` / `demoWebBuild` for the pinned frontend. Never reset DevKit to bypass
+Use `dashboardWebInstall` / `dashboardWebBuild` for the pinned frontend. Never reset DevKit to bypass
 a recovery delay or a positive reward balance.
+
+## Native companion apps
+
+The iOS Yano Companion lives in `companion-apps/ios`. Run `swift test` from that
+folder for Swift core tests; open `YanoCompanion.xcodeproj` for device builds. Keep
+its bundle identifier and signing-domain strings stable when reorganizing sources.
+`Config/Local.xcconfig`, pairing keys, Xcode user state and build output are local
+only and must remain ignored. Simulator builds do not establish physical-device
+Keychain or biometric qualification.

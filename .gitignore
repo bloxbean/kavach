@@ -5,7 +5,10 @@ build/
 node_modules/
 dist/
 *.tsbuildinfo
-demo/backend/data/
+dashboard-app/backend/data/
 
 # Local browser inspection artifacts
 .playwright-mcp/
+
+# Temporary compatibility alias for an already-running backend during the rename
+/demo
