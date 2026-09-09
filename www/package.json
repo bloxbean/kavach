@@ -1,0 +1,26 @@
+{
+  "name": "@kavach/www",
+  "private": true,
+  "version": "0.1.0",
+  "type": "module",
+  "engines": {
+    "node": ">=22.19.0"
+  },
+  "scripts": {
+    "sync:docs": "node scripts/sync-docs.mjs",
+    "dev": "npm run sync:docs && astro dev --host 127.0.0.1 --port 4321",
+    "build": "npm run sync:docs && astro check && astro build && node scripts/check-links.mjs",
+    "preview": "astro preview --host 127.0.0.1 --port 4321"
+  },
+  "dependencies": {
+    "astro": "7.3.2",
+    "@astrojs/starlight": "0.42.0",
+    "@astrojs/markdown-remark": "7.3.1",
+    "@fontsource-variable/dm-sans": "5.3.0",
+    "@fontsource-variable/manrope": "5.3.0"
+  },
+  "devDependencies": {
+    "@astrojs/check": "0.9.10",
+    "typescript": "5.9.3"
+  }
+}

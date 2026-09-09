@@ -1,0 +1,1791 @@
+<!doctype html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Kavach — Living white paper v0.1</title><style>
+:root{--ink:#173e3a;--muted:#63776f;--paper:#faf8f2;--green:#317c69;--line:#d8e1d9}*{box-sizing:border-box}html{scroll-behavior:smooth}body{margin:0;color:var(--ink);background:var(--paper);font:17px/1.8 system-ui,-apple-system,sans-serif}a{color:#286c59;text-underline-offset:4px}header{background:var(--ink);color:#f5f0df;padding:90px max(7vw,24px);position:relative;overflow:hidden}header:after{content:"";position:absolute;width:650px;height:650px;border:1px solid #719b8338;border-radius:50%;right:-150px;top:-130px;box-shadow:0 0 0 70px #719b8310,0 0 0 140px #719b8310;pointer-events:none}.eyebrow{font-size:12px;letter-spacing:.2em;text-transform:uppercase;color:#bccea6}.brand{font-size:24px;letter-spacing:-1px;margin:0 0 70px}header h1{font:clamp(52px,7vw,100px)/1.08 Georgia,serif;letter-spacing:-.045em;font-weight:400;max-width:850px;margin:25px 0}header p{max-width:540px;color:#d5e0d0;font-size:19px}header .meta{margin-top:60px;font-size:12px;letter-spacing:.1em;color:#c6bc96}.layout{display:grid;grid-template-columns:250px minmax(0,850px);gap:70px;max-width:1270px;margin:auto;padding:70px 30px}nav{position:sticky;top:25px;align-self:start;font-size:12px;line-height:1.5;max-height:90vh;overflow:auto}nav strong{display:block;letter-spacing:.13em;text-transform:uppercase;margin-bottom:18px;color:#768679}nav a{display:block;padding:7px 0;text-decoration:none;color:#5d7065}nav a:hover{color:#173e3a}main{min-width:0}main>h1,main>h2:first-of-type{display:none}h2{font:40px/1.2 Georgia,serif;letter-spacing:-.035em;padding-top:55px;margin:60px 0 25px;border-top:1px solid var(--line);scroll-margin-top:25px}h3{font:25px/1.35 Georgia,serif;margin:36px 0 14px}p{margin:16px 0}strong{font-weight:650}blockquote{margin:30px 0;padding:18px 28px;border-left:3px solid #b79853;background:#f0f1e7;font:21px/1.6 Georgia,serif}blockquote p{margin:12px 0}table{width:100%;border-collapse:collapse;font-size:13px;line-height:1.55;margin:24px 0 36px}th{text-align:left;background:var(--ink);color:#fff;font-weight:550;padding:13px 15px}td{border-bottom:1px solid var(--line);padding:13px 15px;vertical-align:top}tr:nth-child(even) td{background:#f1f3ed}td:first-child{font-weight:550;min-width:120px}pre{white-space:pre-wrap;overflow-wrap:anywhere;padding:22px;background:#edf2e9;border-radius:8px;font:13px/1.6 ui-monospace,monospace}code{font-size:.85em;overflow-wrap:anywhere}svg{width:100%;height:auto;display:block;margin:32px 0 12px;border:1px solid var(--line);border-radius:16px;background:#f4f6ef;padding:14px}svg+p{font-size:13px;color:var(--muted);line-height:1.6;margin-bottom:36px}li{padding:4px 0}hr{border:0;border-top:1px solid var(--line);margin:40px 0}footer{background:#e9eee3;padding:45px 7vw;font-size:13px}#reading-progress{height:3px;position:fixed;top:0;left:0;background:#b79853;z-index:5;width:0}button{border:1px solid #a9b8a5;background:transparent;border-radius:20px;padding:9px 15px;color:inherit;cursor:pointer;margin-top:20px}a:focus-visible,button:focus-visible{outline:2px solid #b79853;outline-offset:4px}@media(max-width:900px){.layout{display:block;padding:30px 22px}nav{position:static;max-height:none;border-bottom:1px solid var(--line);padding-bottom:22px;margin-bottom:35px;columns:2}nav strong{column-span:all}header{padding:55px 25px}header .brand{margin-bottom:50px}h2{font-size:32px}table{font-size:12px}th,td{padding:9px}}@media print{nav,#reading-progress,button{display:none}.layout{display:block;padding:0}body{font-size:10pt}header{break-after:page;padding:50px}h2{break-before:page}table{font-size:9pt}tr,svg,blockquote{break-inside:avoid}}
+</style></head><body><div id="reading-progress"></div><header><div class="brand">kavach.</div><div class="eyebrow">Living white paper · Version 0.1</div><h1>Your account.<br>Your rules.<br>Beyond one key.</h1><p>Programmable accounts for Cardano. A practical guide to what exists, how it is protected, and what comes next.</p><div class="meta">09 SEPTEMBER 2026 · DEVELOPMENT EDITION</div></header><div class="layout"><nav aria-label="Chapters"><strong>Inside this paper</strong><a href="#purpose-and-vocabulary">1. Purpose and vocabulary</a><a href="#system-overview">2. System overview</a><a href="#what-exists-today">3. What exists today</a><a href="#the-account-model">4. The account model</a><a href="#signing-and-funding">5. Signing and funding</a><a href="#creation-and-account-changes">6. Creation and account
+changes</a><a href="#spending-rules-and-budgets">7. Spending rules and budgets</a><a href="#lifecycle-and-recovery">8. Lifecycle and recovery</a><a href="#technical-profile">9. Technical profile</a><a href="#storage-and-restoration">10. Storage and restoration</a><a href="#security-model">11. Security model</a><a href="#privacy-and-device-boundaries">12. Privacy and device
+boundaries</a><a href="#economics-and-areas-to-improve">13. Economics and areas to
+improve</a><a href="#roadmap-and-release-gates">14. Roadmap and release gates</a><a href="#specifications-evidence-and-maintenance">15. Specifications,
+evidence and maintenance</a><button onclick="window.print()">Print this edition</button></nav><main><h1 id="kavach">Kavach</h1>
+<h2 id="programmable-accounts-for-cardano">Programmable accounts for
+Cardano</h2>
+<p><strong>Living white paper and technical specification · Version
+0.1</strong></p>
+<table>
+<colgroup>
+<col style="width: 50%" />
+<col style="width: 50%" />
+</colgroup>
+<thead>
+<tr>
+<th>Document control</th>
+<th>Value</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Status</td>
+<td>Development draft; not an audited or production-qualified
+protocol</td>
+</tr>
+<tr>
+<td>Last reviewed</td>
+<td>9 September 2026</td>
+</tr>
+<tr>
+<td>Implementation baseline</td>
+<td>Kavach repository commit <code>f2b9420</code></td>
+</tr>
+<tr>
+<td>Intended readers</td>
+<td>Account owners, wallet developers, protocol engineers and security
+reviewers</td>
+</tr>
+<tr>
+<td>Maintained source</td>
+<td>This Markdown document; diagrams are editable Mermaid source</td>
+</tr>
+<tr>
+<td>Scope</td>
+<td>Existing implementation, its qualification boundaries, and proposed
+next work</td>
+</tr>
+</tbody>
+</table>
+<blockquote>
+<p><strong>The goal:</strong> keep an account independent of any one
+device or signing key. Change who can authorize it, apply spending
+rules, and retain a separately controlled recovery path.</p>
+<p><strong>The present:</strong> a working local Yaci DevKit development
+stack with contracts, Java SDK, dashboard, wallet signing and an iPhone
+companion. Transfers and policy workflows have ledger evidence. Recovery
+has implementation and partial evidence, but its full qualification
+remains open. Use test assets only.</p>
+</blockquote>
+<p>Version <strong>0.1 is this document’s version</strong>. It does not
+rename the on-chain schema, module ABI, signing schemes or deployed
+scripts.</p>
+<h3 id="reading-routes">Reading routes</h3>
+<ul>
+<li><strong>New to Kavach:</strong> read sections 1–5, then the examples
+in section 7.</li>
+<li><strong>Building an integration:</strong> read sections 6–10 and the
+source specifications in section 15.</li>
+<li><strong>Reviewing security:</strong> start with sections 11–14 and
+follow the evidence links.</li>
+</ul>
+<h3 id="contents">Contents</h3>
+<ol type="1">
+<li><a href="#purpose-and-vocabulary">Purpose and vocabulary</a></li>
+<li><a href="#system-overview">System overview</a></li>
+<li><a href="#what-exists-today">What exists today</a></li>
+<li><a href="#the-account-model">The account model</a></li>
+<li><a href="#signing-and-funding">Signing and funding</a></li>
+<li><a href="#creation-and-account-changes">Creation and account
+changes</a></li>
+<li><a href="#spending-rules-and-budgets">Spending rules and
+budgets</a></li>
+<li><a href="#lifecycle-and-recovery">Lifecycle and recovery</a></li>
+<li><a href="#technical-profile">Technical profile</a></li>
+<li><a href="#storage-and-restoration">Storage and
+restoration</a></li>
+<li><a href="#security-model">Security model</a></li>
+<li><a href="#privacy-and-device-boundaries">Privacy and device
+boundaries</a></li>
+<li><a href="#economics-and-areas-to-improve">Economics and areas to
+improve</a></li>
+<li><a href="#roadmap-and-release-gates">Roadmap and release
+gates</a></li>
+<li><a
+href="#specifications-evidence-and-maintenance">Specifications,
+evidence and maintenance</a></li>
+</ol>
+<hr />
+<h2 id="purpose-and-vocabulary">1. Purpose and vocabulary</h2>
+<p>A conventional wallet often treats a payment key as the account.
+Kavach separates the account from the credentials that authorize it.
+Assets sit at a script-controlled Cardano address; the account’s current
+rules decide which approvals permit an operation.</p>
+<p>This enables policies such as: “My phone can approve a small ADA
+payment; larger payments also need my wallet key.” A different policy
+can control changes to those rules. A lost or replaced device need not
+imply a new account address when the change fits the existing immutable
+core.</p>
+<p>Kavach is a <strong>protocol and integration framework</strong>. Its
+longer-term role can be an account foundation for applications, with
+replaceable providers handling transaction execution and fees behind a
+familiar approval experience (section 5.3). The dashboard is its
+reference management interface. Yano Wallet is its initial wallet
+integration, and Yano Companion supplies an independent iPhone signing
+key. Neither wallet brand is part of the on-chain authorization
+rule.</p>
+<table>
+<colgroup>
+<col style="width: 50%" />
+<col style="width: 50%" />
+</colgroup>
+<thead>
+<tr>
+<th>Term</th>
+<th>Plain meaning</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Account</td>
+<td>A script-controlled asset address, authenticated state and
+associated rules</td>
+</tr>
+<tr>
+<td>UTxO</td>
+<td>An unspent transaction output: a particular piece of ledger value
+that can be consumed once</td>
+</tr>
+<tr>
+<td>State NFT</td>
+<td>A unique asset identifying the account’s canonical state; it is not
+a user’s transferable membership token</td>
+</tr>
+<tr>
+<td>Credential / key</td>
+<td>A registered public key whose corresponding private key can approve
+certain operations</td>
+</tr>
+<tr>
+<td>Intent</td>
+<td>The exact, typed instruction being authorized, including its account
+and transaction constraints</td>
+</tr>
+<tr>
+<td>Policy</td>
+<td>Which registered keys must approve an operation, and the required
+threshold</td>
+</tr>
+<tr>
+<td>Authorization module</td>
+<td>On-chain code that checks the configured credentials and approval
+rules</td>
+</tr>
+<tr>
+<td>Fee payer / sponsor</td>
+<td>A wallet providing transaction funding and collateral where
+required</td>
+</tr>
+<tr>
+<td>Locator</td>
+<td>Public account-discovery information, useful for restoration; not a
+signing secret</td>
+</tr>
+<tr>
+<td>Qualification</td>
+<td>Evidence that a particular implementation/profile passed specified
+tests; not an independent audit</td>
+</tr>
+</tbody>
+</table>
+<p><strong>A visible balance is not a universal spendability
+guarantee.</strong> Supported asset shapes, account mode, available
+approvals, transaction limits and funding all matter.</p>
+<h2 id="system-overview">2. System overview</h2>
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 760 420" role="img" aria-label="From a human decision to ledger-enforced rules">
+<title>
+From a human decision to ledger-enforced rules
+</title>
+<rect x="245" y="12" width="270" height="66" rx="14" fill="#FFFFFF" stroke="#D8E1D9"/><text x="380.0" y="39" font-family="Arial,sans-serif" font-size="16" font-weight="600" fill="#173E3A" text-anchor="middle">Kavach
+dashboard</text><text x="380.0" y="60" font-family="Arial,sans-serif" font-size="12" font-weight="400" fill="#687871" text-anchor="middle">Choose
+action and
+review</text><rect x="20" y="124" width="210" height="66" rx="14" fill="#FFFFFF" stroke="#D8E1D9"/><text x="125.0" y="151" font-family="Arial,sans-serif" font-size="16" font-weight="600" fill="#173E3A" text-anchor="middle">Cardano
+wallet</text><text x="125.0" y="172" font-family="Arial,sans-serif" font-size="12" font-weight="400" fill="#687871" text-anchor="middle">Sign
+intents or
+transactions</text><rect x="265" y="124" width="230" height="66" rx="14" fill="#FFFFFF" stroke="#D8E1D9"/><text x="380.0" y="151" font-family="Arial,sans-serif" font-size="16" font-weight="600" fill="#173E3A" text-anchor="middle">Backend
++
+SDK</text><text x="380.0" y="172" font-family="Arial,sans-serif" font-size="12" font-weight="400" fill="#687871" text-anchor="middle">Resolve,
+build and
+evaluate</text><rect x="530" y="124" width="210" height="66" rx="14" fill="#FFFFFF" stroke="#D8E1D9"/><text x="635.0" y="151" font-family="Arial,sans-serif" font-size="16" font-weight="600" fill="#173E3A" text-anchor="middle">iPhone
+Companion</text><text x="635.0" y="172" font-family="Arial,sans-serif" font-size="12" font-weight="400" fill="#687871" text-anchor="middle">Independent
+COSE
+approval</text><path d="M330,78 L145,124" stroke="#317C69" stroke-width="1.7"/><polygon points="145,124 151.1510516964611,118.88486920719883 152.83037464613375,125.63866802653435" fill="#317C69"/><path d="M380,78 L380,124" stroke="#317C69" stroke-width="1.7"/><polygon points="380,124 376.5202757271102,116.79642318117858 383.4797242728898,116.79642318117858" fill="#317C69"/><path d="M430,78 L635,124" stroke="#317C69" stroke-width="1.7"/><polygon points="635,124 627.2093322689083,125.8181023908807 628.7330747516339,119.02751089177754" fill="#317C69"/><path d="M230,157 L265,157" stroke="#317C69" stroke-width="1.7"/><polygon points="265,157 257.79642318117857,160.47972427288985 257.79642318117857,153.52027572711015" fill="#317C69"/><path d="M530,157 L495,157" stroke="#317C69" stroke-width="1.7"/><polygon points="495,157 502.20357681882143,153.52027572711015 502.20357681882143,160.47972427288985" fill="#317C69"/><rect x="245" y="244" width="270" height="66" rx="14" fill="#173E3A" stroke="#173E3A"/><text x="380.0" y="271" font-family="Arial,sans-serif" font-size="16" font-weight="600" fill="#FFFFFF" text-anchor="middle">Cardano
+ledger</text><text x="380.0" y="292" font-family="Arial,sans-serif" font-size="12" font-weight="400" fill="#DAE8DE" text-anchor="middle">Validate
+the full
+transaction</text><path d="M380,190 L380,244" stroke="#317C69" stroke-width="1.7"/><polygon points="380,244 376.5202757271102,236.7964231811786 383.4797242728898,236.7964231811786" fill="#317C69"/><text x="388.0" y="209.0" font-family="Arial,sans-serif" font-size="12" font-weight="400" fill="#687871" text-anchor="middle">submit</text><text x="380" y="355" font-family="Arial,sans-serif" font-size="17" font-weight="600" fill="#173E3A" text-anchor="middle">Account
+state • Assets • Authorization
+rules</text><text x="380" y="389" font-family="Arial,sans-serif" font-size="14" font-weight="400" fill="#687871" text-anchor="middle">Private
+spending keys stay with the signers.</text>
+</svg>
+<p><em>Figure 1 — The current development stack. The backend builds
+transactions but does not hold account spending keys. Signing still
+requires a wallet or phone. The current phone exchange is local/offline;
+no remote relay is implemented.</em></p>
+<p>There are four distinct responsibilities:</p>
+<table>
+<colgroup>
+<col style="width: 50%" />
+<col style="width: 50%" />
+</colgroup>
+<thead>
+<tr>
+<th>Layer</th>
+<th>Responsibility</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Immutable core</td>
+<td>State identity and custody, allowed lifecycle changes, replay
+binding, transaction shape and value accounting</td>
+</tr>
+<tr>
+<td>Authorization module</td>
+<td>Determine whether the correct registered authorities approved the
+exact operation</td>
+</tr>
+<tr>
+<td>SDK and backend</td>
+<td>Resolve ledger data, prepare canonical requests, verify returned
+evidence, build/evaluate/submit transactions</td>
+</tr>
+<tr>
+<td>Signer and interface</td>
+<td>Present the requested action, obtain consent and produce signatures
+for supported profiles</td>
+</tr>
+</tbody>
+</table>
+<p>This separation helps prevent an authorization upgrade from silently
+replacing the rules that protect asset custody. It does not eliminate
+bugs in those rules or compromise of a signing device.</p>
+<h2 id="what-exists-today">3. What exists today</h2>
+<p>Here, <strong>implemented</strong> means present in the development
+stack. <strong>Live evidence</strong> means specified transactions were
+accepted by the local DevKit ledger. Neither term means production
+readiness or comprehensive wallet compatibility.</p>
+<table>
+<colgroup>
+<col style="width: 33%" />
+<col style="width: 33%" />
+<col style="width: 33%" />
+</colgroup>
+<thead>
+<tr>
+<th>Capability</th>
+<th>Existing behavior</th>
+<th>Evidence / boundary</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Account creation</td>
+<td>Authenticated state NFT, registered credentials, six authority
+policies</td>
+<td>Live creation; current per-key flow has ten transactions</td>
+</tr>
+<tr>
+<td>ADA transfers</td>
+<td>Exact-input, signed recipient allocations and bounded account fee
+contribution</td>
+<td>Compiled and live SDK/browser flows</td>
+</tr>
+<tr>
+<td>Native assets</td>
+<td>Bounded ordinary transfers; dedicated whole-UTxO path preserves the
+complete native-asset map</td>
+<td>Live reference profiles; phone signing remains narrower</td>
+</tr>
+<tr>
+<td>Consolidation</td>
+<td>Combine supported account inputs into valid account change</td>
+<td>Bounded builder/profile behavior; not arbitrary transaction
+composition</td>
+</tr>
+<tr>
+<td>Per-key signing</td>
+<td>COSE and transaction-witness methods in a mixed configuration</td>
+<td>Compiled and live mixed/all-COSE flows</td>
+</tr>
+<tr>
+<td>Dynamic creation signers</td>
+<td>Add/remove controls, 3–8 keys in the dashboard</td>
+<td>Eight-key creation tested; larger protocol registry is not a UI
+support claim</td>
+</tr>
+<tr>
+<td>Amount tiers</td>
+<td>Small ADA payments use one policy; larger/other transfers use the
+strong policy</td>
+<td>Compiled and live tier selection</td>
+</tr>
+<tr>
+<td>Optional periodic budget</td>
+<td>Fixed daily or weekly ADA debit cap; enable/change/disable</td>
+<td>Compiled boundary and live lifecycle/contention evidence</td>
+</tr>
+<tr>
+<td>Credential and module changes</td>
+<td>Existing administrators approve; destination/candidate proofs are
+checked</td>
+<td>Live replacements and subsequent transfers</td>
+</tr>
+<tr>
+<td>Freeze and unfreeze</td>
+<td>Separate authorities and lifecycle checks</td>
+<td>Compiled and short live flows; full race/recovery qualification
+open</td>
+</tr>
+<tr>
+<td>Delayed recovery</td>
+<td>Start, cancel and complete transition logic with target commitments
+and immutable timing</td>
+<td>Compiled cases and short initiation/cancellation evidence; full
+real-delay completion qualification remains open</td>
+</tr>
+<tr>
+<td>Workspace restoration</td>
+<td>Multiple saved locators, switch/forget, authenticated state
+restoration</td>
+<td>Browser and SDK tests; backend/provider trust remains</td>
+</tr>
+<tr>
+<td>Approval wizard</td>
+<td>Per-key progress, purpose grouping, device routing, separate funding
+phase</td>
+<td>Browser checks and owner-observed DevKit use</td>
+</tr>
+<tr>
+<td>iPhone approval</td>
+<td>Device key, pairing, request review, response QR/file/JSON</td>
+<td>Swift tests, builds and owner-observed signing; limited
+operations</td>
+</tr>
+<tr>
+<td>Independent fee payer</td>
+<td>Wallet outside the authority registry can fund an all-COSE
+request</td>
+<td>Live synthetic-signer 15/35 ADA test</td>
+</tr>
+<tr>
+<td>Positive reward accounting</td>
+<td>Core/SDK receipt rules and historical positive-refund ledger
+tests</td>
+<td>Current dashboard restricts itself to zero-reward checkpoints</td>
+</tr>
+</tbody>
+</table>
+<p>See the <a href="https://github.com/bloxbean/kavach/blob/f2b9420/docs/policy/completion-checklist.md">policy
+ledger</a>, <a href="https://github.com/bloxbean/kavach/blob/f2b9420/docs/browser/completion-checklist.md">browser
+ledger</a>, and <a href="https://github.com/bloxbean/kavach/blob/f2b9420/docs/phase2/progress.md">Phase 2 progress</a>.
+Earlier ledger entries describe earlier snapshots; later increments add
+evidence without retrospectively qualifying old artifacts.</p>
+<p><strong>Not currently delivered:</strong> production deployment, a
+public sponsorship service, remote phone relay, generic dApp execution,
+arbitrary authentication algorithms, passkeys/YubiKey authorization,
+Google/Apple login authorization, CIP-113 programmable-token support, or
+fully qualified end-to-end recovery.</p>
+<h2 id="the-account-model">4. The account model</h2>
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 760 365" role="img" aria-label="An account persists while its credentials can change">
+<title>
+An account persists while its credentials can change
+</title>
+<rect x="15" y="30" width="225" height="66" rx="14" fill="#FFFFFF" stroke="#D8E1D9"/><text x="127.5" y="57" font-family="Arial,sans-serif" font-size="16" font-weight="600" fill="#173E3A" text-anchor="middle">Account
+identity</text><text x="127.5" y="78" font-family="Arial,sans-serif" font-size="12" font-weight="400" fill="#687871" text-anchor="middle">Unique
+state
+NFT</text><rect x="280" y="30" width="220" height="66" rx="14" fill="#FFFFFF" stroke="#D8E1D9"/><text x="390.0" y="57" font-family="Arial,sans-serif" font-size="16" font-weight="600" fill="#173E3A" text-anchor="middle">Canonical
+state</text><text x="390.0" y="78" font-family="Arial,sans-serif" font-size="12" font-weight="400" fill="#687871" text-anchor="middle">Version,
+mode and
+policy</text><path d="M240,63 L280,63" stroke="#317C69" stroke-width="1.7"/><polygon points="280,63 272.79642318117857,66.47972427288984 272.79642318117857,59.52027572711016" fill="#317C69"/><rect x="535" y="30" width="210" height="66" rx="14" fill="#FFFFFF" stroke="#D8E1D9"/><text x="640.0" y="57" font-family="Arial,sans-serif" font-size="16" font-weight="600" fill="#173E3A" text-anchor="middle">Authorization
+module</text><text x="640.0" y="78" font-family="Arial,sans-serif" font-size="12" font-weight="400" fill="#687871" text-anchor="middle">Configured
+keys and
+roles</text><path d="M500,63 L535,63" stroke="#317C69" stroke-width="1.7"/><polygon points="535,63 527.7964231811786,66.47972427288984 527.7964231811786,59.52027572711016" fill="#317C69"/><rect x="15" y="185" width="225" height="66" rx="14" fill="#FFFFFF" stroke="#D8E1D9"/><text x="127.5" y="212" font-family="Arial,sans-serif" font-size="16" font-weight="600" fill="#173E3A" text-anchor="middle">Asset
+UTxOs</text><text x="127.5" y="233" font-family="Arial,sans-serif" font-size="12" font-weight="400" fill="#687871" text-anchor="middle">Account-controlled
+value</text><rect x="280" y="185" width="220" height="66" rx="14" fill="#173E3A" stroke="#173E3A"/><text x="390.0" y="212" font-family="Arial,sans-serif" font-size="16" font-weight="600" fill="#FFFFFF" text-anchor="middle">Immutable
+core</text><text x="390.0" y="233" font-family="Arial,sans-serif" font-size="12" font-weight="400" fill="#DAE8DE" text-anchor="middle">Identity
+and value
+checks</text><path d="M240,218 L280,218" stroke="#317C69" stroke-width="1.7"/><polygon points="280,218 272.79642318117857,221.47972427288985 272.79642318117857,214.52027572711015" fill="#317C69"/><path d="M390,96 L390,185" stroke="#317C69" stroke-width="1.7"/><polygon points="390,185 386.5202757271102,177.7964231811786 393.4797242728898,177.7964231811786" fill="#317C69"/><text x="398.0" y="132.5" font-family="Arial,sans-serif" font-size="12" font-weight="400" fill="#687871" text-anchor="middle">read
+state</text><rect x="535" y="185" width="210" height="66" rx="14" fill="#FFFFFF" stroke="#D8E1D9"/><text x="640.0" y="212" font-family="Arial,sans-serif" font-size="16" font-weight="600" fill="#173E3A" text-anchor="middle">Valid
+outputs</text><text x="640.0" y="233" font-family="Arial,sans-serif" font-size="12" font-weight="400" fill="#687871" text-anchor="middle">Recipients
+and
+change</text><path d="M500,218 L535,218" stroke="#317C69" stroke-width="1.7"/><polygon points="535,218 527.7964231811786,221.47972427288985 527.7964231811786,214.52027572711015" fill="#317C69"/><text x="380" y="307" font-family="Arial,sans-serif" font-size="17" font-weight="600" fill="#173E3A" text-anchor="middle">Change
+a supported key or module. Keep the account
+address.</text><text x="380" y="337" font-family="Arial,sans-serif" font-size="13" font-weight="400" fill="#687871" text-anchor="middle">Changing
+the immutable core is a separate migration question.</text>
+</svg>
+<p><em>Figure 2 — Identity is tied to authenticated state, not to
+whichever key is currently active. Ordinary asset spends reference
+state; state-changing operations consume and recreate it.</em></p>
+<p>The canonical state contains account/deployment identity, immutable
+core bindings, current module and configuration, state version,
+lifecycle mode, and recovery parameters/state. Finding a datum with the
+right-looking account ID is insufficient: validators and SDK restoration
+check the <strong>complete NFT identity, quantity, custody address,
+schema and immutable bindings</strong>.</p>
+<p>Ordinary spending normally leaves the state UTxO unconsumed, allowing
+different asset inputs to be spent concurrently. State changes consume
+that state and increment its version, making requests against the former
+version stale.</p>
+<table>
+<colgroup>
+<col style="width: 50%" />
+<col style="width: 50%" />
+</colgroup>
+<thead>
+<tr>
+<th>Change</th>
+<th>Address consequence</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Replace keys within a supported configuration</td>
+<td>Account asset address remains unchanged</td>
+</tr>
+<tr>
+<td>Change supported per-key signing methods under current
+administration</td>
+<td>Same address; requires an on-chain configuration update</td>
+</tr>
+<tr>
+<td>Replace a compatible authorization module</td>
+<td>Same immutable account custody identity; current admin and candidate
+checks still apply</td>
+</tr>
+<tr>
+<td>Add budget enforcement to an account created with the budget-capable
+core</td>
+<td>Can be enabled using the supported module/configuration flow</td>
+</tr>
+<tr>
+<td>Add budget capability to an ordinary core without it</td>
+<td>Requires a new asset-validator profile/address and separately
+designed migration</td>
+</tr>
+<tr>
+<td>Change immutable core code, parameters or compiler output</td>
+<td>May change script hashes and addresses; never an automatic
+upgrade</td>
+</tr>
+</tbody>
+</table>
+<p>The current mutable-state implementation does not make archived
+sealed Phase 1 accounts upgradeable. Their historical state/reference
+deposits remain subject to their original scripts.</p>
+<h2 id="signing-and-funding">5. Signing and funding</h2>
+<h3 id="methods-are-configured-not-guessed">5.1 Methods are configured,
+not guessed</h3>
+<p>The signing method belongs to each registered credential in a mixed
+account configuration. Evidence cannot choose a different method. A key
+is counted once per proof, regardless of how many addresses or devices
+expose it.</p>
+<table>
+<colgroup>
+<col style="width: 33%" />
+<col style="width: 33%" />
+<col style="width: 33%" />
+</colgroup>
+<thead>
+<tr>
+<th>Scheme</th>
+<th>Meaning</th>
+<th>Typical use</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>0</td>
+<td>Raw Ed25519 signature over the canonical intent digest</td>
+<td>Original SDK/reference profile</td>
+</tr>
+<tr>
+<td>1</td>
+<td>Cardano transaction witnesses for named payment-key signers</td>
+<td>Legacy/advanced browser transaction authorization</td>
+</tr>
+<tr>
+<td>2</td>
+<td>Bounded CIP-8-style COSE evidence over the exact digest</td>
+<td>Wallet <code>signData</code> and supported Companion approvals</td>
+</tr>
+<tr>
+<td>3</td>
+<td>Mixed per-key methods with amount-tiered approval</td>
+<td>Current dashboard’s final per-key creation module</td>
+</tr>
+<tr>
+<td>4</td>
+<td>Mixed policy inside the optional periodic-budget configuration</td>
+<td>Budget-capable account with periodic enforcement</td>
+</tr>
+</tbody>
+</table>
+<p>CIP-30 is the browser-wallet interface. In the dashboard,
+“transaction witness” means approving the final Cardano transaction via
+that interface. COSE is a signed-message format; wallets can provide it
+through <code>signData</code>. These are not two different kinds of
+account asset address chosen by a signature alone.</p>
+<p>New dashboard keys default to <strong>COSE intent approval</strong>.
+Transaction-witness authorization remains an advanced choice. Existing
+accounts keep their on-chain methods until an authorized update
+confirms.</p>
+<h3 id="approve-fund-confirm">5.2 Approve, fund, confirm</h3>
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 760 315" role="img" aria-label="Three distinct stages: approve, fund, confirm">
+<title>
+Three distinct stages: approve, fund, confirm
+</title>
+<text x="120" y="40" font-family="Arial,sans-serif" font-size="28" font-weight="600" fill="#B79853" text-anchor="middle">01</text><rect x="15" y="66" width="210" height="66" rx="14" fill="#FFFFFF" stroke="#D8E1D9"/><text x="120.0" y="93" font-family="Arial,sans-serif" font-size="16" font-weight="600" fill="#173E3A" text-anchor="middle">Approve
+intent</text><text x="120.0" y="114" font-family="Arial,sans-serif" font-size="12" font-weight="400" fill="#687871" text-anchor="middle">Wallet
+or iPhone
+keys</text><text x="380" y="40" font-family="Arial,sans-serif" font-size="28" font-weight="600" fill="#B79853" text-anchor="middle">02</text><rect x="275" y="66" width="210" height="66" rx="14" fill="#FFFFFF" stroke="#D8E1D9"/><text x="380.0" y="93" font-family="Arial,sans-serif" font-size="16" font-weight="600" fill="#173E3A" text-anchor="middle">Fund
+transaction</text><text x="380.0" y="114" font-family="Arial,sans-serif" font-size="12" font-weight="400" fill="#687871" text-anchor="middle">Fee
+wallet
+signs</text><text x="640" y="40" font-family="Arial,sans-serif" font-size="28" font-weight="600" fill="#B79853" text-anchor="middle">03</text><rect x="535" y="66" width="210" height="66" rx="14" fill="#173E3A" stroke="#173E3A"/><text x="640.0" y="93" font-family="Arial,sans-serif" font-size="16" font-weight="600" fill="#FFFFFF" text-anchor="middle">Confirm
+on-chain</text><text x="640.0" y="114" font-family="Arial,sans-serif" font-size="12" font-weight="400" fill="#DAE8DE" text-anchor="middle">Ledger
+accepts the
+result</text><path d="M225,99 L275,99" stroke="#317C69" stroke-width="1.7"/><polygon points="275,99 267.79642318117857,102.47972427288984 267.79642318117857,95.52027572711016" fill="#317C69"/><path d="M485,99 L535,99" stroke="#317C69" stroke-width="1.7"/><polygon points="535,99 527.7964231811786,102.47972427288984 527.7964231811786,95.52027572711016" fill="#317C69"/><text x="120" y="176" font-family="Arial,sans-serif" font-size="13" font-weight="400" fill="#687871" text-anchor="middle">One
+proof per
+required</text><text x="120" y="196" font-family="Arial,sans-serif" font-size="13" font-weight="400" fill="#687871" text-anchor="middle">key
+and
+purpose.</text><text x="380" y="176" font-family="Arial,sans-serif" font-size="13" font-weight="400" fill="#687871" text-anchor="middle">Funding
+cannot
+replace</text><text x="380" y="196" font-family="Arial,sans-serif" font-size="13" font-weight="400" fill="#687871" text-anchor="middle">a
+COSE
+approval.</text><text x="640" y="176" font-family="Arial,sans-serif" font-size="13" font-weight="400" fill="#687871" text-anchor="middle">A
+signature alone
+does</text><text x="640" y="196" font-family="Arial,sans-serif" font-size="13" font-weight="400" fill="#687871" text-anchor="middle">not
+move
+funds.</text><rect x="15" y="235" width="730" height="58" rx="14" fill="#EEF3E9" stroke="#D8E1D9"/><text x="380" y="270" font-family="Arial,sans-serif" font-size="13" font-weight="400" fill="#173E3A" text-anchor="middle">Mixed
+transaction-witness profiles also need their authority witnesses.</text>
+</svg>
+<p><em>Figure 3 — Recommended all-COSE workflow. A transaction-witness
+authority profile additionally requires its authority witnesses on the
+final body.</em></p>
+<p>A COSE approval authorizes a request; it does not itself submit a
+transaction or pay fees. In an all-COSE account, the funding signature
+cannot replace any required COSE approval, even when the same wallet
+owns both keys.</p>
+<p>A sponsor need not be an account authority. Sponsorship still needs a
+funded wallet, compatible transaction construction and explicit signing.
+A hosted sponsor service has not been built. Changing the sponsor in the
+current dashboard requires preparing a new request.</p>
+<p>Keys derived at different HD address indexes can be distinct
+credentials. Yano’s tested integration can discover matching
+address-index keys within a bounded search. Discovery belongs to the
+wallet, not the contract, and distinct keys under one seed do
+<strong>not</strong> provide independent protection against compromise
+of that seed.</p>
+<h3 id="accounts-as-infrastructure-sponsored-intent-execution">5.3
+Accounts as infrastructure: sponsored intent execution</h3>
+<p><strong>Proposed direction.</strong> Kavach can become the account
+layer behind everyday applications: users choose an action and approve
+it with a familiar device, while an execution provider handles the
+blockchain mechanics. That provider could be an application-funded
+sponsor, an independently chosen operator, or a participant in a
+decentralized intent network.</p>
+<p>The simple experience is <strong>“Review → Approve → Done.”</strong>
+A user might approve “Send 15 ADA to this recipient; network fee paid by
+the application” on their phone. They need not maintain a separate fee
+balance, select collateral or sign a second fee-wallet prompt. The
+provider still pays and signs the required funding transaction. Account
+policies still determine how many authority approvals are needed.</p>
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 760 400" role="img" aria-label="Proposed network execution with user-controlled account authority">
+<title>
+Proposed network execution with user-controlled account authority
+</title>
+<text x="380" y="23" font-family="Arial,sans-serif" font-size="12" font-weight="600" fill="#B79853" text-anchor="middle">PROPOSED
+/ NOT A DEPLOYED
+NETWORK</text><rect x="20" y="60" width="210" height="66" rx="14" fill="#FFFFFF" stroke="#D8E1D9"/><text x="125.0" y="87" font-family="Arial,sans-serif" font-size="16" font-weight="600" fill="#173E3A" text-anchor="middle">User
+approval</text><text x="125.0" y="108" font-family="Arial,sans-serif" font-size="12" font-weight="400" fill="#687871" text-anchor="middle">Phone
+or supported
+wallet</text><rect x="280" y="60" width="220" height="66" rx="14" fill="#FFFFFF" stroke="#D8E1D9"/><text x="390.0" y="87" font-family="Arial,sans-serif" font-size="16" font-weight="600" fill="#173E3A" text-anchor="middle">Exact
+Kavach
+intent</text><text x="390.0" y="108" font-family="Arial,sans-serif" font-size="12" font-weight="400" fill="#687871" text-anchor="middle">Account
+policy
+satisfied</text><path d="M230,93 L280,93" stroke="#317C69" stroke-width="1.7"/><polygon points="280,93 272.79642318117857,96.47972427288984 272.79642318117857,89.52027572711016" fill="#317C69"/><rect x="265" y="175" width="250" height="66" rx="14" fill="#173E3A" stroke="#173E3A"/><text x="390.0" y="202" font-family="Arial,sans-serif" font-size="16" font-weight="600" fill="#FFFFFF" text-anchor="middle">Execution
+providers</text><text x="390.0" y="223" font-family="Arial,sans-serif" font-size="12" font-weight="400" fill="#DAE8DE" text-anchor="middle">Discover,
+quote, build and
+fund</text><path d="M390,126 L390,175" stroke="#317C69" stroke-width="1.7"/><polygon points="390,175 386.5202757271102,167.7964231811786 393.4797242728898,167.7964231811786" fill="#317C69"/><rect x="535" y="175" width="210" height="66" rx="14" fill="#FFFFFF" stroke="#D8E1D9"/><text x="640.0" y="202" font-family="Arial,sans-serif" font-size="16" font-weight="600" fill="#173E3A" text-anchor="middle">Cardano
+ledger</text><text x="640.0" y="223" font-family="Arial,sans-serif" font-size="12" font-weight="400" fill="#687871" text-anchor="middle">Validate
+and
+confirm</text><path d="M515,208 L535,208" stroke="#317C69" stroke-width="1.7"/><polygon points="535,208 527.7964231811786,211.47972427288985 527.7964231811786,204.52027572711015" fill="#317C69"/><text x="130" y="198" font-family="Arial,sans-serif" font-size="14" font-weight="600" fill="#173E3A" text-anchor="middle">Account
+authority
+stays</text><text x="130" y="220" font-family="Arial,sans-serif" font-size="14" font-weight="600" fill="#173E3A" text-anchor="middle">with
+the
+user.</text><rect x="20" y="292" width="720" height="77" rx="14" fill="#EEF3E9" stroke="#D8E1D9"/><text x="380" y="323" font-family="Arial,sans-serif" font-size="15" font-weight="600" fill="#173E3A" text-anchor="middle">A
+simpler experience: review the action, approve, receive
+confirmation.</text><text x="380" y="347" font-family="Arial,sans-serif" font-size="13" font-weight="400" fill="#687871" text-anchor="middle">Funding
+and execution are replaceable. Signed instructions are not.</text>
+</svg>
+<p><em>Figure 4 — Proposed sponsored execution. Users authorize the
+action; providers supply execution and funding. The current local
+fee-payer primitive exists, but a decentralized execution network does
+not.</em></p>
+<p>This could make Kavach a reusable account foundation across
+applications. <strong>The account is the durable authority layer; the
+execution network is replaceable infrastructure.</strong> A network
+operator should not become a privileged key, control recovery, or
+dictate where the account can be used.</p>
+<h4 id="what-the-network-would-do">What the network would do</h4>
+<table>
+<colgroup>
+<col style="width: 33%" />
+<col style="width: 33%" />
+<col style="width: 33%" />
+</colgroup>
+<thead>
+<tr>
+<th>Responsibility</th>
+<th>Proposed provider behavior</th>
+<th>What stays with the account/user</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Discovery and quotes</td>
+<td>Find eligible requests and offer funding/service terms</td>
+<td>Select providers and consent to every account-paid charge</td>
+</tr>
+<tr>
+<td>Preparation</td>
+<td>Resolve state and construct a request within the supported
+profile</td>
+<td>Review the exact action before signing</td>
+</tr>
+<tr>
+<td>Execution</td>
+<td>Assemble, evaluate and submit a valid transaction</td>
+<td>Enforce configured approval, value, replay and budget rules</td>
+</tr>
+<tr>
+<td>Funding</td>
+<td>Supply provider-owned fees, collateral and agreed top-ups</td>
+<td>Retain spending keys and account authority</td>
+</tr>
+<tr>
+<td>Availability</td>
+<td>Retry safely or hand off to another compatible provider</td>
+<td>Keep a direct/user-selected funding path</td>
+</tr>
+</tbody>
+</table>
+<p>A message relay alone is not an intent execution network: it need not
+build transactions, provide ADA, price risk or settle provider
+compensation. Several operators behind one mandatory gateway also do not
+establish decentralization. Operator choice, independent operation and
+tested failover are part of that claim.</p>
+<h4
+id="abstraction-without-hidden-authority-or-hidden-charges">Abstraction
+without hidden authority or hidden charges</h4>
+<p>The user can avoid blockchain mechanics while still seeing the
+action, destination, amount, total account debit, fee responsibility and
+confirmation status. A subsidy should be labeled “paid by the
+application,” not presented as if execution had no cost. The intended
+experience needs an <strong>all-COSE authority policy</strong>; a
+transaction-witness authority still has to sign the Cardano transaction.
+Sponsorship does not make an unsupported phone operation or
+authentication algorithm supported.</p>
+<p>Possible funding arrangements include an application subsidy, an
+external subscription, or an explicitly approved account-paid charge.
+These are design options, not delivered billing systems. Network fees,
+service charges, deposits/top-ups and collateral exposure are different
+costs and need separate terms.</p>
+<p>Existing V1 has <strong>no implicit relayer tip</strong>. Its signed
+account-fee ceiling cannot be repurposed as an arbitrary service fee. An
+account-paid service charge must be an explicit signed recipient
+allocation within the supported profile; it affects approval tiers and
+budget debit as applicable. Token reimbursement, exchange-rate
+conversion and new settlement rules require additional qualification.
+The current single-recipient iPhone flow cannot silently add a second
+recipient for a provider fee.</p>
+<h4 id="what-the-current-exact-intent-model-permits">What the current
+exact-intent model permits</h4>
+<p>Kavach currently signs constrained, exact transactions: account
+inputs, recipient output indices/addresses/values, state, operation and
+validity are bound. It does not yet accept a generic “find any route to
+achieve this outcome” solver order. Providers cannot reorder signed
+outputs or change recipients, amounts or expiry. If signed fields
+change, the user must authorize the new request.</p>
+<p>Quotes and preparation should therefore settle the user-visible terms
+before approval. Cross-provider reuse of a COSE proof is safe only when
+all signed semantics remain unchanged and state, inputs and validity are
+still usable; that handoff is not currently qualified. The dashboard
+today prepares a fresh request for a different sponsor.</p>
+<p>As a conceptual reference, <a
+href="https://ercs.ethereum.org/ERCS/erc-7683">ERC-7683</a> separates
+order dissemination, solver execution and settlement. It is an Ethereum
+ecosystem standard, not evidence of Cardano or Kavach compatibility.
+Kavach needs its own qualified interfaces around its exact intent and
+UTxO constraints.</p>
+<h4 id="security-and-delivery-gates">Security and delivery gates</h4>
+<p>A provider cannot spend beyond a valid account authorization, but it
+can refuse service, delay submission or observe requests. Public intent
+feeds can expose payment plans before confirmation; encryption does not
+automatically hide metadata. A sponsor must protect its own funding
+inputs, collateral and return address by checking the entire
+transaction.</p>
+<p>Start with a specified external-sponsor API and one qualified
+operator, then add multiple independent providers and failure handling
+before claiming a decentralized network. Test malicious quotes, excess
+charges, stale state/counters, duplicate delivery, concurrent attempts,
+provider disappearance, collateral loss and rollback. Freeze,
+cancellation and recovery need a replaceable funding path too: if no
+provider will fund them, correct authorization alone cannot make them
+execute.</p>
+<p>See <a
+href="https://github.com/bloxbean/kavach/blob/main/adr/adr-010-intent-execution-and-fee-sponsorship.md">ADR-010</a>
+for the proposed boundary. This is a product and architecture direction,
+not a deployed network or a change to existing contracts.</p>
+<h2 id="creation-and-account-changes">6. Creation and account
+changes</h2>
+<h3 id="guided-creation">6.1 Guided creation</h3>
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 760 290" role="img" aria-label="Three setup phases, ten current ledger transactions">
+<title>
+Three setup phases, ten current ledger transactions
+</title>
+<text x="120" y="40" font-family="Arial,sans-serif" font-size="22" font-weight="600" fill="#B79853" text-anchor="middle">01–06</text><rect x="15" y="67" width="210" height="66" rx="14" fill="#FFFFFF" stroke="#D8E1D9"/><text x="120.0" y="94" font-family="Arial,sans-serif" font-size="16" font-weight="600" fill="#173E3A" text-anchor="middle">Prepare</text><text x="120.0" y="115" font-family="Arial,sans-serif" font-size="12" font-weight="400" fill="#687871" text-anchor="middle">5
+publications +
+registration</text><text x="380" y="40" font-family="Arial,sans-serif" font-size="22" font-weight="600" fill="#B79853" text-anchor="middle">07</text><rect x="275" y="67" width="210" height="66" rx="14" fill="#FFFFFF" stroke="#D8E1D9"/><text x="380.0" y="94" font-family="Arial,sans-serif" font-size="16" font-weight="600" fill="#173E3A" text-anchor="middle">Enroll</text><text x="380.0" y="115" font-family="Arial,sans-serif" font-size="12" font-weight="400" fill="#687871" text-anchor="middle">Genesis
+and key
+possession</text><text x="640" y="40" font-family="Arial,sans-serif" font-size="22" font-weight="600" fill="#B79853" text-anchor="middle">08–10</text><rect x="535" y="67" width="210" height="66" rx="14" fill="#173E3A" stroke="#173E3A"/><text x="640.0" y="94" font-family="Arial,sans-serif" font-size="16" font-weight="600" fill="#FFFFFF" text-anchor="middle">Activate</text><text x="640.0" y="115" font-family="Arial,sans-serif" font-size="12" font-weight="400" fill="#DAE8DE" text-anchor="middle">Final
+module and
+approvals</text><path d="M225,100 L275,100" stroke="#317C69" stroke-width="1.7"/><polygon points="275,100 267.79642318117857,103.47972427288984 267.79642318117857,96.52027572711016" fill="#317C69"/><path d="M485,100 L535,100" stroke="#317C69" stroke-width="1.7"/><polygon points="535,100 527.7964231811786,103.47972427288984 527.7964231811786,96.52027572711016" fill="#317C69"/><rect x="15" y="180" width="730" height="75" rx="14" fill="#EEF3E9" stroke="#D8E1D9"/><text x="380" y="212" font-family="Arial,sans-serif" font-size="17" font-weight="600" fill="#173E3A" text-anchor="middle">Spending
+stays blocked until final
+activation.</text><text x="380" y="237" font-family="Arial,sans-serif" font-size="13" font-weight="400" fill="#687871" text-anchor="middle">The
+setup module can activate only its precommitted final policy.</text>
+</svg>
+<p><em>Figure 5 — Three user-facing phases currently contain ten ledger
+transactions. Grouping the interface does not turn those transactions
+into one transaction.</em></p>
+<p>The final mixed authorization module is too large to include the full
+genesis flow in the qualified publication shape. Creation therefore uses
+a restricted setup module. That module accepts initialization and only
+the authorized activation of its <strong>precommitted final module with
+unchanged configuration</strong>; spending is blocked until
+activation.</p>
+<p>All registered keys prove possession in their selected method. The
+activation step separately needs current administration approval and
+candidate possession. This explains why the same key can appear twice in
+the wizard: one proof says “I authorize this update,” and another says
+“I control this key in the resulting policy.” The proofs have different
+domains and cannot substitute for one another.</p>
+<p>The dashboard can prepare the next request after confirmation, but it
+never automatically obtains the next wallet signature. Setup after
+confirmed genesis can resume from the locator and verified deployment
+records. Pre-genesis progress remains more fragile because pending
+request state is in memory.</p>
+<h3 id="six-authorities">6.2 Six authorities</h3>
+<table>
+<colgroup>
+<col style="width: 33%" />
+<col style="width: 33%" />
+<col style="width: 33%" />
+</colgroup>
+<thead>
+<tr>
+<th>Role</th>
+<th>Controls</th>
+<th>Important separation</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Spend</td>
+<td>Transfers, with small/strong tier rules when configured</td>
+<td>Does not implicitly grant administration or recovery powers</td>
+</tr>
+<tr>
+<td>Admin</td>
+<td>Replace configuration or compatible module</td>
+<td>Must remain stronger than unilateral everyday spending</td>
+</tr>
+<tr>
+<td>Freeze</td>
+<td>Stop future spending after confirmation</td>
+<td>Cannot undo an already confirmed payment</td>
+</tr>
+<tr>
+<td>Unfreeze</td>
+<td>Return a frozen account to normal operation</td>
+<td>Independent from the strong spend and recovery sets</td>
+</tr>
+<tr>
+<td>Recovery</td>
+<td>Initiate a committed replacement configuration</td>
+<td>Cannot bypass the immutable delay</td>
+</tr>
+<tr>
+<td>Cancel</td>
+<td>Cancel a pending recovery into Frozen mode</td>
+<td>Independent from spend and recovery authorities</td>
+</tr>
+</tbody>
+</table>
+<p>The reference rules reject unsafe role overlaps. Recovery keys are
+disjoint from cancellation and unfreeze keys; defensive
+cancellation/unfreeze keys are disjoint from spend keys. Cancellation
+and unfreeze may share keys. Threshold and overlap checks remain
+authoritative even if the UI makes a selection easy.</p>
+<h2 id="spending-rules-and-budgets">7. Spending rules and budgets</h2>
+<h3 id="approval-tier-versus-spending-cap">7.1 Approval tier versus
+spending cap</h3>
+<p>These are separate controls:</p>
+<table>
+<colgroup>
+<col style="width: 33%" />
+<col style="width: 33%" />
+<col style="width: 33%" />
+</colgroup>
+<thead>
+<tr>
+<th>Setting</th>
+<th>Question it answers</th>
+<th>Current semantics</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Small-payment threshold</td>
+<td>How many approvals does this payment need?</td>
+<td>Inclusive ADA threshold; stronger policy above it</td>
+</tr>
+<tr>
+<td>Strong policy</td>
+<td>Who approves larger or non-small transfers?</td>
+<td>Configured key subset and threshold</td>
+</tr>
+<tr>
+<td>Optional daily/weekly budget</td>
+<td>How much ADA may leave across a fixed period?</td>
+<td>Hard cumulative debit limit while enabled</td>
+</tr>
+<tr>
+<td>Independent hard per-transaction cap</td>
+<td>Must even a fully approved payment be rejected above this
+amount?</td>
+<td>Not a separate delivered user setting</td>
+</tr>
+</tbody>
+</table>
+<p>Small approval is available only for ordinary ADA-only allocations
+where:</p>
+<pre class="text"><code>recipient ADA total + signed maximum account-paid fee &lt;= small-payment threshold</code></pre>
+<p>Native-token recipients and whole-UTxO transfers always use strong
+approval. A larger payment is not rejected merely for exceeding the
+small threshold; it needs stronger authorization.</p>
+<p><strong>Example: the tested three-key arrangement</strong></p>
+<ul>
+<li>Small payments up to 30 ADA: Key 0, the iPhone.</li>
+<li>Strong approval: both Key 0 and Key 1, a wallet key.</li>
+<li>Administration: both Key 0 and Key 2, another wallet key.</li>
+<li>Freeze/recovery: Key 1. Unfreeze/cancel: Key 2.</li>
+<li>All three keys use COSE; the fee wallet signs separately.</li>
+</ul>
+<p>With zero account-paid fee, 15 ADA needs the phone; 35 ADA needs the
+phone and Key 1. If a positive maximum account fee is signed, that
+maximum also counts toward tier selection. A small-policy membership
+must be a subset of the strong policy, and every sufficient strong
+subset must satisfy the small policy too.</p>
+<h3 id="optional-fixed-period-budget">7.2 Optional fixed-period
+budget</h3>
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 760 445" role="img" aria-label="Optional budgets enforce one account-wide ADA cap">
+<title>
+Optional budgets enforce one account-wide ADA cap
+</title>
+<rect x="260" y="10" width="240" height="66" rx="14" fill="#FFFFFF" stroke="#D8E1D9"/><text x="380.0" y="37" font-family="Arial,sans-serif" font-size="16" font-weight="600" fill="#173E3A" text-anchor="middle">Approved
+payment</text><text x="380.0" y="58" font-family="Arial,sans-serif" font-size="12" font-weight="400" fill="#687871" text-anchor="middle">Check
+budget
+configuration</text><rect x="20" y="135" width="290" height="66" rx="14" fill="#FFFFFF" stroke="#D8E1D9"/><text x="165.0" y="162" font-family="Arial,sans-serif" font-size="16" font-weight="600" fill="#173E3A" text-anchor="middle">Budget
+disabled</text><text x="165.0" y="183" font-family="Arial,sans-serif" font-size="12" font-weight="400" fill="#687871" text-anchor="middle">Independent
+inputs can be
+concurrent</text><rect x="450" y="135" width="290" height="66" rx="14" fill="#FFFFFF" stroke="#D8E1D9"/><text x="595.0" y="162" font-family="Arial,sans-serif" font-size="16" font-weight="600" fill="#173E3A" text-anchor="middle">Budget
+enabled</text><text x="595.0" y="183" font-family="Arial,sans-serif" font-size="12" font-weight="400" fill="#687871" text-anchor="middle">Check
+period and remaining
+capacity</text><path d="M300,76 L165,135" stroke="#317C69" stroke-width="1.7"/><polygon points="165,135 170.20723149639966,128.92671916153193 172.994231315752,135.30375264649066" fill="#317C69"/><path d="M460,76 L595,135" stroke="#317C69" stroke-width="1.7"/><polygon points="595,135 587.005768684248,135.30375264649066 589.7927685036003,128.92671916153193" fill="#317C69"/><rect x="450" y="272" width="290" height="66" rx="14" fill="#173E3A" stroke="#173E3A"/><text x="595.0" y="299" font-family="Arial,sans-serif" font-size="16" font-weight="600" fill="#FFFFFF" text-anchor="middle">Spend
++ update
+counter</text><text x="595.0" y="320" font-family="Arial,sans-serif" font-size="12" font-weight="400" fill="#DAE8DE" text-anchor="middle">One
+atomic ledger
+transaction</text><path d="M595,201 L595,272" stroke="#317C69" stroke-width="1.7"/><polygon points="595,272 591.5202757271102,264.79642318117857 598.4797242728898,264.79642318117857" fill="#317C69"/><text x="603.0" y="228.5" font-family="Arial,sans-serif" font-size="12" font-weight="400" fill="#687871" text-anchor="middle">within
+cap</text><text x="165" y="272" font-family="Arial,sans-serif" font-size="13" font-weight="400" fill="#687871" text-anchor="middle">No
+shared counter to
+consume.</text><text x="595" y="381" font-family="Arial,sans-serif" font-size="16" font-weight="600" fill="#173E3A" text-anchor="middle">Over
+the cap?
+Reject.</text><text x="380" y="421" font-family="Arial,sans-serif" font-size="13" font-weight="400" fill="#687871" text-anchor="middle">Competing
+enabled spends share one counter; a stale request must be
+rebuilt.</text>
+</svg>
+<p><em>Figure 6 — The optional cap trades concurrency for one globally
+consistent budget per account. It is not a server-maintained usage
+balance.</em></p>
+<p>The counter holds a unique NFT and an authenticated datum. Every
+enabled spend must consume that counter and recreate its exact
+custody/value with the next usage. The debit is:</p>
+<pre class="text"><code>actual account-input ADA − valid account-change ADA</code></pre>
+<p>This includes actual account-paid fees. Sponsor change and counter
+deposits cannot masquerade as account change. Tokens have no
+price-oracle conversion: only their accompanying ADA debit counts toward
+this ADA budget.</p>
+<p><strong>Daily</strong> means a fixed UTC calendar day.
+<strong>Weekly</strong> means a fixed UTC week anchored on Monday. These
+are not rolling windows or Cardano epochs. Contracts use ledger validity
+intervals in POSIX time. The DevKit adapter converts slots using its
+verified one-second slot configuration; other networks require correct
+era-history conversion.</p>
+<p>Usage resets on the next accepted spend in a new period—no cron job
+or backend reset is needed. The complete transaction validity interval
+must fit within one period.</p>
+<table>
+<colgroup>
+<col style="width: 50%" />
+<col style="width: 50%" />
+</colgroup>
+<thead>
+<tr>
+<th>Administrative change</th>
+<th>Effect</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Raise/lower limit only</td>
+<td>Retains the existing recorded usage</td>
+</tr>
+<tr>
+<td>Set limit to zero</td>
+<td>Disables enforcement; retains counter identity and period</td>
+</tr>
+<tr>
+<td>Re-enable same period</td>
+<td>Retains recorded usage in that window; disabled spending is not
+counted retrospectively</td>
+</tr>
+<tr>
+<td>Change daily to weekly, or vice versa</td>
+<td>Explicitly authorizes a new period counter interpretation on the
+next spend</td>
+</tr>
+<tr>
+<td>Replace with ordinary module</td>
+<td>Removes the budget under old-admin authorization; counter deposit
+stays locked</td>
+</tr>
+</tbody>
+</table>
+<p>Two concurrent spends cannot consume the same counter UTxO. One can
+confirm; the other must be rebuilt. More approvals do not override an
+enabled cap. Administrators can change/disable the policy, so the cap is
+not a restriction against a sufficiently authorized administrator.</p>
+<h2 id="lifecycle-and-recovery">8. Lifecycle and recovery</h2>
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 760 365" role="img" aria-label="Lifecycle transitions and independent recovery controls">
+<title>
+Lifecycle transitions and independent recovery controls
+</title>
+<rect x="20" y="35" width="200" height="66" rx="14" fill="#173E3A" stroke="#173E3A"/><text x="120.0" y="62" font-family="Arial,sans-serif" font-size="16" font-weight="600" fill="#FFFFFF" text-anchor="middle">Normal</text><text x="120.0" y="83" font-family="Arial,sans-serif" font-size="12" font-weight="400" fill="#DAE8DE" text-anchor="middle">Spending
+allowed</text><rect x="540" y="35" width="200" height="66" rx="14" fill="#FFFFFF" stroke="#D8E1D9"/><text x="640.0" y="62" font-family="Arial,sans-serif" font-size="16" font-weight="600" fill="#173E3A" text-anchor="middle">Frozen</text><text x="640.0" y="83" font-family="Arial,sans-serif" font-size="12" font-weight="400" fill="#687871" text-anchor="middle">Spending
+blocked</text><path d="M220,56 L540,56" stroke="#317C69" stroke-width="1.7"/><polygon points="540,56 532.7964231811786,59.47972427288984 532.7964231811786,52.52027572711016" fill="#317C69"/><text x="388.0" y="48.0" font-family="Arial,sans-serif" font-size="12" font-weight="400" fill="#687871" text-anchor="middle">freeze</text><path d="M540,86 L220,86" stroke="#317C69" stroke-width="1.7"/><polygon points="220,86 227.2035768188214,82.52027572711016 227.2035768188214,89.47972427288984" fill="#317C69"/><text x="388.0" y="78.0" font-family="Arial,sans-serif" font-size="12" font-weight="400" fill="#687871" text-anchor="middle">independent
+unfreeze</text><rect x="245" y="213" width="270" height="66" rx="14" fill="#FFFFFF" stroke="#D8E1D9"/><text x="380.0" y="240" font-family="Arial,sans-serif" font-size="16" font-weight="600" fill="#173E3A" text-anchor="middle">Recovery
+pending</text><text x="380.0" y="261" font-family="Arial,sans-serif" font-size="12" font-weight="400" fill="#687871" text-anchor="middle">Exact
+target + immutable
+delay</text><path d="M120,101 L270,213" stroke="#317C69" stroke-width="1.7"/><polygon points="270,213 262.1460348023754,211.47841179207322 266.30979793134657,205.90194331577254" fill="#317C69"/><text x="203.0" y="149.0" font-family="Arial,sans-serif" font-size="12" font-weight="400" fill="#687871" text-anchor="middle">start</text><path d="M640,101 L490,213" stroke="#317C69" stroke-width="1.7"/><polygon points="490,213 493.69020206865343,205.90194331577254 497.8539651976246,211.47841179207322" fill="#317C69"/><text x="573.0" y="149.0" font-family="Arial,sans-serif" font-size="12" font-weight="400" fill="#687871" text-anchor="middle">start</text><path d="M260,245 L90,112" stroke="#317C69" stroke-width="1.7"/><polygon points="90,112 97.81770505203896,113.69808354309336 93.52940885524674,119.17936439613604" fill="#317C69"/><text x="96" y="200" font-family="Arial,sans-serif" font-size="12" font-weight="400" fill="#687871" text-anchor="middle">complete
+after
+delay</text><path d="M510,246 L708,114" stroke="#317C69" stroke-width="1.7"/><polygon points="708,114 703.9364655245961,120.89113108039628 700.0760580506327,115.10051986945122" fill="#317C69"/><text x="674" y="210" font-family="Arial,sans-serif" font-size="12" font-weight="400" fill="#687871" text-anchor="middle">cancel</text><text x="380" y="334" font-family="Arial,sans-serif" font-size="16" font-weight="600" fill="#173E3A" text-anchor="middle">Full
+recovery qualification remains open.</text>
+</svg>
+<p><em>Figure 7 — Intended and implemented lifecycle transitions.
+Compiled transition checks and short ledger flows do not establish
+complete recovery qualification.</em></p>
+<p>Normal asset spending is restricted to Normal mode. Starting recovery
+commits the complete replacement configuration and a sequence-bound
+proposal. Completion must use that exact target after the stored
+deadline; it cannot install a relayer’s substitute target or require the
+lost old spending key.</p>
+<p>The ordinary candidate permits creation-time recovery delays from one
+to ninety days and cooldowns from one hour to thirty days. Its wire
+profile has no timing-update action: successors preserve those timing
+parameters. Delay/cooldown arithmetic is bounded; state version and
+recovery sequence cannot overflow.</p>
+<p>Cancellation leaves the account Frozen. Unfreeze cannot bypass a
+pending recovery. Cooldown deadlines are monotonic, limiting repeated
+recovery attempts from erasing the waiting period.</p>
+<p><strong>Ordering matters:</strong> a freeze does not front-run a
+competing spend by definition. If a spend confirms first, freeze cannot
+reverse it. A confirmed state mutation invalidates stale referenced
+state for subsequent transactions, subject to ledger ordering and
+rollback behavior.</p>
+<p>The acceptance ledger still records open real-delay completion,
+positive-reward mutation, adversarial/race and final-review gates. This
+paper does not infer completion just because a recorded deadline is in
+the past. See <a href="https://github.com/bloxbean/kavach/blob/f2b9420/docs/phase2/completion-checklist.md">Phase 2
+acceptance</a>.</p>
+<h2 id="technical-profile">9. Technical profile</h2>
+<h3 id="canonical-requests-and-module-boundaries">9.1 Canonical requests
+and module boundaries</h3>
+<p>The signing object is a typed intent, not an arbitrary
+backend-supplied hash. Its domain binds the account, network/deployment
+parameters and immutable core. The envelope also binds current state
+version/reference, operation, validity interval and operation-specific
+fields such as inputs, recipient allocations and fee ceiling.</p>
+<p>Canonical bytes follow Cardano <code>serialiseData</code>, not a
+generic “canonical JSON” or generic deterministic-CBOR convention.
+Unknown versions/tags, wrong arity, malformed types, duplicate IDs,
+invalid ordering and out-of-range values reject. Genesis,
+configuration/candidate possession and recovery target proofs have
+distinct digest domains.</p>
+<p>The core requires the installed module under the exact
+Rewarding-purpose invocation and checks the same envelope and receipts.
+Merely including a reference script, executing a certificate path, or
+supplying an unrelated module withdrawal cannot authorize an operation.
+The module independently authenticates the account state and derives its
+digest.</p>
+<p>The bounded COSE adapter accepts reviewed Ed25519 COSE shapes,
+including the qualified address-valued <code>kid</code> variant. It
+validates algorithm/key metadata, exact payload, protected bytes and
+signing address against the registered payment key and network. It is
+not unrestricted CIP-8 or arbitrary COSE support.</p>
+<h3 id="principal-bounds">9.2 Principal bounds</h3>
+<p>These are intersections of count, byte and execution bounds—not a
+promise that every combination fits a ledger transaction.</p>
+<table>
+<colgroup>
+<col style="width: 50%" />
+<col style="width: 50%" />
+</colgroup>
+<thead>
+<tr>
+<th>Ordinary candidate constraint</th>
+<th>Bound / distinction</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Total inputs / references / outputs</td>
+<td>16 / 4 / 16</td>
+</tr>
+<tr>
+<td>Account inputs / recipient allocations</td>
+<td>8 / 8</td>
+</tr>
+<tr>
+<td>Ordinary distinct assets</td>
+<td>12 including ADA, plus aggregate native-entry limits</td>
+</tr>
+<tr>
+<td>Registered keys / members per role / signatures per proof</td>
+<td>16 / 8 / 8</td>
+</tr>
+<tr>
+<td>Dashboard creation</td>
+<td>3–8 keys; phone transport and activation limit the exposed flow</td>
+</tr>
+<tr>
+<td>Configuration / intent bytes</td>
+<td>1,024 / 1,536 serialized Data bytes</td>
+</tr>
+<tr>
+<td>Intent validity width</td>
+<td>At most 300,000 ms</td>
+</tr>
+<tr>
+<td>Signed account fee ceiling</td>
+<td>At most 5 ADA, also bounded by actual fee</td>
+</tr>
+<tr>
+<td>Whole-UTxO profile</td>
+<td>One exact input; full Value digest; no account-funded fee;
+separately bounded Value size</td>
+</tr>
+</tbody>
+</table>
+<p>Some UI wording still mentions sixteen ordinary inputs; that does not
+override the stricter eight-account-input SDK/contract limit. Aligning
+those messages is an integration improvement, not grounds to enlarge the
+supported profile.</p>
+<p>Whole-UTxO transfer is a specific escape route for token-heavy
+supported deposits. It preserves every native token and at least the
+input’s ADA at a plain key recipient, with sponsor-funded fees/top-ups.
+It is not arbitrary script execution, and the iPhone does not currently
+sign that profile.</p>
+<h3 id="implementation-and-portability">9.3 Implementation and
+portability</h3>
+<p>The reference stack uses JuLC targeting Plutus V3, Java 25, Gradle
+9.2.0, CCL <code>0.8.0-pre5</code>, and the pinned JuLC snapshot
+<code>0.1.0-pre17-6754861-SNAPSHOT</code>. Binary-hash checks and
+qualification records matter: this is not an unqualified floating
+compiler dependency.</p>
+<p>Future implementations must satisfy the language-neutral schema,
+invariants and conformance vectors. Equivalent behavior in Aiken or
+another language does not imply identical script bytes, hashes or
+addresses. See <a href="https://github.com/bloxbean/kavach/blob/f2b9420/toolchain/julc/README.md">toolchain
+provenance</a>.</p>
+<h2 id="storage-and-restoration">10. Storage and restoration</h2>
+<table>
+<colgroup>
+<col style="width: 33%" />
+<col style="width: 33%" />
+<col style="width: 33%" />
+</colgroup>
+<thead>
+<tr>
+<th>Location</th>
+<th>What lives there</th>
+<th>What it does not establish</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Cardano ledger</td>
+<td>Assets, canonical account state, configured rules, budget counter
+and confirmed transactions</td>
+<td>Private signing keys</td>
+</tr>
+<tr>
+<td>Browser local storage</td>
+<td>Workspace locators, names/device hints, selection and local request
+references</td>
+<td>Authority to spend or a complete backend backup</td>
+</tr>
+<tr>
+<td>Backend local files</td>
+<td>Verified public deployment/profile records; persistent Companion
+request-signing identity</td>
+<td>Account spending keys; the authoritative budget usage</td>
+</tr>
+<tr>
+<td>Backend memory</td>
+<td>Prepared plans and collected pending approval progress</td>
+<td>Restart-safe pending requests</td>
+</tr>
+<tr>
+<td>Browser wallet</td>
+<td>Its own wallet keys and wallet-specific account discovery</td>
+<td>Automatic authority for all keys in a Kavach account</td>
+</tr>
+<tr>
+<td>iPhone Keychain</td>
+<td>Device signing key, pinned peers and approval history</td>
+<td>An on-chain account backup or automatic recovery</td>
+</tr>
+</tbody>
+</table>
+<p>The locator identifies the account NFT, deployment domain and
+immutable bindings. Restoration queries the ledger and validates the
+returned state and script hashes. It does not require the original
+spending key, but a locator alone cannot authorize a transaction.
+Surviving authorities and funding are still needed.</p>
+<p>The backend/provider is trusted for current ledger information; these
+checks do not supply independent inclusion or freshness proofs. The
+phone currently does not independently query and authenticate live
+account state. The browser relies on the backend’s canonical request
+rendering.</p>
+<p>Forgetting an account removes a browser entry only. It does not close
+the on-chain account, destroy funds, revoke a key or disable policy.
+Clearing browser storage can lose convenient discovery. Losing
+deployment records or the pairing identity has different consequences
+and requires explicit restoration/re-pairing.</p>
+<p>The dashboard backend currently runs locally; Kavach does not require
+a hosted service just to use the local workflow. Remote coordination
+would need a separately designed transport and availability model.</p>
+<h2 id="security-model">11. Security model</h2>
+<p>Kavach’s security case is built from <strong>specific invariants and
+tested boundaries</strong>, not from the label “smart account.” The
+following protections depend on correct deployed code and ledger
+validation.</p>
+<table>
+<colgroup>
+<col style="width: 33%" />
+<col style="width: 33%" />
+<col style="width: 33%" />
+</colgroup>
+<thead>
+<tr>
+<th>Threat</th>
+<th>Intended enforcement</th>
+<th>Residual boundary</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Fake account state</td>
+<td>Full state NFT identity/quantity, exact custody, supported schema
+and immutable binding checks</td>
+<td>Provider freshness and deployment trust still matter</td>
+</tr>
+<tr>
+<td>Reuse or redirect an approval</td>
+<td>Canonical account/domain/action binding, exact input references,
+state version, distinct proof domains</td>
+<td>Compromised signer/display can still approve a malicious
+request</td>
+</tr>
+<tr>
+<td>Reuse a spend twice</td>
+<td>Signed inputs are consumed once; state mutations invalidate old
+state references</td>
+<td>Expiry alone is not replay protection; rollback/finality must be
+handled</td>
+</tr>
+<tr>
+<td>Lower threshold through evidence</td>
+<td>Methods fixed in signed config; sorted unique IDs; threshold and
+membership checks</td>
+<td>Compromise of enough legitimately authorized keys satisfies the
+policy</td>
+</tr>
+<tr>
+<td>Unauthorized upgrade</td>
+<td>Old administration approves the exact replacement; candidate proofs
+are separate</td>
+<td>Administrators intentionally have power to change supported
+rules</td>
+</tr>
+<tr>
+<td>Steal incidental tokens or change</td>
+<td>Account for every asset and exact recipient allocations; validate
+account change and fee bound</td>
+<td>Unsupported deposits/transaction shapes must be surfaced
+clearly</td>
+</tr>
+<tr>
+<td>Count one output twice</td>
+<td>Recipient, change, successor and reward-receipt allocations are
+constrained/disjoint</td>
+<td>Complete transaction composition must be tested, not only
+helpers</td>
+</tr>
+<tr>
+<td>Bypass budget</td>
+<td>Authenticate counter NFT/custody, actual debit and unique successor
+atomically</td>
+<td>Enabled counter serializes spends; admin can change the policy</td>
+</tr>
+<tr>
+<td>Accelerate or substitute recovery</td>
+<td>Ledger intervals, conservative deadline calculation, exact stored
+target and monotonic sequence/cooldown</td>
+<td>Full recovery qualification and reliable defensive monitoring remain
+open</td>
+</tr>
+<tr>
+<td>Abuse module invocation</td>
+<td>Correct script, purpose, same state/envelope and supported operation
+checks</td>
+<td>A bad new module can weaken authorization within the permitted core
+boundary</td>
+</tr>
+<tr>
+<td>Divert script rewards</td>
+<td>Separate immutable sinks and distinct receipt outputs; no mixing
+with account conservation</td>
+<td>Dashboard positive-reward routing remains unsupported</td>
+</tr>
+<tr>
+<td>Malformed/oversized input</td>
+<td>Bounded parsing, canonical encoding, integer/size checks and
+fail-closed operation support</td>
+<td>Parser/compiler defects still require independent review</td>
+</tr>
+</tbody>
+</table>
+<h3 id="independence-matters-more-than-the-number-of-keys">11.1
+Independence matters more than the number of keys</h3>
+<p>Three HD keys from one wallet seed are three cryptographic
+credentials but one seed-compromise domain. For meaningful multi-party
+or multi-device protection, distribute authorities across independently
+secured credentials. A phone plus a wallet key is useful only to the
+extent their storage and approval paths are independently protected.</p>
+<p>A sufficiently authorized user can approve a harmful policy or
+payment. Kavach cannot infer intent beyond the signed instruction,
+guarantee that a device display is honest, or repair loss of every
+required credential.</p>
+<h3 id="verification-layers">11.2 Verification layers</h3>
+<ol type="1">
+<li><strong>Schema and golden vectors:</strong> independent encodings,
+digests and signatures.</li>
+<li><strong>JVM/SDK tests:</strong> parsing, rendering, construction and
+rejection behavior.</li>
+<li><strong>Compiled Plutus tests:</strong> emitted UPLC validation,
+adversarial cases and execution budgets.</li>
+<li><strong>Live ledger tests:</strong> final balanced/signed
+transaction acceptance, value movement and contention.</li>
+<li><strong>Real-device checks:</strong> wallet/phone consent, camera
+transport, Keychain and user-facing behavior.</li>
+<li><strong>Independent audit and production qualification:</strong>
+still required.</li>
+</ol>
+<p>Passing one layer does not establish another. Fabricated time
+contexts are not an elapsed-day/week/recovery-delay test. Synthetic
+wallet responses are not a compatibility certificate for every
+wallet/version. Historical script qualification does not automatically
+qualify changed hashes.</p>
+<h2 id="privacy-and-device-boundaries">12. Privacy and device
+boundaries</h2>
+<p>The account is not private by default. Ledger addresses, values,
+transaction structure and published account configuration can reveal
+relationships between credentials and activity. COSE evidence included
+in transactions is not a zero-knowledge proof. The reviewed profiles do
+not intentionally publish private keys, wallet seed phrases, a phone
+passcode or biometric templates.</p>
+<p>The iPhone uses a device-only Keychain item with
+passcode/user-presence controls. User presence may be satisfied by
+passcode rather than Face ID. <strong>Ed25519 signing occurs in
+application memory, not inside the Secure Enclave.</strong> A
+compromised phone remains a material threat. Simulator keys lack the
+physical-device protection and are unsuitable for funded accounts.</p>
+<p>Pairing pins the desktop’s request-signing public key after
+fingerprint comparison. It authenticates the requesting desktop, not the
+safety of every request that desktop may send. The phone independently
+parses the supported request bytes and requires affirmative review
+before signing; it does not yet independently verify current ledger
+state.</p>
+<p>QR/file messages are authenticated <strong>but not
+encrypted</strong>. Anyone who obtains one can see its contents.
+Response scanning adds evidence; it does not itself submit a
+transaction. Unpairing a desktop does not revoke an already issued
+signature or remove a credential from the on-chain account.</p>
+<p>Current Companion support includes bounded ADA Spend, genesis and
+supported configuration/module policy proofs. Native assets, whole
+transfers, recovery and ordinary wallet transaction signing need
+separate phone profiles and qualification. No passkey, secure-hardware
+Ed25519, anonymous relay or automatic device-loss recovery claim is
+made.</p>
+<h2 id="economics-and-areas-to-improve">13. Economics and areas to
+improve</h2>
+<h3 id="separate-fees-deposits-and-locked-value">13.1 Separate fees,
+deposits and locked value</h3>
+<table>
+<colgroup>
+<col style="width: 50%" />
+<col style="width: 50%" />
+</colgroup>
+<thead>
+<tr>
+<th>Cost category</th>
+<th>Current development behavior</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Network fee</td>
+<td>Paid per transaction; includes transaction bytes, execution and
+reference-script charges</td>
+</tr>
+<tr>
+<td>Reference publications</td>
+<td>Current per-key setup uses six 80 ADA outputs: <strong>480 ADA
+permanently locked</strong> in this development reference
+arrangement</td>
+</tr>
+<tr>
+<td>Account state</td>
+<td>Current setup creates a 12 ADA state output, retained by
+state-custody rules</td>
+</tr>
+<tr>
+<td>Stake registration</td>
+<td>Additional ledger deposits; not included in the 480 ADA figure</td>
+</tr>
+<tr>
+<td>Optional budget counter</td>
+<td>3 ADA retained by the counter script, still locked after
+disabling/removing the budget</td>
+</tr>
+<tr>
+<td>Sponsor collateral/top-ups</td>
+<td>Separate funding requirements; not the same thing as the quoted
+transaction fee</td>
+</tr>
+</tbody>
+</table>
+<p>These values describe the local builder/profile, not a production
+price quote or an economic minimum. A setup transaction count of ten
+means ten transactions requiring fees, even if the UI groups them into
+three phases.</p>
+<p>Historical fee measurements help locate costs but must not be mixed
+as if they measured the same current profile:</p>
+<table>
+<colgroup>
+<col style="width: 30%" />
+<col style="width: 40%" />
+<col style="width: 30%" />
+</colgroup>
+<thead>
+<tr>
+<th>Recorded profile</th>
+<th style="text-align: right;">Paid fee</th>
+<th>Interpretation</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Optimized pre-Phase-2 ordinary ADA transfer</td>
+<td style="text-align: right;">1.024019 ADA</td>
+<td>Historical scripts; approximately 15.3% below the recorded 1.208773
+ADA baseline</td>
+</tr>
+<tr>
+<td>Phase 2 ordinary ADA transfer</td>
+<td style="text-align: right;">1.122225 ADA</td>
+<td>Later core and lifecycle implementation; separate qualification
+snapshot</td>
+</tr>
+<tr>
+<td>Phase 2 eight-input/eight-recipient transfer</td>
+<td style="text-align: right;">2.059199 ADA</td>
+<td>Larger transaction shape; not a single-payment estimate</td>
+</tr>
+<tr>
+<td>Browser custom-policy samples</td>
+<td style="text-align: right;">Approximately 1.18–1.23 ADA</td>
+<td>Token/multi-input/whole samples; not directly comparable with plain
+ADA</td>
+</tr>
+</tbody>
+</table>
+<p>Sources: <a href="https://github.com/bloxbean/kavach/blob/f2b9420/docs/fee-optimization/progress.md">fee
+measurements</a>, <a href="https://github.com/bloxbean/kavach/blob/f2b9420/docs/phase2/progress.md">Phase 2 progress</a>,
+and <a href="https://github.com/bloxbean/kavach/blob/f2b9420/docs/browser/completion-checklist.md">browser
+qualification</a>. In the historical 1.024019 ADA sample, reference
+scripts accounted for 0.489120 ADA—an important optimization target, not
+a forecast for current mixed/budget requests.</p>
+<h3 id="improvement-priorities">13.2 Improvement priorities</h3>
+<table>
+<colgroup>
+<col style="width: 33%" />
+<col style="width: 33%" />
+<col style="width: 33%" />
+</colgroup>
+<thead>
+<tr>
+<th>Area</th>
+<th>Proposed work</th>
+<th>Acceptance condition</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Script size and execution</td>
+<td>Reduce duplicated work and emitted bytes within invariant-preserving
+boundaries</td>
+<td>Same adversarial rejects, full combined budgets, final ledger
+acceptance and reproducible hashes</td>
+</tr>
+<tr>
+<td>Onboarding cost</td>
+<td>Investigate reusable reference infrastructure, publication planning
+and safe batching</td>
+<td>Creator binding and setup activation cannot be bypassed;
+deposits/fees measured separately</td>
+</tr>
+<tr>
+<td>Locked deposits</td>
+<td>Design explicit reclaimable lifecycle where compatible, rather than
+assuming current deposits are refundable</td>
+<td>New semantics, reviewed custody authorization and migration
+consequences</td>
+</tr>
+<tr>
+<td>Witness/fee estimation</td>
+<td>Count actual required witnesses, protect exact recipient allocations
+during balancing</td>
+<td>Final fee decomposition reconciles and signed output meaning stays
+unchanged</td>
+</tr>
+<tr>
+<td>Approval UX</td>
+<td>Fewer redundant interactions, clear next signer, compact requests
+and accessible review</td>
+<td>No automatic signing, no merged proof domains, no hidden policy
+changes</td>
+</tr>
+<tr>
+<td>Pending plans</td>
+<td>Durable, integrity-checked resumable plans and better stale/expiry
+handling</td>
+<td>Restart/replay/rebuild tests; no private spending-key
+persistence</td>
+</tr>
+<tr>
+<td>Input and QR limits</td>
+<td>Align UI limits with SDK/contracts; improve larger request
+transport</td>
+<td>Explicit size/budget and real-device tests before raising
+limits</td>
+</tr>
+<tr>
+<td>Periodic concurrency</td>
+<td>Keep global cap optional; investigate other explicitly defined
+budget models</td>
+<td>New models must not masquerade as the same globally serialized
+cap</td>
+</tr>
+<tr>
+<td>Restoration</td>
+<td>Independent provider checks, artifact availability and phone state
+verification</td>
+<td>Fresh-device tests with realistic failures and surviving authority
+requirements</td>
+</tr>
+<tr>
+<td>Benchmark reporting</td>
+<td>Maintain current per-profile fees, bytes, CPU/memory and
+collateral/deposit breakdown</td>
+<td>Record network parameters, source/script hashes and actual confirmed
+transactions</td>
+</tr>
+</tbody>
+</table>
+<p>Fee savings must not come from removing state authentication, value
+checks, target binding or authorization independence. A new core layout
+can change addresses; “optimization” is not an exemption from migration
+design.</p>
+<h2 id="roadmap-and-release-gates">14. Roadmap and release gates</h2>
+<p>These are <strong>proposed workstreams, not dated commitments or
+implemented capabilities</strong>.</p>
+<table>
+<colgroup>
+<col style="width: 33%" />
+<col style="width: 33%" />
+<col style="width: 33%" />
+</colgroup>
+<thead>
+<tr>
+<th>Priority</th>
+<th>Workstream</th>
+<th>Required result before claiming support</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>P0</td>
+<td>Complete recovery qualification</td>
+<td>Real immutable delay, recovered-key transfer, positive-reward
+transitions, race/adversarial cases and clean-device restoration</td>
+</tr>
+<tr>
+<td>P0</td>
+<td>Independent security review</td>
+<td>Review immutable core, modules, SDK composition, canonical parsers
+and device consent; resolve findings</td>
+</tr>
+<tr>
+<td>P0</td>
+<td>Production deployment discipline</td>
+<td>Reproducible artifacts, supported network manifests,
+rollback/failure guidance and operational ownership</td>
+</tr>
+<tr>
+<td>P1</td>
+<td>Lower fees and creation friction</td>
+<td>Current-profile benchmark suite and measured safe improvements;
+preserve proof/custody boundaries</td>
+</tr>
+<tr>
+<td>P1</td>
+<td>Persistent workflow recovery</td>
+<td>Resume after browser/backend interruption; clear stale-request
+rebuilding and setup status</td>
+</tr>
+<tr>
+<td>P1</td>
+<td>Better companion transport</td>
+<td>Evaluate authenticated encrypted relay coordination without granting
+relay spending authority</td>
+</tr>
+<tr>
+<td>P1</td>
+<td>Broader device qualification</td>
+<td>Physical iPhone security/failure matrix, wallet/version captures and
+supported operation expansion</td>
+</tr>
+<tr>
+<td>P1</td>
+<td>Optional explicit per-transaction cap</td>
+<td>Specify a hard cap separately from approval tiers, including admin
+and fee semantics</td>
+</tr>
+<tr>
+<td>P1</td>
+<td>Sponsored execution interface</td>
+<td>Exact-intent request/quote API, explicit costs, provider consent,
+funding failure and safe retry tests</td>
+</tr>
+<tr>
+<td>P2</td>
+<td>Decentralized intent execution</td>
+<td>Multiple independent funding/execution providers, qualified
+settlement and failover, privacy/censorship evidence and no privileged
+account operator</td>
+</tr>
+<tr>
+<td>P2</td>
+<td>Additional authentication modules</td>
+<td>Demonstrate supported on-chain cryptography, exact intent binding
+and safe upgrade/candidate rules</td>
+</tr>
+<tr>
+<td>P2</td>
+<td>CIP-113 programmable tokens</td>
+<td>Separate custody/authority prototype and qualification; ordinary V1
+explicitly defers this support</td>
+</tr>
+<tr>
+<td>P2</td>
+<td>Other platforms and language implementations</td>
+<td>Cross-implementation conformance and platform-specific key/consent
+evidence</td>
+</tr>
+</tbody>
+</table>
+<p>Nostr and CIP-45/WebRTC coordination are research candidates for
+transport, not installed Kavach features. Encryption can protect message
+content but does not automatically hide relay metadata, guarantee
+delivery or make a malicious request safe. No relay design has been
+selected here.</p>
+<p>Google/Apple login would not make their login assertion directly
+accepted by the existing contracts. A service that verifies login and
+signs Kavach intents with its own registered key introduces that service
+as an authority. Such a design needs a separate trust model and should
+not silently replace independently held keys. Passkeys and NFC security
+keys likewise require a qualified cryptographic/profile path; the
+present Ed25519 modules cannot verify arbitrary hardware assertions.</p>
+<p>CIP-113 was explicitly deferred under the Phase 0 decision. The
+project makes no promise that future interoperability can be added
+without new custody addresses or migration. See <a
+href="https://github.com/bloxbean/kavach/blob/f2b9420/adr/adr-002-kavach-cip113-interoperability.md">ADR-002</a>
+and the <a href="https://github.com/bloxbean/kavach/blob/f2b9420/docs/phase0/qualification.md">Phase 0 decision
+record</a>.</p>
+<h2 id="specifications-evidence-and-maintenance">15. Specifications,
+evidence and maintenance</h2>
+<h3 id="authority-and-source-map">15.1 Authority and source map</h3>
+<p>This document is a readable, maintained synthesis. It does not
+supersede the detailed wire schemas or promote a proposed ADR into an
+audited specification. When this overview and detailed evidence
+disagree, use the narrower supported claim and resolve the discrepancy
+explicitly.</p>
+<table>
+<colgroup>
+<col style="width: 50%" />
+<col style="width: 50%" />
+</colgroup>
+<thead>
+<tr>
+<th>Topic</th>
+<th>Authoritative detail / implementation guide</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Architecture and invariants</td>
+<td><a
+href="https://github.com/bloxbean/kavach/blob/f2b9420/adr/adr-001-kavach-programmable-smart-account-architecture.md">ADR-001</a></td>
+</tr>
+<tr>
+<td>Ordinary wire semantics and bounds</td>
+<td><a href="https://github.com/bloxbean/kavach/blob/f2b9420/protocol/v1/specification.md">Ordinary
+specification</a>, <a href="https://github.com/bloxbean/kavach/blob/f2b9420/protocol/v1/kavach.cddl">CDDL</a>, <a
+href="https://github.com/bloxbean/kavach/blob/f2b9420/protocol/v1/module-abi.md">module ABI</a></td>
+</tr>
+<tr>
+<td>Browser signature formats</td>
+<td><a href="https://github.com/bloxbean/kavach/blob/f2b9420/protocol/browser/specification.md">Bounded browser
+profile</a>, <a
+href="https://github.com/bloxbean/kavach/blob/f2b9420/adr/adr-005-browser-wallet-authentication-and-demo.md">ADR-005</a></td>
+</tr>
+<tr>
+<td>Mixed policy and budgets</td>
+<td><a href="https://github.com/bloxbean/kavach/blob/f2b9420/protocol/policy/specification.md">Policy
+specification</a>, <a
+href="https://github.com/bloxbean/kavach/blob/f2b9420/protocol/policy/schema.cddl">schema</a>, <a
+href="https://github.com/bloxbean/kavach/blob/f2b9420/conformance/policy/v1.json">vectors</a></td>
+</tr>
+<tr>
+<td>Budget architecture</td>
+<td><a
+href="https://github.com/bloxbean/kavach/blob/f2b9420/adr/adr-007-tiered-mixed-authorization.md">ADR-007</a>, <a
+href="https://github.com/bloxbean/kavach/blob/f2b9420/adr/adr-008-optional-periodic-budget.md">ADR-008</a></td>
+</tr>
+<tr>
+<td>Creation and approval workflow</td>
+<td><a href="https://github.com/bloxbean/kavach/blob/f2b9420/adr/adr-009-per-key-account-creation.md">ADR-009</a>,
+<a href="https://github.com/bloxbean/kavach/blob/f2b9420/dashboard-app/README.md">dashboard guide</a></td>
+</tr>
+<tr>
+<td>Restoration</td>
+<td><a href="https://github.com/bloxbean/kavach/blob/f2b9420/docs/phase2/account-locator.md">Locator
+specification</a></td>
+</tr>
+<tr>
+<td>iPhone implementation</td>
+<td><a href="https://github.com/bloxbean/kavach/blob/f2b9420/companion-apps/ios/README.md">Companion guide</a>, <a
+href="https://github.com/bloxbean/kavach/blob/f2b9420/companion-apps/ios/docs/security.md">device security</a>, <a
+href="https://github.com/bloxbean/kavach/blob/f2b9420/adr/adr-006-offline-iphone-companion.md">ADR-006</a></td>
+</tr>
+<tr>
+<td>Sponsored execution proposal</td>
+<td><a
+href="https://github.com/bloxbean/kavach/blob/main/adr/adr-010-intent-execution-and-fee-sponsorship.md">ADR-010</a>;
+network execution is future work</td>
+</tr>
+<tr>
+<td>Current qualification</td>
+<td><a href="https://github.com/bloxbean/kavach/blob/f2b9420/docs/policy/completion-checklist.md">Policy</a>, <a
+href="https://github.com/bloxbean/kavach/blob/f2b9420/docs/browser/completion-checklist.md">browser</a>, <a
+href="https://github.com/bloxbean/kavach/blob/f2b9420/docs/phase2/completion-checklist.md">Phase 2</a></td>
+</tr>
+<tr>
+<td>Historical qualification</td>
+<td><a href="https://github.com/bloxbean/kavach/blob/f2b9420/docs/phase0/qualification.md">Phase 0</a>, <a
+href="https://github.com/bloxbean/kavach/blob/f2b9420/docs/phase1/completion-checklist.md">Phase 1</a>, <a
+href="https://github.com/bloxbean/kavach/blob/f2b9420/docs/fee-optimization/review.md">fee review</a></td>
+</tr>
+</tbody>
+</table>
+<h3 id="reproducing-relevant-checks">15.2 Reproducing relevant
+checks</h3>
+<p>From the repository root, with the pinned dependencies installed:</p>
+<div class="sourceCode" id="cb3"><pre class="sourceCode sh"><code class="sourceCode bash"><span id="cb3-1"><a href="#cb3-1" aria-hidden="true" tabindex="-1"></a><span class="ex">./gradlew</span> check dashboardWebBuild</span>
+<span id="cb3-2"><a href="#cb3-2" aria-hidden="true" tabindex="-1"></a><span class="ex">./gradlew</span> :dashboard-app:backend:dashboardIntegrationTest</span></code></pre></div>
+<p>The second command uses disposable accounts on a running local
+DevKit. <code>check</code> alone does not run those live flows. Frontend
+and phone core tests run from their respective directories:</p>
+<div class="sourceCode" id="cb4"><pre class="sourceCode sh"><code class="sourceCode bash"><span id="cb4-1"><a href="#cb4-1" aria-hidden="true" tabindex="-1"></a><span class="bu">cd</span> dashboard-app/web</span>
+<span id="cb4-2"><a href="#cb4-2" aria-hidden="true" tabindex="-1"></a><span class="ex">npm</span> test</span></code></pre></div>
+<div class="sourceCode" id="cb5"><pre class="sourceCode sh"><code class="sourceCode bash"><span id="cb5-1"><a href="#cb5-1" aria-hidden="true" tabindex="-1"></a><span class="bu">cd</span> companion-apps/ios</span>
+<span id="cb5-2"><a href="#cb5-2" aria-hidden="true" tabindex="-1"></a><span class="ex">swift</span> test</span></code></pre></div>
+<p>Real-delay recovery and positive-reward tests are separate
+long-running gates. Preserve their workers and evidence; never reset
+DevKit or shorten time parameters to claim completion.</p>
+<h3 id="update-policy">15.3 Update policy</h3>
+<p>Keep this file at a stable path. Update the version, date and source
+baseline when changing material claims. For every newly supported
+feature, add:</p>
+<ol type="1">
+<li>Its exact scope and on-chain/off-chain ownership.</li>
+<li>Wire/profile and address-compatibility consequences.</li>
+<li>Security assumptions, failure behavior and privacy
+implications.</li>
+<li>Compiled, ledger and device evidence appropriate to the claim.</li>
+<li>Fees, deposits, limits and unresolved qualification work.</li>
+</ol>
+<p>Maintain diagrams in this source so they change with the design.
+Markdown is the canonical edition because Git can review every wording
+and diagram change. Every PDF export must show the same
+version/date/source baseline and remain a derived snapshot, not a
+separately edited specification.</p>
+<table>
+<colgroup>
+<col style="width: 33%" />
+<col style="width: 33%" />
+<col style="width: 33%" />
+</colgroup>
+<thead>
+<tr>
+<th>Version</th>
+<th>Date</th>
+<th>Change</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>0.1</td>
+<td>2026-09-09</td>
+<td>First consolidated white paper: current development features,
+architecture, signing/funding, policies, security boundaries, economics,
+sponsored intent-network direction and roadmap</td>
+</tr>
+</tbody>
+</table>
+</main></div><footer><strong>Kavach · v0.1</strong><br>Based on source f2b9420. Development candidate; not an independent audit or production qualification.<br>Canonical source: docs/whitepaper/README.md</footer><script>addEventListener('scroll',()=>{const d=document.documentElement;document.getElementById('reading-progress').style.width=(100*d.scrollTop/(d.scrollHeight-d.clientHeight))+'%'},{passive:true});</script></body></html>

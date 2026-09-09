@@ -4,6 +4,10 @@ A proposed programmable, recoverable smart-account protocol for Cardano. JuLC is
 
 **Status: Phase 0 and Phase 1 transfer development qualification complete; Phase 2 administration and recovery qualification in progress. No production deployment or usable recovery wallet.** The first withdrawal/signature experiment found and isolated a JuLC compilation defect. The pinned source-level fix passes compiler, Kavach and Yaci DevKit tests without artifact rewriting.
 
+Start with the [living white paper and specification v0.1](docs/whitepaper/README.md) for an illustrated overview, current capabilities, security boundaries and roadmap. A [designed HTML reading edition](docs/whitepaper/kavach-whitepaper.html) and [PDF edition](output/pdf/kavach-whitepaper-v0.1.pdf) accompany the editable source.
+
+The [Astro documentation website](www/README.md) lives in `www/`, with beginner guides, searchable protocol references and GitHub Pages deployment configuration.
+
 Requirements: Java 25 and the [pinned JuLC snapshot published to Maven local](toolchain/julc/README.md). The included Gradle 9.2.0 wrapper resolves other dependencies from Maven Central; CCL is `0.8.0-pre5`.
 
 ```sh

@@ -1,0 +1,40 @@
+@import "@fontsource-variable/dm-sans";
+@import "@fontsource-variable/manrope";
+:root {
+  --sl-font: "DM Sans Variable", sans-serif;
+  --sl-color-accent-low: #123e32;
+  --sl-color-accent: #78d7a0;
+  --sl-color-accent-high: #c3f2d4;
+}
+:root[data-theme="light"] {
+  --sl-color-accent-low: #e4f2e8;
+  --sl-color-accent: #23634b;
+  --sl-color-accent-high: #153e30;
+  --sl-color-bg: #fcfcf8;
+  --sl-color-bg-nav: #f6f7f1;
+  --sl-color-bg-sidebar: #f6f7f1;
+}
+h1,
+h2,
+h3,
+.site-title {
+  font-family: "Manrope Variable", sans-serif;
+  letter-spacing: -0.035em;
+}
+.site-title {
+  font-size: 1.7rem;
+  font-weight: 800;
+}
+.sl-markdown-content img {
+  border-radius: 16px;
+  background: #f4f3eb;
+}
+.sl-markdown-content table {
+  font-size: 0.88rem;
+}
+.sl-markdown-content blockquote {
+  border-inline-start-color: var(--sl-color-accent);
+  border-radius: 0 12px 12px 0;
+  background: var(--sl-color-accent-low);
+  padding: 1rem 1.4rem;
+}

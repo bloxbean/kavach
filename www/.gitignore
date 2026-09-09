@@ -1,0 +1,8 @@
+.astro/
+node_modules/
+dist/
+# Generated from canonical repository documents
+src/content/docs/reference/
+src/content/docs/whitepaper.md
+public/figures/
+public/downloads/

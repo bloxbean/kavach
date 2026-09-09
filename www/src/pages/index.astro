@@ -1,0 +1,293 @@
+---
+import "@fontsource-variable/dm-sans";
+import "@fontsource-variable/manrope";
+import "../styles/home.css";
+const base = import.meta.env.BASE_URL.replace(/\/$/, "");
+const url = (path: string) => `${base}/${path}`;
+const features = [
+  [
+    "01",
+    "An account that stays yours.",
+    "Change approvers as life changes. Keep account identity separate from any one wallet, device or signing key.",
+    "concepts/accounts/",
+    "Account identity",
+    "◎",
+  ],
+  [
+    "02",
+    "The right approval, every time.",
+    "A phone for everyday payments. More keys for bigger decisions. Separate authority for administration and recovery.",
+    "concepts/signing/",
+    "Flexible authorization",
+    "⌘",
+  ],
+  [
+    "03",
+    "Rules with real boundaries.",
+    "Choose approval tiers by amount. Add an optional daily or weekly budget enforced by the account’s contracts.",
+    "concepts/budgets/",
+    "Spending policies",
+    "◷",
+  ],
+];
+---
+
+<!doctype html>
+<html lang="en">
+  <head
+    ><meta charset="UTF-8" /><meta
+      name="viewport"
+      content="width=device-width"
+    /><meta
+      name="description"
+      content="Kavach: programmable, recoverable accounts for Cardano. Explore flexible approvals, spending rules and a future of sponsored execution."
+    /><meta name="theme-color" content="#f7f8f2" /><meta
+      property="og:title"
+      content="Kavach — Your account. Beyond one key."
+    /><meta
+      property="og:description"
+      content="Programmable accounts for Cardano. A new foundation for familiar experiences."
+    /><title>Kavach — Your account. Beyond one key.</title><link
+      rel="icon"
+      href={url("favicon.svg")}
+    /></head
+  >
+  <body>
+    <a class="skip" href="#main">Skip to content</a>
+    <header class="nav wrap">
+      <a class="brand" href={url("")} aria-label="Kavach home"
+        ><img
+          src={url("favicon.svg")}
+          alt=""
+          width="29"
+          height="29"
+        />kavach<span>.</span></a
+      ><button
+        class="menu-toggle"
+        aria-expanded="false"
+        aria-controls="navigation">Menu</button
+      ><nav id="navigation" aria-label="Main navigation">
+        <a href={url("guides/introduction/")}>Documentation</a><a
+          href={url("whitepaper/")}
+          >White paper <span class="version">v0.1</span></a
+        ><a href="https://github.com/bloxbean/kavach">GitHub ↗</a><a
+          class="button small"
+          href={url("guides/quickstart/")}>Start building <span>↗</span></a>
+      </nav>
+    </header>
+    <main id="main">
+      <section class="hero wrap">
+        <div class="hero-copy">
+          <div class="eyebrow">
+            <span class="dot"></span> PROGRAMMABLE ACCOUNTS ON CARDANO
+          </div><h1>Your account.<br />Beyond <em>one key.</em></h1><p
+            class="lead"
+          >
+            An account that adapts to you. Bring your own approvers, define your
+            spending rules, and keep a path to recovery.
+          </p><div class="actions">
+            <a class="button" href={url("guides/introduction/")}
+              >Explore Kavach <span>→</span></a
+            ><a class="text-link" href={url("whitepaper/")}
+              >Read the white paper ↗</a>
+          </div><div class="hero-note">
+            <span class="tiny-shield">◇</span> Wallet-independent. Policy-driven.
+            Built on Cardano.
+          </div>
+        </div>
+        <div
+          class="visual"
+          aria-label="Illustrative account: phone and wallet approve an intent; a separate wallet funds execution."
+        >
+          <div class="orbit one"></div><div class="orbit two"></div><span
+            class="float-tag tag-top">YOUR KEYS. YOUR RULES.</span
+          ><div class="account-card">
+            <div class="card-top">
+              <span class="account-symbol">k.</span><span
+                >Kavach account<small>ONE IDENTITY. EVOLVING AUTHORITY.</small
+                ></span
+              ><span class="status-light"></span>
+            </div><div class="intent-label">
+              ILLUSTRATIVE APPROVAL POLICY
+            </div><div class="transfer">
+              <span>Send <b>35</b> ADA</span><span class="transfer-arrow"
+                >↗</span>
+            </div><div class="policy">
+              <span>Above the everyday threshold</span><b>2 approvals</b>
+            </div><div class="signer">
+              <span class="device">▯</span><span
+                >iPhone companion<small>COSE intent approval</small></span
+              ><span class="approved">✓ Approved</span>
+            </div><div class="signer">
+              <span class="device">▣</span><span
+                >Wallet key<small>COSE intent approval</small></span
+              ><span class="approved">✓ Approved</span>
+            </div><div class="fee-row">
+              <span>↳ &nbsp; Separate fee wallet</span><span
+                >Funds execution</span>
+            </div>
+          </div><span class="float-tag tag-bottom"
+            ><span class="dot"></span> AUTHORITY ≠ FEE PAYMENT</span>
+        </div>
+      </section>
+      <div class="status-band">
+        <div class="wrap">
+          <span><span class="dot"></span> DEVELOPMENT PREVIEW</span><p>
+            Working on local Yaci DevKit. Not audited or production-qualified.
+          </p><a href={url("guides/roadmap/")}>See project status ↗</a>
+        </div>
+      </div>
+      <section class="section wrap">
+        <div class="section-heading">
+          <div>
+            <div class="eyebrow">A DIFFERENT FOUNDATION</div><h2>
+              More than a place<br />to hold assets.
+            </h2>
+          </div><p>
+            Build the account around the way people live.<br />Let the protocol
+            enforce the details.
+          </p>
+        </div><div class="features">
+          {
+            features.map(([num, title, body, href, label, icon]) => (
+              <a class="feature" href={url(href)}>
+                <>
+                  <div class="feature-top">
+                    <>
+                      <span class="feature-icon">{icon}</span>
+                      <span>{num}</span>
+                    </>
+                  </div>
+                  <h3>{title}</h3>
+                  <p>{body}</p>
+                  <div class="feature-link">
+                    {label} <span>↗</span>
+                  </div>
+                </>
+              </a>
+            ))
+          }
+        </div>
+      </section>
+      <section class="flow-section">
+        <div class="wrap flow-grid">
+          <div>
+            <div class="eyebrow">CLEAR RESPONSIBILITIES</div><h2>
+              Approve the action.<br /><em>Let execution follow.</em>
+            </h2><p class="flow-intro">
+              Your account decides who can authorize. A separate fee wallet pays
+              to put the approved action on-chain.
+            </p><a class="text-link" href={url("concepts/signing/")}
+              >Understand the signing flow →</a>
+          </div><ol class="workflow">
+            <li>
+              <span>01</span><div>
+                <h3>Choose what happens</h3><p>
+                  The dashboard prepares a specific intent: recipients, amounts
+                  and policy effects.
+                </p>
+              </div>
+            </li><li>
+              <span>02</span><div>
+                <h3>Approve with the right keys</h3><p>
+                  The account policy selects the required approvals. Your phone
+                  or wallet signs the intent.
+                </p>
+              </div>
+            </li><li>
+              <span>03</span><div>
+                <h3>Fund, submit, confirm</h3><p>
+                  A fee wallet signs the transaction. The ledger validates the
+                  rules before assets move.
+                </p>
+              </div>
+            </li>
+          </ol>
+        </div>
+      </section>
+      <section class="section wrap reading">
+        <div class="section-heading">
+          <div>
+            <div class="eyebrow">GO AS DEEP AS YOU LIKE</div><h2>
+              A clear path from<br />curiosity to code.
+            </h2>
+          </div><p>
+            Start with the ideas.<br />Follow them all the way to the contracts.
+          </p>
+        </div><div class="reading-grid">
+          <a class="paper" href={url("whitepaper/")}
+            ><span class="paper-label"
+              >THE LIVING WHITE PAPER <span>↗</span></span
+            ><h3>
+              Kavach<span>Programmable accounts<br />for Cardano.</span>
+            </h3><div class="paper-lines"><i></i><i></i><i></i></div><div
+              class="paper-bottom"
+            >
+              <span>Concepts · Architecture · Security</span><span
+                >v0.1 / 2026</span>
+            </div></a
+          ><div class="paths">
+            <a href={url("guides/quickstart/")}
+              ><span class="path-number">01 / BUILD</span><h3>
+                Run your first account <span>↗</span>
+              </h3><p>Local DevKit, dashboard and your own approvers.</p></a
+            ><a href={url("reference/core/")}
+              ><span class="path-number">02 / UNDERSTAND</span><h3>
+                Explore the protocol <span>↗</span>
+              </h3><p>
+                Typed intents, module boundaries and ledger invariants.
+              </p></a
+            ><a href={url("concepts/security/")}
+              ><span class="path-number">03 / VERIFY</span><h3>
+                Examine the security model <span>↗</span>
+              </h3><p>
+                Explicit assumptions, evidence and open qualification gates.
+              </p></a>
+          </div>
+        </div>
+      </section>
+      <section class="future wrap">
+        <div>
+          <div class="eyebrow">ON THE HORIZON · PROPOSED</div><h2>
+            Familiar approvals.<br />Invisible infrastructure.
+          </h2><p>
+            Imagine approving on your phone while a sponsor handles fees and
+            submission. Sponsored intent execution could make programmable
+            accounts a foundation for everyday apps.
+          </p><a class="button light" href={url("reference/sponsorship/")}
+            >Explore the proposal <span>↗</span></a>
+        </div><div class="future-art" aria-hidden="true">
+          <span>YOU</span><div class="future-line"></div><b>k.</b><div
+            class="future-line"
+          >
+          </div><span>EXECUTION<br />NETWORK</span>
+        </div>
+      </section>
+    </main>
+    <footer class="wrap">
+      <div>
+        <a class="brand" href={url("")}>kavach<span>.</span></a><p>
+          Programmable accounts. Human possibilities.
+        </p>
+      </div><div class="footer-links">
+        <a href={url("guides/introduction/")}>Docs</a><a
+          href={url("downloads/kavach-whitepaper-v0.1.pdf")}
+          >White paper PDF ↗</a
+        ><a href="https://github.com/bloxbean/kavach">GitHub ↗</a>
+      </div><div class="footer-bottom">
+        <span>Open development · Cardano · September 2026</span><span
+          >Test assets only. Qualification is a process.</span>
+      </div>
+    </footer>
+    <script>
+      const toggle = document.querySelector<HTMLButtonElement>(".menu-toggle");
+      toggle?.addEventListener("click", () => {
+        const expanded = toggle.getAttribute("aria-expanded") === "true";
+        toggle.setAttribute("aria-expanded", String(!expanded));
+        document
+          .querySelector("#navigation")
+          ?.classList.toggle("open", !expanded);
+      });
+    </script>
+  </body>
+</html>
