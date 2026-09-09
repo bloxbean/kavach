@@ -16,11 +16,16 @@ import java.util.Optional;
 import java.util.Set;
 import java.util.TreeMap;
 
-/** JVM proof verification for already structurally validated first-module configurations. */
+/**
+ * JVM proof verification for already structurally validated first-module configurations.
+ */
 final class AdministrationProofs {
-    private AdministrationProofs() {}
+    private AdministrationProofs() {
+    }
 
-    /** Verifies every supplied proof, keeping old-role approval separate from destination possession. */
+    /**
+     * Verifies every supplied proof, keeping old-role approval separate from destination possession.
+     */
     static void verify(AccountState old, ModuleRedeemer current, Optional<ModuleRedeemer> candidate) {
         require(current.abiVersion().equals(BigInteger.ONE), "Unsupported current module ABI");
         var request = current.intent();
@@ -66,20 +71,25 @@ final class AdministrationProofs {
         }
     }
 
-    /** Retention compares public bytes, so reusing an old numeric ID never skips new-key possession. */
+    /**
+     * Retention compares public bytes, so reusing an old numeric ID never skips new-key possession.
+     */
     private static void introduced(PlutusData old, PlutusData target, JulcList<Signature> evidence, byte[] digest, boolean recovery) {
         var keys = registry(target);
         Set<BigInteger> proven = evidence.isEmpty() ? Set.of() : signatures(evidence, keys, digest, 16);
         var oldBytes = new HashSet<String>();
         for (var key : registry(old).values()) oldBytes.add(HexFormat.of().formatHex(key));
         var added = new HashSet<BigInteger>();
-        for (var entry : keys.entrySet()) if (!oldBytes.contains(HexFormat.of().formatHex(entry.getValue()))) added.add(entry.getKey());
+        for (var entry : keys.entrySet())
+            if (!oldBytes.contains(HexFormat.of().formatHex(entry.getValue()))) added.add(entry.getKey());
         require(proven.containsAll(added), "Missing newly introduced key possession");
         if (recovery) threshold(proven, fields(target).get(2));
         else require(proven.equals(added), "Extraneous configuration possession");
     }
 
-    /** Resolves ordered evidence only through the authenticated registry; no supplied public key is trusted. */
+    /**
+     * Resolves ordered evidence only through the authenticated registry; no supplied public key is trusted.
+     */
     private static Set<BigInteger> signatures(JulcList<Signature> proofs, Map<BigInteger, byte[]> keys, byte[] digest, int maximum) {
         require(!proofs.isEmpty() && proofs.size() <= maximum, "Signature count");
         var verified = new HashSet<BigInteger>();
@@ -88,7 +98,8 @@ final class AdministrationProofs {
             byte[] key = keys.get(proof.credentialId());
             require(key != null && proof.credentialId().compareTo(previous) > 0 && proof.signature().length == 64, "Unsorted, unknown or malformed signature");
             require(Ed25519.verify(proof.signature(), 0, key, 0, digest, 0, digest.length), "Invalid signature");
-            verified.add(proof.credentialId()); previous = proof.credentialId();
+            verified.add(proof.credentialId());
+            previous = proof.credentialId();
         }
         return verified;
     }
@@ -98,14 +109,25 @@ final class AdministrationProofs {
         long count = ((PlutusData.ListData) fields.get(1)).items().stream().map(AdministrationProofs::integer).filter(verified::contains).count();
         require(BigInteger.valueOf(count).compareTo(integer(fields.get(0))) >= 0, "Required role threshold not satisfied");
     }
+
     private static Map<BigInteger, byte[]> registry(PlutusData config) {
         var result = new TreeMap<BigInteger, byte[]>();
         for (var item : ((PlutusData.ListData) fields(config).get(1)).items()) {
-            var entry = fields(item); result.put(integer(entry.get(0)), ((PlutusData.BytesData) entry.get(1)).value());
+            var entry = fields(item);
+            result.put(integer(entry.get(0)), ((PlutusData.BytesData) entry.get(1)).value());
         }
         return result;
     }
-    private static List<PlutusData> fields(PlutusData data) { return ((PlutusData.ConstrData) data).fields(); }
-    private static BigInteger integer(PlutusData data) { return ((PlutusData.IntData) data).value(); }
-    private static void require(boolean condition, String message) { if (!condition) throw new IllegalArgumentException(message); }
+
+    private static List<PlutusData> fields(PlutusData data) {
+        return ((PlutusData.ConstrData) data).fields();
+    }
+
+    private static BigInteger integer(PlutusData data) {
+        return ((PlutusData.IntData) data).value();
+    }
+
+    private static void require(boolean condition, String message) {
+        if (!condition) throw new IllegalArgumentException(message);
+    }
 }

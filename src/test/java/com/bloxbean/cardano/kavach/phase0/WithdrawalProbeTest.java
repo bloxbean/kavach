@@ -24,6 +24,7 @@ import com.bloxbean.cardano.julc.vm.ExBudget;
 import com.bloxbean.cardano.julc.vm.JulcVm;
 import com.bloxbean.cardano.julc.vm.LedgerEvaluationTarget;
 import com.bloxbean.cardano.julc.vm.PlutusLanguage;
+
 import java.math.BigInteger;
 import java.security.KeyPair;
 import java.util.HexFormat;
@@ -31,6 +32,7 @@ import java.util.Arrays;
 import java.util.List;
 import java.util.Optional;
 import java.util.Properties;
+
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Tag;
 import org.junit.jupiter.api.Test;
@@ -74,35 +76,44 @@ class WithdrawalProbeTest {
                 new ExBudget(100_000_000, 1_000_000), EvalOptions.DEFAULT);
     }
 
-    @Test void validSignatureAndConsumedInputSucceedWithinBudget() throws Exception {
+    @Test
+    void validSignatureAndConsumedInputSucceedWithinBudget() throws Exception {
         var result = evaluate(rewarding(), valid());
         BudgetAssertions.assertSuccess(result);
         BudgetAssertions.assertBudgetUnder(result, 100_000_000, 1_000_000);
         System.out.println("Withdrawal probe budget: " + ((EvalResult.Success) result).consumed());
     }
 
-    @Test void identityPublicKeyCannotForgeUniversalSignatures() {
-        byte[] identity = new byte[32]; identity[0] = 1;
+    @Test
+    void identityPublicKeyCannotForgeUniversalSignatures() {
+        byte[] identity = new byte[32];
+        identity[0] = 1;
         program = JulcScriptAdapter.toProgram(ProbeFixtures.script(identity).getCborHex());
-        byte[] signature = new byte[64]; signature[0] = 1; // R = identity, S = zero
+        byte[] signature = new byte[64];
+        signature[0] = 1; // R = identity, S = zero
         assertRejected(evaluate(rewarding(), PlutusData.constr(0, ProbeFixtures.challenge(ProbeFixtures.DOMAIN, ref), PlutusData.bytes(signature))));
-        Arrays.fill(signature, 0, 32, (byte) 0x66); signature[0] = 0x58; signature[32] = 1; // R = basepoint, S = one
+        Arrays.fill(signature, 0, 32, (byte) 0x66);
+        signature[0] = 0x58;
+        signature[32] = 1; // R = basepoint, S = one
         assertRejected(evaluate(rewarding(), PlutusData.constr(0, ProbeFixtures.challenge(ProbeFixtures.DOMAIN, ref), PlutusData.bytes(signature))));
     }
 
 
-    @Test @Tag("toolchainGate")
+    @Test
+    @Tag("toolchainGate")
     void compilerOutputMustAcceptValidAuthorizationWithoutRewriting() throws Exception {
         program = JulcScriptAdapter.toProgram(ProbeFixtures.script(key).getCborHex());
         BudgetAssertions.assertSuccess(evaluate(rewarding(), valid()));
     }
 
-    @Test void missingWithdrawalFailsDespiteRewardingPurposeAndValidSignature() throws Exception {
+    @Test
+    void missingWithdrawalFailsDespiteRewardingPurposeAndValidSignature() throws Exception {
         assertRejected(evaluate(ScriptContextTestBuilder.rewarding(credential)
                 .input(new TxInInfo(ref, output)), valid()));
     }
 
-    @Test void wrongWithdrawalCredentialFails() throws Exception {
+    @Test
+    void wrongWithdrawalCredentialFails() throws Exception {
         var bytes = new byte[28];
         bytes[0] = 1;
         assertRejected(evaluate(ScriptContextTestBuilder.rewarding(credential)
@@ -110,14 +121,16 @@ class WithdrawalProbeTest {
                 .input(new TxInInfo(ref, output)), valid()));
     }
 
-    @Test void registrationCertificateCannotEnterRewardingAuthorizationBranch() throws Exception {
+    @Test
+    void registrationCertificateCannotEnterRewardingAuthorizationBranch() throws Exception {
         for (var deposit : List.of(Optional.<BigInteger>empty(), Optional.of(BigInteger.valueOf(2_000_000)))) {
             assertRejected(evaluate(ScriptContextTestBuilder.certifying(BigInteger.ZERO,
                     new TxCert.RegStaking(credential, deposit)).input(new TxInInfo(ref, output)), valid()));
         }
     }
 
-    @Test void thirtyTwoInputBudgetProbe() throws Exception {
+    @Test
+    void thirtyTwoInputBudgetProbe() throws Exception {
         var context = rewarding();
         for (int i = 2; i <= 32; i++) {
             context.input(new TxInInfo(new TxOutRef(ref.txId(), BigInteger.valueOf(i)), output));
@@ -129,7 +142,8 @@ class WithdrawalProbeTest {
         System.out.println("32-input compiled budget: " + ((EvalResult.Success) result).consumed());
     }
 
-    @Test void languageNeutralGoldenVectorMatchesEncodingDigestAndCompiledSignatureVerification() throws Exception {
+    @Test
+    void languageNeutralGoldenVectorMatchesEncodingDigestAndCompiledSignatureVerification() throws Exception {
         var vector = new Properties();
         try (var stream = getClass().getResourceAsStream("/phase0/withdrawal-v0.properties")) {
             assertNotNull(stream);
@@ -145,73 +159,87 @@ class WithdrawalProbeTest {
         BudgetAssertions.assertSuccess(evaluate(rewarding(), authorization));
     }
 
-    @Test void wrongKeyFails() throws Exception {
+    @Test
+    void wrongKeyFails() throws Exception {
         assertRejected(evaluate(rewarding(), ProbeFixtures.authorize(
                 ProbeFixtures.keyPair(), ProbeFixtures.challenge(ProbeFixtures.DOMAIN, ref))));
     }
 
-    @Test void signedWrongDomainFails() throws Exception {
+    @Test
+    void signedWrongDomainFails() throws Exception {
         assertRejected(evaluate(rewarding(), ProbeFixtures.authorize(key,
                 ProbeFixtures.challenge(new byte[32], ref))));
     }
 
-    @Test void changedIndexFails() throws Exception {
+    @Test
+    void changedIndexFails() throws Exception {
         assertRejected(evaluate(rewarding(), ProbeFixtures.authorize(key,
                 ProbeFixtures.challenge(ProbeFixtures.DOMAIN, new TxOutRef(ref.txId(), BigInteger.TWO)))));
     }
 
-    @Test void absentInputFails() throws Exception {
+    @Test
+    void absentInputFails() throws Exception {
         assertRejected(evaluate(ScriptContextTestBuilder.rewarding(credential), valid()));
     }
 
-    @Test void referenceInputDoesNotPreventReplay() throws Exception {
+    @Test
+    void referenceInputDoesNotPreventReplay() throws Exception {
         assertRejected(evaluate(ScriptContextTestBuilder.rewarding(credential)
                 .referenceInput(new TxInInfo(ref, output)), valid()));
     }
 
-    @Test void truncatedSignatureFails() {
+    @Test
+    void truncatedSignatureFails() {
         assertRejected(evaluate(rewarding(), PlutusData.constr(0,
                 ProbeFixtures.challenge(ProbeFixtures.DOMAIN, ref), PlutusData.bytes(new byte[63]))));
     }
 
-    @Test void malformedRedeemerFails() {
+    @Test
+    void malformedRedeemerFails() {
         assertRejected(evaluate(rewarding(), PlutusData.integer(0)));
     }
 
-    @Test void wrongAuthorizationConstructorFails() throws Exception {
+    @Test
+    void wrongAuthorizationConstructorFails() throws Exception {
         var good = (PlutusData.ConstrData) valid();
         assertRejected(evaluate(rewarding(), new PlutusData.ConstrData(1, good.fields())));
     }
 
-    @Test void extraAuthorizationFieldFails() throws Exception {
+    @Test
+    void extraAuthorizationFieldFails() throws Exception {
         var good = (PlutusData.ConstrData) valid();
         assertRejected(evaluate(rewarding(), PlutusData.constr(0,
                 good.fields().get(0), good.fields().get(1), PlutusData.integer(0))));
     }
 
-    @Test void correctlySignedWrongChallengeConstructorFails() throws Exception {
+    @Test
+    void correctlySignedWrongChallengeConstructorFails() throws Exception {
         var challenge = (PlutusData.ConstrData) ProbeFixtures.challenge(ProbeFixtures.DOMAIN, ref);
         assertRejected(evaluate(rewarding(), ProbeFixtures.authorize(key,
                 new PlutusData.ConstrData(1, challenge.fields()))));
     }
 
-    @Test void correctlySignedExtraChallengeFieldFails() throws Exception {
+    @Test
+    void correctlySignedExtraChallengeFieldFails() throws Exception {
         assertRejected(evaluate(rewarding(), ProbeFixtures.authorize(key,
                 PlutusData.constr(0, PlutusData.bytes(ProbeFixtures.DOMAIN), ref.toPlutusData(), PlutusData.integer(0)))));
     }
 
 
-    @Test void spendingPurposeFailsEvenWithValidAuthorization() throws Exception {
+    @Test
+    void spendingPurposeFailsEvenWithValidAuthorization() throws Exception {
         assertRejected(evaluate(ScriptContextTestBuilder.spending(ref)
                 .input(new TxInInfo(ref, output)), valid()));
     }
 
-    @Test void mintingPurposeFailsEvenWithValidAuthorization() throws Exception {
+    @Test
+    void mintingPurposeFailsEvenWithValidAuthorization() throws Exception {
         assertRejected(evaluate(ScriptContextTestBuilder.minting(new PolicyId(new byte[28]))
                 .input(new TxInInfo(ref, output)), valid()));
     }
 
-    @Test void deregistrationFailsEvenWithValidAuthorization() throws Exception {
+    @Test
+    void deregistrationFailsEvenWithValidAuthorization() throws Exception {
         assertRejected(evaluate(ScriptContextTestBuilder.certifying(BigInteger.ZERO,
                 new TxCert.UnRegStaking(credential, Optional.empty())).input(new TxInInfo(ref, output)), valid()));
     }

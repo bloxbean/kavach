@@ -45,7 +45,9 @@ import java.util.List;
 
 import static org.junit.jupiter.api.Assertions.*;
 
-/** Disposable local devnet funds only: the holder permanently locks its deposits. */
+/**
+ * Disposable local devnet funds only: the holder permanently locks its deposits.
+ */
 @Tag("devkit")
 @Timeout(240)
 class StateIdentityProbeDevkitTest {
@@ -169,8 +171,8 @@ class StateIdentityProbeDevkitTest {
         // failing reference-input evaluator, decides script validity. Keep isValid=true:
         // a failing script must reject the transaction, not accept collateral loss.
         Transaction tx = context.withTxEvaluator((cbor, inputs) ->
-                Result.<List<EvaluationResult>>success("Explicit adversarial test budget").withValue(List.of(
-                        new EvaluationResult(tag, 0, new ExUnits(BigInteger.valueOf(2_000_000), BigInteger.valueOf(500_000_000))))))
+                        Result.<List<EvaluationResult>>success("Explicit adversarial test budget").withValue(List.of(
+                                new EvaluationResult(tag, 0, new ExUnits(BigInteger.valueOf(2_000_000), BigInteger.valueOf(500_000_000))))))
                 .buildAndSign();
         assertTrue(tx.isValid());
         var result = backend.getTransactionService().submitTransaction(tx.serialize());

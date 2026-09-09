@@ -18,17 +18,23 @@ import com.bloxbean.cardano.julc.stdlib.annotation.WithdrawValidator;
  */
 @WithdrawValidator
 public class WithdrawalProbe {
-    @Param static byte[] publicKey;
-    @Param static byte[] deploymentDomain;
+    @Param
+    static byte[] publicKey;
+    @Param
+    static byte[] deploymentDomain;
 
-    public record Challenge(byte[] domain, TxOutRef consumedInput) {}
-    public record Authorization(Challenge challenge, byte[] signature) {}
+    public record Challenge(byte[] domain, TxOutRef consumedInput) {
+    }
+
+    public record Authorization(Challenge challenge, byte[] signature) {
+    }
 
     /**
      * Checks the parameterized key signature and consumed-input replay resource.
      * This isolated fixture does not authorize a complete Kavach account operation.
+     *
      * @param authorization untrusted probe-specific evidence and declared inputs
-     * @param ctx ledger-supplied context for this isolated feasibility probe
+     * @param ctx           ledger-supplied context for this isolated feasibility probe
      * @return whether this probe accepts; malformed Data may instead raise a script error
      */
     @Entrypoint

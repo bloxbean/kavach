@@ -19,11 +19,15 @@ import java.util.Optional;
 
 import static org.junit.jupiter.api.Assertions.*;
 
-/** Reusing an old credential ID with new public bytes must require the new holder's separate proof. */
+/**
+ * Reusing an old credential ID with new public bytes must require the new holder's separate proof.
+ */
 class AccountNewKeyPossessionTest {
     private final AccountLifecycleTest lifecycle = new AccountLifecycleTest();
     private final AccountFixtures f = lifecycle.f;
-    AccountNewKeyPossessionTest() throws Exception {}
+
+    AccountNewKeyPossessionTest() throws Exception {
+    }
 
     @ParameterizedTest
     @CsvSource({"config,valid", "config,missing", "config,old-key", "config,ordinary-message", "config,retained-extra",
@@ -37,7 +41,8 @@ class AccountNewKeyPossessionTest {
         var old = f.state;
         long lower = 1000, upper = 9999;
         if (operation.equals("recovery")) {
-            lower = 86400000; upper = 86409999;
+            lower = 86400000;
+            upper = 86409999;
             old = lifecycle.state(old, 1, 1, 3600000, new RecoveryPending(new byte[32], BigInteger.valueOf(86400000), target));
         }
         Action action = operation.equals("config") ? new ReplaceConfig(target) : new CompleteRecovery(BigInteger.ONE, target);
@@ -47,9 +52,11 @@ class AccountNewKeyPossessionTest {
         var digest = evidenceCase.equals("ordinary-message") ? WireFormat.digest(AccountCodec.data(request)) : WireFormat.digest(domain);
         var evidence = AccountFixtures.list(AccountFixtures.sign(0, evidenceCase.equals("old-key") ? f.keys.get(0) : replacementKey, digest));
         if (evidenceCase.equals("missing")) evidence = JulcList.empty();
-        if (evidenceCase.equals("retained-extra")) evidence = AccountFixtures.list(evidence.head(), AccountFixtures.sign(1, f.keys.get(1), digest));
+        if (evidenceCase.equals("retained-extra"))
+            evidence = AccountFixtures.list(evidence.head(), AccountFixtures.sign(1, f.keys.get(1), digest));
         if (evidenceCase.equals("duplicate")) evidence = AccountFixtures.list(evidence.head(), evidence.head());
-        if (evidenceCase.equals("descending")) evidence = AccountFixtures.list(AccountFixtures.sign(1, f.keys.get(1), digest), evidence.head());
+        if (evidenceCase.equals("descending"))
+            evidence = AccountFixtures.list(AccountFixtures.sign(1, f.keys.get(1), digest), evidence.head());
         var approval = operation.equals("config") ? lifecycle.approval(old, request, 0, 1).operationProof() : Optional.<Proof>empty();
         var invocation = new ModuleRedeemer(BigInteger.ONE, request, approval, evidence, JulcList.empty());
         // Datum computation never substitutes for cryptographic preparation.
@@ -62,7 +69,8 @@ class AccountNewKeyPossessionTest {
                 assertInstanceOf(EvalResult.Success.class, evaluated, operation + " " + evidenceCase + " " + role + ": " + evaluated);
             }
         } else {
-            var previous = old; long from = lower, until = upper;
+            var previous = old;
+            long from = lower, until = upper;
             assertThrows(IllegalArgumentException.class, () -> AccountAdministration.prepare(previous, invocation, Optional.empty(),
                     BigInteger.valueOf(from), BigInteger.valueOf(until), true));
             assertInstanceOf(EvalResult.Failure.class, f.evaluate("module", lifecycle.context("module", old, next, invocation, lower, upper)), evidenceCase);

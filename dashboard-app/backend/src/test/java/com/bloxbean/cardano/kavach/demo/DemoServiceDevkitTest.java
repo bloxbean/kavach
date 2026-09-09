@@ -3,6 +3,7 @@ package com.bloxbean.cardano.kavach.demo;
 import static org.junit.jupiter.api.Assertions.*;
 
 import com.bloxbean.cardano.client.cip.cip30.CIP30DataSigner;
+
 import java.security.interfaces.EdECPrivateKey;
 
 import co.nstant.in.cbor.CborEncoder;
@@ -44,7 +45,9 @@ import java.security.KeyPairGenerator;
 import java.security.Signature;
 import java.util.ArrayList;
 import java.util.Base64;
+
 import com.fasterxml.jackson.databind.ObjectMapper;
+
 import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
@@ -68,9 +71,11 @@ class DemoServiceDevkitTest {
     @Test
     void creationSignerBoundsRejectBeforeFunding() throws Exception {
         var request = new HashMap<String, Object>();
-        request.put("action", "Create account"); request.put("mode", "3");
-        request.put("sponsor", sponsor.baseAddress()); request.put("coseIds", List.of());
-        for (int count : new int[] {2, 9}) {
+        request.put("action", "Create account");
+        request.put("mode", "3");
+        request.put("sponsor", sponsor.baseAddress());
+        request.put("coseIds", List.of());
+        for (int count : new int[]{2, 9}) {
             request.put("keys", newKeys(count));
             assertTrue(assertThrows(IllegalArgumentException.class, () -> service.prepare(request))
                     .getMessage().contains("3 to 8"));
@@ -95,28 +100,40 @@ class DemoServiceDevkitTest {
 
     private void creationWithMethods(int coseCount, boolean migrateAllCose) throws Exception {
         captureMixedCreation = true;
-        topUp(1000); topUp(20); topUp(20); Thread.sleep(2000);
+        topUp(1000);
+        topUp(20);
+        topUp(20);
+        Thread.sleep(2000);
         var request = new HashMap<String, Object>();
-        request.put("action", "Create account"); request.put("mode", "3"); request.put("sponsor", sponsor.baseAddress());
-        request.put("keys", newKeys(Math.max(3, coseCount))); request.put("budgetCore", true);
+        request.put("action", "Create account");
+        request.put("mode", "3");
+        request.put("sponsor", sponsor.baseAddress());
+        request.put("keys", newKeys(Math.max(3, coseCount)));
+        request.put("budgetCore", true);
         request.put("coseIds", coseCount == 0 ? List.of() : coseCount == 1 ? List.of(1) : IntStream.range(0, coseCount).boxed().toList());
-        request.put("amountTiers", true); request.put("smallPaymentAda", "10");
-        request.put("smallThreshold", "1"); request.put("smallMembers", List.of(0));
+        request.put("amountTiers", true);
+        request.put("smallPaymentAda", "10");
+        request.put("smallThreshold", "1");
+        request.put("smallMembers", List.of(0));
         request.put("policies", List.of(Map.of("threshold", 2, "members", List.of(0, 1)),
                 Map.of("threshold", 2, "members", List.of(0, 2)), Map.of("threshold", 1, "members", List.of(1)),
                 Map.of("threshold", 1, "members", List.of(2)), Map.of("threshold", 1, "members", List.of(1)),
                 Map.of("threshold", 1, "members", List.of(2))));
-        var plan = map(service.prepare(request)); String locator = "";
+        var plan = map(service.prepare(request));
+        String locator = "";
         int confirmations = 0;
         while (true) {
-            plan = execute(plan); confirmations++;
+            plan = execute(plan);
+            confirmations++;
             if (plan.get("locator") instanceof String value) locator = value;
             int step = ((Number) plan.get("setupStep")).intValue();
             assertEquals(10, ((Number) plan.get("setupTotal")).intValue());
             if (!Boolean.TRUE.equals(plan.get("canAdvance"))) break;
             if (step >= 7) {
                 assertEquals(true, map(service.restore(locator)).get("setupPending"));
-                var blocked = new HashMap<>(request); blocked.put("action", "Send assets"); blocked.put("locator", locator);
+                var blocked = new HashMap<>(request);
+                blocked.put("action", "Send assets");
+                blocked.put("locator", locator);
                 assertThrows(IllegalArgumentException.class, () -> service.prepare(blocked));
                 // No old Plan or Setup survives this restart; recover only public deployment and ledger state.
                 service = new DemoService();
@@ -125,19 +142,26 @@ class DemoServiceDevkitTest {
         }
         assertEquals(10, confirmations, "Resume must not republish or register an already confirmed script");
         var account = map(service.restore(locator));
-        assertEquals(false, account.get("setupPending")); assertEquals(3, account.get("signingMode"));
+        assertEquals(false, account.get("setupPending"));
+        assertEquals(3, account.get("signingMode"));
         assertEquals(true, account.get("budgetCore"));
         var funding = new QuickTxBuilder(backend).compose(new Tx().payToAddress((String) account.get("address"), Amount.ada(40)).from(sponsor.baseAddress()))
                 .feePayer(sponsor.baseAddress()).withSigner(SignerProviders.signerFrom(sponsor)).completeAndWait();
         assertTrue(funding.isSuccessful(), funding.toString());
-        request.put("action", "Send assets"); request.put("locator", locator); request.put("recipient", sponsor.baseAddress());
-        request.put("amount", "5"); execute(map(service.prepare(request)));
-        request.put("amount", "20"); execute(map(service.prepare(request)));
+        request.put("action", "Send assets");
+        request.put("locator", locator);
+        request.put("recipient", sponsor.baseAddress());
+        request.put("amount", "5");
+        execute(map(service.prepare(request)));
+        request.put("amount", "20");
+        execute(map(service.prepare(request)));
         assertEquals("15000000", map(service.restore(locator)).get("balance"));
         if (migrateAllCose) {
             var oldAddress = account.get("address");
-            request.put("action", "Rotate keys"); request.put("target", request.get("keys"));
-            request.put("coseIds", List.of(0, 1, 2)); request.put("smallPaymentAda", "30");
+            request.put("action", "Rotate keys");
+            request.put("target", request.get("keys"));
+            request.put("coseIds", List.of(0, 1, 2));
+            request.put("smallPaymentAda", "30");
             execute(map(service.prepare(request)));
             var updated = map(service.restore(locator));
             assertEquals(oldAddress, updated.get("address"));
@@ -148,7 +172,7 @@ class DemoServiceDevkitTest {
             assertTrue(more.isSuccessful(), more.toString());
             request.put("action", "Send assets");
             var fundingHash = HexUtil.encodeHexString(new Address(sponsor.baseAddress()).getPaymentCredentialHash().orElseThrow());
-            for (int amount : new int[] {15, 35}) {
+            for (int amount : new int[]{15, 35}) {
                 request.put("amount", String.valueOf(amount));
                 var transfer = map(service.prepare(request));
                 assertEquals(List.of(), transfer.get("transactionAuthoritySigners"));
@@ -163,15 +187,26 @@ class DemoServiceDevkitTest {
         }
     }
 
-    @Test void mixedPolicyPublicationUpgradeAndAmountTiers() throws Exception { policyFlow(3); }
-    @Test void periodicBudgetFullFlow() throws Exception { policyFlow(4); }
+    @Test
+    void mixedPolicyPublicationUpgradeAndAmountTiers() throws Exception {
+        policyFlow(3);
+    }
+
+    @Test
+    void periodicBudgetFullFlow() throws Exception {
+        policyFlow(4);
+    }
 
     private void policyFlow(int profile) throws Exception {
-        topUp(1000); topUp(20); topUp(20);
+        topUp(1000);
+        topUp(20);
+        topUp(20);
         Thread.sleep(2000);
         var request = new HashMap<String, Object>();
-        request.put("action", "Create account"); request.put("keys", newKeys());
-        request.put("mode", "2"); request.put("sponsor", sponsor.baseAddress());
+        request.put("action", "Create account");
+        request.put("keys", newKeys());
+        request.put("mode", "2");
+        request.put("sponsor", sponsor.baseAddress());
         request.put("budgetCore", profile == 4);
         var plan = map(service.prepare(request));
         String locator = "";
@@ -182,8 +217,12 @@ class DemoServiceDevkitTest {
             plan = map(service.update((String) plan.get("id"), "advance", Map.of()));
         }
         assertFalse(locator.isBlank());
-        request.put("locator", locator); request.put("action", "Replace module"); request.put("mode", String.valueOf(profile));
-        request.put("budgetEnabled", profile == 4); request.put("budgetPeriod", "daily"); request.put("budgetAda", "30");
+        request.put("locator", locator);
+        request.put("action", "Replace module");
+        request.put("mode", String.valueOf(profile));
+        request.put("budgetEnabled", profile == 4);
+        request.put("budgetPeriod", "daily");
+        request.put("budgetAda", "30");
         request.put("policies", List.of(
                 Map.of("threshold", 2, "members", List.of(0, 1)),
                 Map.of("threshold", 2, "members", List.of(0, 2)),
@@ -191,8 +230,10 @@ class DemoServiceDevkitTest {
                 Map.of("threshold", 1, "members", List.of(2)),
                 Map.of("threshold", 1, "members", List.of(1)),
                 Map.of("threshold", 1, "members", List.of(2))));
-        request.put("smallPaymentAda", "10"); request.put("smallThreshold", "1");
-        request.put("smallMembers", List.of(0)); request.put("coseIds", List.of(1));
+        request.put("smallPaymentAda", "10");
+        request.put("smallThreshold", "1");
+        request.put("smallMembers", List.of(0));
+        request.put("coseIds", List.of(1));
         plan = map(service.prepare(request));
         while (true) {
             plan = execute(plan);
@@ -202,10 +243,11 @@ class DemoServiceDevkitTest {
         var account = map(service.restore(locator));
         assertEquals(profile, account.get("signingMode"));
         var funding = new QuickTxBuilder(backend).compose(new Tx().payToAddress(
-                (String) account.get("address"), Amount.ada(80)).from(sponsor.baseAddress())).feePayer(sponsor.baseAddress())
+                        (String) account.get("address"), Amount.ada(80)).from(sponsor.baseAddress())).feePayer(sponsor.baseAddress())
                 .withSigner(SignerProviders.signerFrom(sponsor)).completeAndWait();
         assertTrue(funding.isSuccessful(), funding.toString());
-        request.put("action", "Send assets"); request.put("recipient", sponsor.baseAddress());
+        request.put("action", "Send assets");
+        request.put("recipient", sponsor.baseAddress());
         request.put("amount", "5");
         plan = map(service.prepare(request));
         assertNotNull(plan.get("transaction"), "Small tier requires only the transaction credential");
@@ -219,36 +261,46 @@ class DemoServiceDevkitTest {
         assertEquals(1, ((List<?>) plan.get("payloads")).size());
         execute(plan);
         assertEquals("55000000", map(service.restore(locator)).get("balance"));
-        request.put("action", "Rotate keys"); request.put("target", request.get("keys"));
+        request.put("action", "Rotate keys");
+        request.put("target", request.get("keys"));
         request.put("smallPaymentAda", "8");
         execute(map(service.prepare(request)));
         assertEquals("8000000", map(service.restore(locator)).get("smallPaymentLimit"));
         if (profile == 4) {
             assertEquals("25000000", map(map(service.restore(locator)).get("budget")).get("spent"));
-            request.put("action", "Send assets"); request.put("amount", "10");
+            request.put("action", "Send assets");
+            request.put("amount", "10");
             var over = assertThrows(IllegalArgumentException.class, () -> service.prepare(request));
             assertTrue(over.getMessage().contains("budget exceeded"), over.getMessage());
-            request.put("action", "Rotate keys"); request.put("budgetEnabled", false);
+            request.put("action", "Rotate keys");
+            request.put("budgetEnabled", false);
             execute(map(service.prepare(request)));
-            request.put("action", "Send assets"); request.put("amount", "5");
+            request.put("action", "Send assets");
+            request.put("amount", "5");
             execute(map(service.prepare(request)));
-            request.put("action", "Rotate keys"); request.put("budgetEnabled", true);
+            request.put("action", "Rotate keys");
+            request.put("budgetEnabled", true);
             execute(map(service.prepare(request)));
             assertEquals("25000000", map(map(service.restore(locator)).get("budget")).get("spent"));
-            request.put("action", "Send assets"); request.put("amount", "6");
+            request.put("action", "Send assets");
+            request.put("amount", "6");
             assertThrows(IllegalArgumentException.class, () -> service.prepare(request));
-            request.put("amount", "5"); execute(map(service.prepare(request)));
-            assertEquals("30000000", map(map(service.restore(locator)).get("budget")).get("spent"));
-            request.put("action", "Rotate keys"); request.put("budgetPeriod", "weekly");
+            request.put("amount", "5");
             execute(map(service.prepare(request)));
-            request.put("action", "Send assets"); request.put("amount", "20");
+            assertEquals("30000000", map(map(service.restore(locator)).get("budget")).get("spent"));
+            request.put("action", "Rotate keys");
+            request.put("budgetPeriod", "weekly");
+            execute(map(service.prepare(request)));
+            request.put("action", "Send assets");
+            request.put("amount", "20");
             execute(map(service.prepare(request)));
             var weekly = map(map(service.restore(locator)).get("budget"));
-            assertEquals("weekly", weekly.get("period")); assertEquals("20000000", weekly.get("spent"));
+            assertEquals("weekly", weekly.get("period"));
+            assertEquals("20000000", weekly.get("spent"));
             assertEquals("25000000", map(service.restore(locator)).get("balance"));
             // Two different account inputs still contend on the same shared counter.
             var extra = new QuickTxBuilder(backend).compose(new Tx().payToAddress(
-                    (String) account.get("address"), Amount.ada(5)).from(sponsor.baseAddress()))
+                            (String) account.get("address"), Amount.ada(5)).from(sponsor.baseAddress()))
                     .withSigner(SignerProviders.signerFrom(sponsor)).completeAndWait();
             assertTrue(extra.isSuccessful(), extra.toString());
             var inputs = backend.getUtxoService().getUtxos((String) account.get("address"), 100, 1).getValue();
@@ -429,7 +481,8 @@ class DemoServiceDevkitTest {
                 var envelope = map(exported.get("request"));
                 var body = new ObjectMapper().readTree(Base64.getDecoder().decode((String) envelope.get("body")));
                 if (captureMixedCreation) {
-                    var evidence = Path.of("build/mixed-creation/companion"); Files.createDirectories(evidence);
+                    var evidence = Path.of("build/mixed-creation/companion");
+                    Files.createDirectories(evidence);
                     new ObjectMapper().writeValue(evidence.resolve(body.get("id").asText() + ".json").toFile(),
                             Map.of("request", envelope, "qr", exported.get("qr"), "digest", proof.get("payload")));
                 }
@@ -442,12 +495,17 @@ class DemoServiceDevkitTest {
                             Map.of("request", envelope, "qr", exported.get("qr"), "digest", proof.get("payload")));
                 }
                 var approval = new HashMap<String, Object>();
-                approval.put("version", 1); approval.put("kind", "approval");
+                approval.put("version", 1);
+                approval.put("kind", "approval");
                 approval.put("requestID", body.get("id").asText());
                 approval.put("profile", body.get("profile").asText());
-                approval.put("credentialID", proof.get("id")); approval.put("publicKey", publicKey);
-                approval.put("digest", proof.get("payload")); approval.put("signature", response.signature()); approval.put("key", response.key());
-                var mismatched = new HashMap<>(approval); mismatched.put("requestID", "wrong-plan");
+                approval.put("credentialID", proof.get("id"));
+                approval.put("publicKey", publicKey);
+                approval.put("digest", proof.get("payload"));
+                approval.put("signature", response.signature());
+                approval.put("key", response.key());
+                var mismatched = new HashMap<>(approval);
+                mismatched.put("requestID", "wrong-plan");
                 assertThrows(IllegalArgumentException.class, () -> service.update(id, "companion-proof", Map.of("credentialId", proof.get("id"), "purpose", proof.get("purpose"), "response", mismatched)));
                 plan = map(service.update(id, "companion-proof", Map.of("credentialId", proof.get("id"), "purpose", proof.get("purpose"), "response", approval)));
                 assertThrows(IllegalArgumentException.class, () -> service.update(id, "companion-proof", Map.of("credentialId", proof.get("id"), "purpose", proof.get("purpose"), "response", approval)));
@@ -505,7 +563,9 @@ class DemoServiceDevkitTest {
         return plan;
     }
 
-    private String newKeys() throws Exception { return newKeys(3); }
+    private String newKeys() throws Exception {
+        return newKeys(3);
+    }
 
     private String newKeys(int count) throws Exception {
         var result = new ArrayList<String>();

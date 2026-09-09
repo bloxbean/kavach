@@ -10,6 +10,7 @@ import com.bloxbean.cardano.client.exception.CborDeserializationException;
 import com.bloxbean.cardano.client.plutus.spec.ExUnits;
 import com.bloxbean.cardano.client.plutus.spec.RedeemerTag;
 import com.bloxbean.cardano.client.transaction.spec.Transaction;
+
 import java.math.BigInteger;
 import java.util.ArrayList;
 import java.util.HashSet;
@@ -25,7 +26,9 @@ import java.util.Set;
  * an allowance is not a guarantee for every evaluator, cost model or future script version.
  */
 public final class ExecutionBudgetMargin implements TransactionEvaluator {
-    /** Default tested allowance, in percent of each measured CPU and memory budget. */
+    /**
+     * Default tested allowance, in percent of each measured CPU and memory budget.
+     */
     public static final int DEFAULT_PERCENT = 5;
     private static final BigInteger HUNDRED = BigInteger.valueOf(100);
     private final TransactionEvaluator delegate;
@@ -35,7 +38,8 @@ public final class ExecutionBudgetMargin implements TransactionEvaluator {
 
     /**
      * Uses the default 5% allowance and a snapshot of current protocol limits.
-     * @param delegate evaluator configured for the correct network, era and cost model
+     *
+     * @param delegate   evaluator configured for the correct network, era and cost model
      * @param parameters current ledger protocol parameters, refreshed by the caller
      */
     public ExecutionBudgetMargin(TransactionEvaluator delegate, ProtocolParams parameters) {
@@ -44,29 +48,33 @@ public final class ExecutionBudgetMargin implements TransactionEvaluator {
 
     /**
      * Sets an explicit allowance. Callers must refresh the wrapper when ledger limits change.
-     * @param delegate underlying evaluator; failures are propagated without padding
+     *
+     * @param delegate   underlying evaluator; failures are propagated without padding
      * @param parameters current protocol parameters containing whole-transaction limits
-     * @param percent positive allowance from 1 through 100 percent
+     * @param percent    positive allowance from 1 through 100 percent
      * @throws IllegalArgumentException if the allowance or ledger limits are invalid
      */
     public ExecutionBudgetMargin(TransactionEvaluator delegate, ProtocolParams parameters, int percent) {
         this.delegate = Objects.requireNonNull(delegate);
         Objects.requireNonNull(parameters);
-        if (percent < 1 || percent > 100) throw new IllegalArgumentException("Execution allowance must be 1–100 percent");
+        if (percent < 1 || percent > 100)
+            throw new IllegalArgumentException("Execution allowance must be 1–100 percent");
         memoryLimit = new BigInteger(parameters.getMaxTxExMem());
         cpuLimit = new BigInteger(parameters.getMaxTxExSteps());
-        if (memoryLimit.signum() <= 0 || cpuLimit.signum() <= 0) throw new IllegalArgumentException("Positive ledger execution limits required");
+        if (memoryLimit.signum() <= 0 || cpuLimit.signum() <= 0)
+            throw new IllegalArgumentException("Positive ledger execution limits required");
         multiplier = BigInteger.valueOf(100L + percent);
     }
 
     /**
      * Checks estimate completeness, pads independently, and bounds the summed allocation.
-     * @param cbor transaction being evaluated, including its complete redeemer set
+     *
+     * @param cbor       transaction being evaluated, including its complete redeemer set
      * @param inputUtxos resolved inputs passed unchanged to the underlying evaluator
      * @return fresh padded estimates, or the underlying unsuccessful result unchanged
-     * @throws ApiException if the underlying evaluator cannot access its backend
+     * @throws ApiException             if the underlying evaluator cannot access its backend
      * @throws IllegalArgumentException if the transaction cannot be decoded
-     * @throws IllegalStateException if estimates are missing, duplicated, malformed or over budget
+     * @throws IllegalStateException    if estimates are missing, duplicated, malformed or over budget
      */
     @Override
     @SuppressWarnings("unchecked") // CCL 0.8.0-pre5's Result factories return raw Result.
@@ -84,11 +92,13 @@ public final class ExecutionBudgetMargin implements TransactionEvaluator {
             if (estimate == null || estimate.getRedeemerTag() == null || estimate.getIndex() < 0)
                 throw new IllegalStateException("Invalid redeemer estimate pointer");
             var pointer = new Pointer(estimate.getRedeemerTag(), BigInteger.valueOf(estimate.getIndex()));
-            if (!expected.contains(pointer) || !seen.add(pointer)) throw new IllegalStateException("Unexpected or duplicated redeemer estimate");
+            if (!expected.contains(pointer) || !seen.add(pointer))
+                throw new IllegalStateException("Unexpected or duplicated redeemer estimate");
             if (estimate.getExUnits() == null) throw new IllegalStateException("Missing execution units");
             var mem = pad(estimate.getExUnits().getMem());
             var steps = pad(estimate.getExUnits().getSteps());
-            memory = memory.add(mem); cpu = cpu.add(steps);
+            memory = memory.add(mem);
+            cpu = cpu.add(steps);
             padded.add(new EvaluationResult(estimate.getRedeemerTag(), estimate.getIndex(), new ExUnits(mem, steps)));
         }
         if (!seen.equals(expected)) throw new IllegalStateException("Incomplete redeemer estimates");
@@ -99,7 +109,9 @@ public final class ExecutionBudgetMargin implements TransactionEvaluator {
         return output;
     }
 
-    /** Counts each consumed script purpose once, independently of evaluator output ordering. */
+    /**
+     * Counts each consumed script purpose once, independently of evaluator output ordering.
+     */
     private static Set<Pointer> expectedRedeemers(byte[] cbor) {
         try {
             var transaction = Transaction.deserialize(cbor);
@@ -115,9 +127,13 @@ public final class ExecutionBudgetMargin implements TransactionEvaluator {
             throw new IllegalArgumentException("Cannot decode transaction for execution-budget validation", e);
         }
     }
+
     private BigInteger pad(BigInteger measured) {
-        if (measured == null || measured.signum() < 0) throw new IllegalStateException("Invalid measured execution units");
+        if (measured == null || measured.signum() < 0)
+            throw new IllegalStateException("Invalid measured execution units");
         return measured.multiply(multiplier).add(BigInteger.valueOf(99)).divide(HUNDRED);
     }
-    private record Pointer(RedeemerTag tag, BigInteger index) {}
+
+    private record Pointer(RedeemerTag tag, BigInteger index) {
+    }
 }

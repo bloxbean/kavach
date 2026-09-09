@@ -37,6 +37,7 @@ import com.bloxbean.cardano.kavach.protocol.WireFormat;
 import org.junit.jupiter.api.Tag;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.Timeout;
+
 import java.math.BigInteger;
 import java.net.URI;
 import java.net.http.HttpClient;
@@ -50,18 +51,23 @@ import java.security.SecureRandom;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Comparator;
+
 import com.bloxbean.cardano.client.transaction.spec.script.ScriptPubkey;
 import com.bloxbean.cardano.julc.ledger.Value;
 import com.bloxbean.cardano.julc.ledger.PolicyId;
 import com.bloxbean.cardano.julc.ledger.TokenName;
 import com.bloxbean.cardano.client.transaction.spec.governance.actions.InfoAction;
 import com.bloxbean.cardano.client.transaction.spec.governance.Anchor;
+
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Optional;
+
 import static org.junit.jupiter.api.Assertions.*;
 
-/** Real local ledger test using disposable keys, full genesis ABI and all three transfer validators. */
+/**
+ * Real local ledger test using disposable keys, full genesis ABI and all three transfer validators.
+ */
 @Tag("devkit")
 @Timeout(600)
 class AccountDevkitTest {
@@ -75,42 +81,72 @@ class AccountDevkitTest {
     private final Account recipient = new Account(NETWORK);
     private final LinkedHashMap<String, Object> evidence = new LinkedHashMap<>();
     private RewardSetup reusedRewardSetup;
-    /** Public checkpoint setup can be reused; an old account's private signing authority cannot. */
-    private record RewardSetup(DeploymentDomain domain, Address sink, String coreHash, String moduleHash,
-            String coreReward, String moduleReward, BigInteger deposit, String proposalTx) {}
 
-    @Test void createFundAndSpendWithAllRequiredValidators() throws Exception {
+    /**
+     * Public checkpoint setup can be reused; an old account's private signing authority cannot.
+     */
+    private record RewardSetup(DeploymentDomain domain, Address sink, String coreHash, String moduleHash,
+                               String coreReward, String moduleReward, BigInteger deposit, String proposalTx) {
+    }
+
+    @Test
+    void createFundAndSpendWithAllRequiredValidators() throws Exception {
         createFundAndSpend(false);
     }
-    /** Runs the complete account operation; the reward profile waits for real ledger credits. */
+
+    /**
+     * Runs the complete account operation; the reward profile waits for real ledger credits.
+     */
     void createFundAndSpend(boolean positiveRewards) throws Exception {
         createFundAndSpend(positiveRewards, false, false);
     }
-    @Test void eightInputNativeTokenPartialSpend() throws Exception { createFundAndSpend(false, true, false); }
-    @Test void wholeDepositWith140NativeTokens() throws Exception { createFundAndSpend(false, false, true); }
 
-    @Test void eightInputEightRecipientNativeSpend() throws Exception { createFundAndSpend(false, true, false, 8); }
+    @Test
+    void eightInputNativeTokenPartialSpend() throws Exception {
+        createFundAndSpend(false, true, false);
+    }
+
+    @Test
+    void wholeDepositWith140NativeTokens() throws Exception {
+        createFundAndSpend(false, false, true);
+    }
+
+    @Test
+    void eightInputEightRecipientNativeSpend() throws Exception {
+        createFundAndSpend(false, true, false, 8);
+    }
+
     private void createFundAndSpend(boolean positiveRewards, boolean nativePartial, boolean whole) throws Exception {
         createFundAndSpend(positiveRewards, nativePartial, whole, 1);
     }
-    /** Each profile initializes a fresh disposable account and exercises all required validators. */
+
+    /**
+     * Each profile initializes a fresh disposable account and exercises all required validators.
+     */
     private void createFundAndSpend(boolean positiveRewards, boolean nativePartial, boolean whole, int recipientCount) throws Exception {
         assertTrue(backend.getEpochService().getProtocolParameters().isSuccessful(), "DevKit must be available");
-        if (positiveRewards && Boolean.getBoolean("kavach.reusePhase1RewardSetup")) reusedRewardSetup = loadRewardSetup();
-        topUp(sponsor.baseAddress(), positiveRewards ? 9000 : 1000); topUp(sponsor.baseAddress(), 20); topUp(creator.baseAddress(), 20);
+        if (positiveRewards && Boolean.getBoolean("kavach.reusePhase1RewardSetup"))
+            reusedRewardSetup = loadRewardSetup();
+        topUp(sponsor.baseAddress(), positiveRewards ? 9000 : 1000);
+        topUp(sponsor.baseAddress(), 20);
+        topUp(creator.baseAddress(), 20);
         awaitUtxos(sponsor.baseAddress(), 2);
         var seed = awaitUtxos(creator.baseAddress(), 1).getFirst();
-        byte[] discriminator = new byte[32]; new SecureRandom().nextBytes(discriminator);
+        byte[] discriminator = new byte[32];
+        new SecureRandom().nextBytes(discriminator);
         var domain = new DeploymentDomain(BigInteger.ZERO, BigInteger.valueOf(42), discriminator);
         var sink = new Address(new Credential.PubKeyCredential(new PubKeyHash(sponsor.hdKeyPair().getPublicKey().getKeyHash())), Optional.empty());
-        if (reusedRewardSetup != null) { domain = reusedRewardSetup.domain(); sink = reusedRewardSetup.sink(); }
+        if (reusedRewardSetup != null) {
+            domain = reusedRewardSetup.domain();
+            sink = reusedRewardSetup.sink();
+        }
         var scripts = AccountDeployment.derive(domain, ref(seed), creator.hdKeyPair().getPublicKey().getKeyHash(), sink, sink);
         if (reusedRewardSetup != null) {
             assertEquals(reusedRewardSetup.coreHash(), HexUtil.encodeHexString(scripts.checkpoint().getScriptHash()));
             assertEquals(reusedRewardSetup.moduleHash(), HexUtil.encodeHexString(scripts.module().getScriptHash()));
         }
         String receiptSinkAddress = AddressProvider.getEntAddress(com.bloxbean.cardano.client.address.Credential.fromKey(
-                ((Credential.PubKeyCredential)sink.credential()).hash().hash()), NETWORK).toBech32();
+                ((Credential.PubKeyCredential) sink.credential()).hash().hash()), NETWORK).toBech32();
         var keys = new AccountFixtures();
         var state = AccountDeployment.genesis(scripts, domain, AccountCodec.data(keys.config), BigInteger.valueOf(86400000), BigInteger.valueOf(3600000));
         String holder = AddressProvider.getEntAddress(scripts.state(), NETWORK).toBech32();
@@ -124,8 +160,9 @@ class AccountDevkitTest {
                     .withSigner(SignerProviders.signerFrom(sponsor)).buildAndSign(), "publication-" + references.size());
             references.add(awaitUtxos(holder, 1).stream().filter(u -> u.getTxHash().equals(id)).findFirst().orElseThrow());
         }
-        if (reusedRewardSetup == null) submit(builder.compose(new Tx().registerStakeAddress(coreReward).registerStakeAddress(moduleReward).from(sponsor.baseAddress()))
-                .withSigner(SignerProviders.signerFrom(sponsor)).buildAndSign(), "registration");
+        if (reusedRewardSetup == null)
+            submit(builder.compose(new Tx().registerStakeAddress(coreReward).registerStakeAddress(moduleReward).from(sponsor.baseAddress()))
+                    .withSigner(SignerProviders.signerFrom(sponsor)).buildAndSign(), "registration");
         var proofEnvelope = new GenesisProofEnvelope("KAVACH_GENESIS_POSSESSION_V1".getBytes(StandardCharsets.UTF_8), domain,
                 state.accountId(), state.coreBinding(), state.authModule(), WireFormat.digest(state.authConfig()));
         var digest = WireFormat.digest(AccountCodec.data(proofEnvelope));
@@ -148,14 +185,16 @@ class AccountDevkitTest {
             var tokenPolicy = new ScriptPubkey(HexUtil.encodeHexString(sponsor.hdKeyPair().getPublicKey().getKeyHash()));
             var minted = new ArrayList<com.bloxbean.cardano.client.transaction.spec.Asset>();
             for (int index = 0; index < (whole ? 140 : 8); index++) {
-                byte[] name = new byte[whole ? 32 : 1]; name[0] = (byte) index;
+                byte[] name = new byte[whole ? 32 : 1];
+                name[0] = (byte) index;
                 minted.add(new com.bloxbean.cardano.client.transaction.spec.Asset("0x" + HexUtil.encodeHexString(name), BigInteger.ONE));
                 tokens.add(Amount.asset(tokenPolicy.getPolicyId() + HexUtil.encodeHexString(name), BigInteger.ONE));
             }
             funding.mintAssets(tokenPolicy, minted);
         }
         for (int index = 0; index < inputCount; index++) {
-            var amount = new ArrayList<Amount>(); amount.add(Amount.ada(whole ? 40 : 20));
+            var amount = new ArrayList<Amount>();
+            amount.add(Amount.ada(whole ? 40 : 20));
             if (index == 0) amount.addAll(tokens);
             funding.payToAddress(account, amount);
         }
@@ -166,12 +205,14 @@ class AccountDevkitTest {
         var asset = accountInputs.getFirst();
         var allRecipientAmounts = new ArrayList<List<Amount>>();
         for (int index = 0; index < recipientCount; index++) {
-            var amounts = new ArrayList<Amount>(); amounts.add(Amount.ada(whole ? 41 : 2));
+            var amounts = new ArrayList<Amount>();
+            amounts.add(Amount.ada(whole ? 41 : 2));
             if (whole) amounts.addAll(tokens);
             else if (nativePartial) amounts.add(tokens.get(index));
             allRecipientAmounts.add(amounts);
         }
-        var changeAmounts = new ArrayList<Amount>(); changeAmounts.add(Amount.ada(20 * inputCount - 2 * recipientCount));
+        var changeAmounts = new ArrayList<Amount>();
+        changeAmounts.add(Amount.ada(20 * inputCount - 2 * recipientCount));
         if (nativePartial) changeAmounts.addAll(tokens.subList(recipientCount, tokens.size()));
         Value resolvedWholeValue = Value.lovelace(BigInteger.valueOf(40000000));
         for (var amount : tokens.stream().sorted(Comparator.comparing(Amount::getUnit).reversed()).toList()) {
@@ -181,7 +222,8 @@ class AccountDevkitTest {
         BigInteger rewardAmount = BigInteger.ZERO;
         if (positiveRewards) rewardAmount = awaitProposalRefunds(coreReward, moduleReward, state);
         var latest = backend.getBlockService().getLatestBlock().getValue();
-        long lower = latest.getSlot(); long upper = lower + 180;
+        long lower = latest.getSlot();
+        long upper = lower + 180;
         var destination = new Address(new Credential.PubKeyCredential(new PubKeyHash(recipient.hdKeyPair().getPublicKey().getKeyHash())), Optional.empty());
         var recipients = new ArrayList<Recipient>();
         for (int index = 0; index < allRecipientAmounts.size(); index++) {
@@ -195,7 +237,7 @@ class AccountDevkitTest {
         }
         Action action = whole ? new TransferWholeUtxo(ref(asset), BigInteger.ZERO, destination, WireFormat.ledgerValueDigest(resolvedWholeValue.toPlutusData()))
                 : new Spend(AccountFixtures.list(accountInputs.stream().map(AccountDevkitTest::ref).toArray(TxOutRef[]::new)),
-                    AccountFixtures.list(recipients.toArray(Recipient[]::new)), BigInteger.ZERO);
+                AccountFixtures.list(recipients.toArray(Recipient[]::new)), BigInteger.ZERO);
         var intent = new IntentEnvelope(WireFormat.protocolTag(), new IntentDomain(BigInteger.ONE, domain, state.accountId(), state.coreBinding(), BigInteger.ZERO, ref(stateUtxo)),
                 new Validity(BigInteger.valueOf(latest.getTime() * 1000), BigInteger.valueOf((latest.getTime() + 180) * 1000)), action);
         byte[] intentDigest = AccountCodec.intentDigest(intent, whole ? resolvedWholeValue.toPlutusData() : null);
@@ -292,12 +334,16 @@ class AccountDevkitTest {
         var replay = backend.getTransactionService().submitTransaction(spend.serialize());
         assertFalse(replay.isSuccessful(), "Consumed inputs make the same intent unusable");
         evidence.put("replayRejected", true);
-        if (!whole) assertTrue(awaitUtxos(account, 1).stream().noneMatch(u -> accountInputs.stream().anyMatch(old -> old.getTxHash().equals(u.getTxHash()) && old.getOutputIndex() == u.getOutputIndex())));
+        if (!whole)
+            assertTrue(awaitUtxos(account, 1).stream().noneMatch(u -> accountInputs.stream().anyMatch(old -> old.getTxHash().equals(u.getTxHash()) && old.getOutputIndex() == u.getOutputIndex())));
         else assertTrue(backend.getUtxoService().getUtxos(account, 100, 1, OrderEnum.desc).getValue().isEmpty());
         evidence.put("feeBreakdown", FeeEvidence.analyze(spend, backend.getEpochService().getProtocolParameters().getValue(),
                 List.of(scripts.asset(), scripts.checkpoint(), scripts.module())));
-        evidence.put("recipientCount", recipientCount); evidence.put("budgetAllowancePercent", ExecutionBudgetMargin.DEFAULT_PERCENT);
-        evidence.put("accountInputCount", inputCount); evidence.put("nativeTokenCount", tokens.size()); evidence.put("wholeTransfer", whole);
+        evidence.put("recipientCount", recipientCount);
+        evidence.put("budgetAllowancePercent", ExecutionBudgetMargin.DEFAULT_PERCENT);
+        evidence.put("accountInputCount", inputCount);
+        evidence.put("nativeTokenCount", tokens.size());
+        evidence.put("wholeTransfer", whole);
         assertTrue(awaitUtxos(holder, 5).stream().anyMatch(u -> u.getTxHash().equals(stateUtxo.getTxHash()) && u.getOutputIndex() == stateUtxo.getOutputIndex()), "State remains a reference");
         evidence.put("scope", "Phase 1 full creation and transfer; sealed development state, not production recovery");
         evidence.put("protocolParameters", backend.getEpochService().getProtocolParameters().getValue());
@@ -305,6 +351,7 @@ class AccountDevkitTest {
         Files.createDirectories(evidenceDirectory);
         Files.writeString(evidenceDirectory.resolve(positiveRewards ? "positive-reward-devkit-evidence.json" : whole ? "whole-native-devkit-evidence.json" : nativePartial ? (recipientCount == 8 ? "eight-recipient-native-devkit-evidence.json" : "partial-native-devkit-evidence.json") : "devkit-evidence.json"), JsonUtil.getPrettyJson(evidence));
     }
+
     /**
      * Reconstructs shared checkpoint parameters exclusively from retained public ledger data.
      * Verifies both derived script hashes and zero current balances before creating a new
@@ -312,13 +359,13 @@ class AccountDevkitTest {
      */
     private RewardSetup loadRewardSetup() throws Exception {
         var saved = JsonUtil.parseJson(Files.readString(evidenceDirectory.resolve("positive-reward-pending.json")));
-        var datum = (PlutusData.ConstrData)PlutusDataAdapter.fromClientLib(com.bloxbean.cardano.client.plutus.spec.PlutusData.deserialize(
+        var datum = (PlutusData.ConstrData) PlutusDataAdapter.fromClientLib(com.bloxbean.cardano.client.plutus.spec.PlutusData.deserialize(
                 HexUtil.decodeHexString(saved.get("state").asText())));
-        var domainData = ((PlutusData.ConstrData)datum.fields().get(2)).fields();
-        var domain = new DeploymentDomain(((PlutusData.IntData)domainData.get(0)).value(), ((PlutusData.IntData)domainData.get(1)).value(), ((PlutusData.BytesData)domainData.get(2)).value());
-        var binding = ((PlutusData.ConstrData)datum.fields().get(3)).fields();
-        String expectedCore = HexUtil.encodeHexString(((PlutusData.BytesData)binding.get(2)).value());
-        String expectedModule = HexUtil.encodeHexString(((PlutusData.BytesData)((PlutusData.ConstrData)datum.fields().get(5)).fields().get(0)).value());
+        var domainData = ((PlutusData.ConstrData) datum.fields().get(2)).fields();
+        var domain = new DeploymentDomain(((PlutusData.IntData) domainData.get(0)).value(), ((PlutusData.IntData) domainData.get(1)).value(), ((PlutusData.BytesData) domainData.get(2)).value());
+        var binding = ((PlutusData.ConstrData) datum.fields().get(3)).fields();
+        String expectedCore = HexUtil.encodeHexString(((PlutusData.BytesData) binding.get(2)).value());
+        String expectedModule = HexUtil.encodeHexString(((PlutusData.BytesData) ((PlutusData.ConstrData) datum.fields().get(5)).fields().get(0)).value());
         var funding = backend.getTransactionService().getTransactionUtxos(saved.get("funding").get("tx").asText());
         assertTrue(funding.isSuccessful(), "Original public funding transaction must be available");
         Address sink = null;
@@ -328,11 +375,13 @@ class AccountDevkitTest {
                 var candidate = new Address(new Credential.PubKeyCredential(new PubKeyHash(address.getPaymentCredentialHash().orElseThrow())), Optional.empty());
                 var graph = AccountDeployment.derive(domain, new TxOutRef(new TxId(new byte[32]), BigInteger.ZERO), new byte[28], candidate, candidate);
                 if (HexUtil.encodeHexString(graph.checkpoint().getScriptHash()).equals(expectedCore)
-                        && HexUtil.encodeHexString(graph.module().getScriptHash()).equals(expectedModule)) sink = candidate;
+                        && HexUtil.encodeHexString(graph.module().getScriptHash()).equals(expectedModule))
+                    sink = candidate;
             }
         }
         assertNotNull(sink, "Current core/module artifacts must match the existing public checkpoint setup exactly");
-        String coreReward = saved.get("coreReward").asText(); String moduleReward = saved.get("moduleReward").asText();
+        String coreReward = saved.get("coreReward").asText();
+        String moduleReward = saved.get("moduleReward").asText();
         assertEquals(BigInteger.ZERO, rewardBalance(coreReward), "New account creation must precede the refund");
         assertEquals(BigInteger.ZERO, rewardBalance(moduleReward), "New account creation must precede the refund");
         var setup = new RewardSetup(domain, sink, expectedCore, expectedModule, coreReward, moduleReward,
@@ -340,6 +389,7 @@ class AccountDevkitTest {
         System.out.println("Verified unchanged public checkpoint setup; reusing proposal " + setup.proposalTx());
         return setup;
     }
+
     /**
      * Credits each checkpoint through actual Conway information-proposal deposit refunds.
      * Retains a public pending manifest. Signing keys stay only in this test process; a
@@ -351,23 +401,26 @@ class AccountDevkitTest {
         BigInteger deposit = parameters.getValue().getGovActionDeposit();
         assertTrue(deposit.signum() > 0 && deposit.compareTo(BigInteger.valueOf(1000000000)) <= 0);
         if (reusedRewardSetup == null) {
-        var proposal = new Tx().createProposal(new InfoAction(), coreReward, new Anchor("https://example.invalid/kavach-phase1-reward-core", new byte[32]))
-                .createProposal(new InfoAction(), moduleReward, new Anchor("https://example.invalid/kavach-phase1-reward-module", new byte[32])).from(sponsor.baseAddress());
-        submit(builder.compose(proposal).withSigner(SignerProviders.signerFrom(sponsor)).buildAndSign(), "reward-proposals");
+            var proposal = new Tx().createProposal(new InfoAction(), coreReward, new Anchor("https://example.invalid/kavach-phase1-reward-core", new byte[32]))
+                    .createProposal(new InfoAction(), moduleReward, new Anchor("https://example.invalid/kavach-phase1-reward-module", new byte[32])).from(sponsor.baseAddress());
+            submit(builder.compose(proposal).withSigner(SignerProviders.signerFrom(sponsor)).buildAndSign(), "reward-proposals");
         } else {
-            assertEquals(reusedRewardSetup.coreReward(), coreReward); assertEquals(reusedRewardSetup.moduleReward(), moduleReward);
+            assertEquals(reusedRewardSetup.coreReward(), coreReward);
+            assertEquals(reusedRewardSetup.moduleReward(), moduleReward);
             assertEquals(reusedRewardSetup.deposit(), deposit);
             evidence.put("reusedProposalTx", reusedRewardSetup.proposalTx());
             evidence.put("reusedCheckpointSetup", true);
         }
-        evidence.put("coreReward", coreReward); evidence.put("moduleReward", moduleReward);
+        evidence.put("coreReward", coreReward);
+        evidence.put("moduleReward", moduleReward);
         evidence.put("rewardDepositPerCredential", deposit);
         evidence.put("state", PlutusDataAdapter.toClientLib(AccountCodec.data(state)).serializeToHex());
         Files.createDirectories(evidenceDirectory);
         Files.writeString(evidenceDirectory.resolve(reusedRewardSetup == null ? "positive-reward-pending.json" : "positive-reward-reused-pending.json"), JsonUtil.getPrettyJson(evidence));
         long deadline = System.nanoTime() + Duration.ofMinutes(95).toNanos();
         while (System.nanoTime() < deadline) {
-            var core = rewardBalance(coreReward); var module = rewardBalance(moduleReward);
+            var core = rewardBalance(coreReward);
+            var module = rewardBalance(moduleReward);
             if (core.equals(deposit) && module.equals(deposit)) return deposit;
             assertTrue(core.compareTo(deposit) <= 0 && module.compareTo(deposit) <= 0, "Unexpected external reward credit");
             System.out.println("Phase 1 reward wait: core=" + core + " module=" + module);
@@ -375,27 +428,41 @@ class AccountDevkitTest {
         }
         throw new AssertionError("Actual checkpoint proposal refunds were not credited within 95 minutes");
     }
-    /** Queries the indexed ledger reward balance; service failures are never treated as zero. */
+
+    /**
+     * Queries the indexed ledger reward balance; service failures are never treated as zero.
+     */
     private BigInteger rewardBalance(String address) throws Exception {
         var result = backend.getAccountService().getAccountInformation(address);
         assertTrue(result.isSuccessful() && result.getValue() != null, "DevKit reward account lookup failed");
         return new BigInteger(result.getValue().getWithdrawableAmount());
     }
-    /** Uses the shared SDK allowance before CCL balances fees and collateral against current limits. */
+
+    /**
+     * Uses the shared SDK allowance before CCL balances fees and collateral against current limits.
+     */
     private TransactionEvaluator conservativeEvaluator() throws Exception {
         var parameters = backend.getEpochService().getProtocolParameters();
         assertTrue(parameters.isSuccessful(), "Current ledger limits required");
         return new ExecutionBudgetMargin((cbor, inputs) -> backend.getTransactionService().evaluateTx(cbor), parameters.getValue());
     }
-    /** Records only public transaction data; disposable signing secrets never enter evidence. */
+
+    /**
+     * Records only public transaction data; disposable signing secrets never enter evidence.
+     */
     private String submit(Transaction tx, String name) throws Exception {
         assertTrue(tx.serialize().length <= 16384, name + " transaction exceeds ledger byte limit");
-        var result = backend.getTransactionService().submitTransaction(tx.serialize()); assertTrue(result.isSuccessful(), name + ": " + result);
+        var result = backend.getTransactionService().submitTransaction(tx.serialize());
+        assertTrue(result.isSuccessful(), name + ": " + result);
         for (int i = 0; i < 60; i++) {
             var confirmed = backend.getTransactionService().getTransaction(result.getValue());
             if (confirmed.isSuccessful() && confirmed.getValue() != null) {
-                var entry = new LinkedHashMap<String, Object>(); entry.put("tx", result.getValue()); entry.put("bytes", tx.serialize().length);
-                entry.put("fee", tx.getBody().getFee()); entry.put("redeemers", tx.getWitnessSet().getRedeemers()); evidence.put(name, entry);
+                var entry = new LinkedHashMap<String, Object>();
+                entry.put("tx", result.getValue());
+                entry.put("bytes", tx.serialize().length);
+                entry.put("fee", tx.getBody().getFee());
+                entry.put("redeemers", tx.getWitnessSet().getRedeemers());
+                evidence.put(name, entry);
                 System.out.println(name + " confirmed " + result.getValue() + " fee=" + tx.getBody().getFee());
                 return result.getValue();
             }
@@ -403,7 +470,11 @@ class AccountDevkitTest {
         }
         throw new AssertionError("Unconfirmed " + name + ": " + result.getValue());
     }
-    private static TxOutRef ref(Utxo utxo) { return new TxOutRef(new TxId(HexUtil.decodeHexString(utxo.getTxHash())), BigInteger.valueOf(utxo.getOutputIndex())); }
+
+    private static TxOutRef ref(Utxo utxo) {
+        return new TxOutRef(new TxId(HexUtil.decodeHexString(utxo.getTxHash())), BigInteger.valueOf(utxo.getOutputIndex()));
+    }
+
     private List<Utxo> awaitUtxos(String address, int minimum) throws Exception {
         for (int i = 0; i < 60; i++) {
             var result = backend.getUtxoService().getUtxos(address, 100, 1, OrderEnum.desc);
@@ -412,13 +483,15 @@ class AccountDevkitTest {
         }
         throw new AssertionError("DevKit UTxOs unavailable at " + address);
     }
+
     private void topUp(String address, long ada) throws Exception {
         var request = HttpRequest.newBuilder(URI.create("http://localhost:10000/local-cluster/api/addresses/topup"))
                 .timeout(Duration.ofSeconds(30)).header("Content-Type", "application/json")
                 .POST(HttpRequest.BodyPublishers.ofString("{\"address\":\"" + address + "\",\"adaAmount\":" + ada + "}")).build();
         try (var client = HttpClient.newBuilder().connectTimeout(Duration.ofSeconds(5)).build()) {
             var response = client.send(request, HttpResponse.BodyHandlers.ofString());
-            assertEquals(200, response.statusCode()); assertFalse(response.body().contains("\"status\":false"));
+            assertEquals(200, response.statusCode());
+            assertFalse(response.body().contains("\"status\":false"));
         }
     }
 }

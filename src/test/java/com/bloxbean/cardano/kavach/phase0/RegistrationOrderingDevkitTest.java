@@ -1,4 +1,5 @@
 package com.bloxbean.cardano.kavach.phase0;
+
 import com.bloxbean.cardano.client.account.Account;
 import com.bloxbean.cardano.client.address.AddressProvider;
 import com.bloxbean.cardano.client.api.common.OrderEnum;
@@ -36,6 +37,7 @@ import com.bloxbean.cardano.julc.ledger.PubKeyHash;
 import org.junit.jupiter.api.Tag;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.Timeout;
+
 import java.math.BigInteger;
 import java.net.URI;
 import java.net.http.HttpClient;
@@ -49,6 +51,7 @@ import java.util.ArrayList;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Optional;
+
 import static org.junit.jupiter.api.Assertions.*;
 
 
@@ -61,9 +64,13 @@ class RegistrationOrderingDevkitTest {
     private final Account sponsor = new Account(NETWORK);
     private final Account authority = new Account(NETWORK);
 
-    @Test void permissionlessLegacyReregistrationAndSameTransactionOrdering() throws Exception {
-        topUp(sponsor.baseAddress(), 100); topUp(sponsor.baseAddress(), 10); awaitUtxos(sponsor.baseAddress(), 2);
-        var params = backend.getEpochService().getProtocolParameters(); assertTrue(params.isSuccessful());
+    @Test
+    void permissionlessLegacyReregistrationAndSameTransactionOrdering() throws Exception {
+        topUp(sponsor.baseAddress(), 100);
+        topUp(sponsor.baseAddress(), 10);
+        awaitUtxos(sponsor.baseAddress(), 2);
+        var params = backend.getEpochService().getProtocolParameters();
+        assertTrue(params.isSuccessful());
         assertEquals(11, params.getValue().getProtocolMajorVer());
         byte[] authorityHash = authority.hdKeyPair().getPublicKey().getKeyHash();
         var fixture = JulcScriptLoader.load(DeregistrationFixture.class, PlutusDataAdapter.toClientLib(PlutusData.bytes(authorityHash)));
@@ -85,8 +92,8 @@ class RegistrationOrderingDevkitTest {
         var ref = new TxOutRef(new TxId(HexUtil.decodeHexString(source.getTxHash())), BigInteger.valueOf(source.getOutputIndex()));
         var auth = ProbeFixtures.authorize(signatureKey, ProbeFixtures.challenge(ProbeFixtures.DOMAIN, ref));
         var combined = builder.compose(new Tx().registerStakeAddress(freshReward).attachRewardValidator(withdrawalScript)
-                        .withdraw(freshReward, BigInteger.ZERO, PlutusDataAdapter.toClientLib(auth)).from(sponsor.baseAddress()),
-                new Tx().collectFrom(List.of(source)).payToAddress(authority.baseAddress(), Amount.ada(20)).from(authority.baseAddress()))
+                                .withdraw(freshReward, BigInteger.ZERO, PlutusDataAdapter.toClientLib(auth)).from(sponsor.baseAddress()),
+                        new Tx().collectFrom(List.of(source)).payToAddress(authority.baseAddress(), Amount.ada(20)).from(authority.baseAddress()))
                 .feePayer(sponsor.baseAddress()).collateralPayer(sponsor.baseAddress())
                 .withSigner(SignerProviders.signerFrom(sponsor)).withSigner(SignerProviders.signerFrom(authority))
                 .withTxEvaluator(new JulcTransactionEvaluator(new DefaultUtxoSupplier(backend.getUtxoService()),
@@ -97,33 +104,41 @@ class RegistrationOrderingDevkitTest {
         assertTrue(combinedResult.toString().contains("Withdrawals"), combinedResult.toString());
         var evidence = new LinkedHashMap<String, Object>();
         evidence.put("scope", "Controlled deregistration fixture; not a Kavach production escape path");
-        evidence.put("protocolParameters", params.getValue()); evidence.put("initialRegistrationTx", first);
-        evidence.put("authorizedDeregistrationTx", removed); evidence.put("permissionlessLegacyReregistrationTx", restored);
+        evidence.put("protocolParameters", params.getValue());
+        evidence.put("initialRegistrationTx", first);
+        evidence.put("authorizedDeregistrationTx", removed);
+        evidence.put("permissionlessLegacyReregistrationTx", restored);
         evidence.put("sameTransactionRegistrationWithdrawalRejection", combinedResult.toString());
-        evidence.put("fixtureScriptCbor", fixture.getCborHex()); evidence.put("fixtureAuthority", HexUtil.encodeHexString(authorityHash));
+        evidence.put("fixtureScriptCbor", fixture.getCborHex());
+        evidence.put("fixtureAuthority", HexUtil.encodeHexString(authorityHash));
         Files.createDirectories(Path.of("build/phase0"));
         Files.writeString(Path.of("build/phase0/registration-ordering-evidence.json"), JsonUtil.getPrettyJson(evidence));
         System.out.println("Permissionless legacy re-registration confirmed: " + restored);
     }
+
     private QuickTxBuilder.TxContext legacy(String reward) {
         return builder.compose(new Tx().registerStakeAddress(reward).from(sponsor.baseAddress())).withSigner(SignerProviders.signerFrom(sponsor));
     }
+
     private QuickTxBuilder.TxContext funded(Tx tx) {
         return builder.compose(tx).feePayer(sponsor.baseAddress()).collateralPayer(sponsor.baseAddress())
                 .withSigner(SignerProviders.signerFrom(sponsor)).withTxEvaluator(new JulcTransactionEvaluator(
                         new DefaultUtxoSupplier(backend.getUtxoService()), new DefaultProtocolParamsSupplier(backend.getEpochService()), null));
     }
+
     @SuppressWarnings("unchecked")
     private QuickTxBuilder.TxContext fixedBudget(Tx tx, RedeemerTag tag) {
         return funded(tx).withTxEvaluator((cbor, inputs) -> Result.success("Adversarial test budget").withValue(List.of(
                 new EvaluationResult(tag, 0, new ExUnits(BigInteger.valueOf(2_000_000), BigInteger.valueOf(500_000_000))))));
     }
+
     private String submit(Transaction tx) throws Exception {
         var result = backend.getTransactionService().submitTransaction(tx.serialize());
         assertTrue(result.isSuccessful(), result.toString());
         confirm(result.getValue());
         return result.getValue();
     }
+
     private void topUp(String address, long ada) throws Exception {
         var request = HttpRequest.newBuilder(URI.create("http://localhost:10000/local-cluster/api/addresses/topup"))
                 .timeout(Duration.ofSeconds(30)).header("Content-Type", "application/json")

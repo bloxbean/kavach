@@ -8,28 +8,40 @@ import com.bloxbean.cardano.julc.stdlib.Builtins;
 import com.bloxbean.cardano.julc.stdlib.annotation.Entrypoint;
 import com.bloxbean.cardano.julc.stdlib.annotation.Param;
 import com.bloxbean.cardano.julc.stdlib.annotation.WithdrawValidator;
+
 import java.math.BigInteger;
 
 /**
-     * Bounded first-module cryptographic primitive experiment; core semantics are a separate obligation. 
+ * Bounded first-module cryptographic primitive experiment; core semantics are a separate obligation.
  * <p>Immutable parameter order: {@code config}.</p>
  */
 @WithdrawValidator
 public class ThresholdWitnessProbe {
-    public record Key(byte[] publicKey) {}
-    public record Config(BigInteger threshold, JulcList<Key> keys) {}
-    public record Evidence(BigInteger keyIndex, byte[] signature) {}
-    public record Witness(PlutusData envelope, JulcList<Evidence> proofs) {}
-    @Param static Config config;
+    public record Key(byte[] publicKey) {
+    }
+
+    public record Config(BigInteger threshold, JulcList<Key> keys) {
+    }
+
+    public record Evidence(BigInteger keyIndex, byte[] signature) {
+    }
+
+    public record Witness(PlutusData envelope, JulcList<Evidence> proofs) {
+    }
+
+    @Param
+    static Config config;
 
     /**
      * Checks raw Ed25519 threshold evidence over the supplied envelope.
      * This isolated fixture does not authorize a complete Kavach account operation.
+     *
      * @param witness untrusted probe-specific evidence and declared inputs
-     * @param ctx ledger-supplied context for this isolated feasibility probe
+     * @param ctx     ledger-supplied context for this isolated feasibility probe
      * @return whether this probe accepts; malformed Data may instead raise a script error
      */
-    @Entrypoint public static boolean validate(Witness witness, ScriptContext ctx) {
+    @Entrypoint
+    public static boolean validate(Witness witness, ScriptContext ctx) {
         boolean rewarding = switch (ctx.scriptInfo()) {
             case ScriptInfo.RewardingScript reward -> true;
             default -> false;
@@ -52,7 +64,8 @@ public class ThresholdWitnessProbe {
             i = i + 1;
         }
         var canonical = new Witness(witness.envelope(), witness.proofs());
-        if (!valid || !Builtins.equalsData((PlutusData) (Object) witness, (PlutusData) (Object) canonical)) return false;
+        if (!valid || !Builtins.equalsData((PlutusData) (Object) witness, (PlutusData) (Object) canonical))
+            return false;
         var serialized = Builtins.serialiseData(witness.envelope());
         if (Builtins.lengthOfByteString(serialized) > 8192) return false;
         var digest = Builtins.blake2b_256(serialized);

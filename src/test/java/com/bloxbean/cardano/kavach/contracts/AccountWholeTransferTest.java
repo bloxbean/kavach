@@ -6,18 +6,24 @@ import com.bloxbean.cardano.julc.vm.EvalResult;
 import com.bloxbean.cardano.kavach.contracts.AccountTypes.*;
 import com.bloxbean.cardano.kavach.protocol.WireFormat;
 import org.junit.jupiter.api.Test;
+
 import java.math.BigInteger;
 import java.util.List;
 import java.util.Optional;
+
 import static org.junit.jupiter.api.Assertions.*;
 
-/** Large-value escape path executes through the real immutable anchor, core and spend module. */
+/**
+ * Large-value escape path executes through the real immutable anchor, core and spend module.
+ */
 class AccountWholeTransferTest {
-    @Test void wholeTransferPreserves140TokensAndAllowsOnlySponsorAdaTopup() throws Exception {
+    @Test
+    void wholeTransferPreserves140TokensAndAllowsOnlySponsorAdaTopup() throws Exception {
         var f = new AccountFixtures();
         Value value = Value.lovelace(BigInteger.valueOf(20000000));
         for (int i = 139; i >= 0; i--) {
-            byte[] name = new byte[32]; name[0] = (byte)i;
+            byte[] name = new byte[32];
+            name[0] = (byte) i;
             value = value.merge(Value.singleton(new PolicyId(new byte[28]), new TokenName(name), new BigInteger("18446744073709551615")));
         }
         var initial = f.spend(0);

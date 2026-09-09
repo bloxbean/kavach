@@ -16,20 +16,25 @@ import com.bloxbean.cardano.julc.vm.LedgerEvaluationTarget;
 import com.bloxbean.cardano.julc.vm.PlutusLanguage;
 import com.bloxbean.cardano.kavach.phase0.ConfigurationPossessionProbe;
 import org.junit.jupiter.api.Test;
+
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.ArrayList;
 import java.util.HexFormat;
 import java.util.List;
+
 import static org.junit.jupiter.api.Assertions.*;
 
 class GenesisPossessionTest {
     private PlutusData decode(String hex) throws Exception {
         return PlutusDataAdapter.fromClientLib(com.bloxbean.cardano.client.plutus.spec.PlutusData.deserialize(HexFormat.of().parseHex(hex)));
     }
-    @Test void everyInitialKeyProvesPossessionOfTheSameFullStateBinding() throws Exception {
+
+    @Test
+    void everyInitialKeyProvesPossessionOfTheSameFullStateBinding() throws Exception {
         var fixture = JsonUtil.parseJson(Files.readString(Path.of("conformance/v1/genesis-possession.json")));
-        var state = decode(fixture.get("stateCbor").asText()); WireFormat.validateState(state);
+        var state = decode(fixture.get("stateCbor").asText());
+        WireFormat.validateState(state);
         var proofEnvelope = ProofDomains.genesis(state);
         assertEquals(fixture.get("proofEnvelopeCbor").asText(), PlutusDataAdapter.toClientLib(proofEnvelope).serializeToHex());
         assertEquals(fixture.get("digest").asText(), HexFormat.of().formatHex(WireFormat.digest(proofEnvelope)));
@@ -39,10 +44,13 @@ class GenesisPossessionTest {
         var primitiveConfig = PlutusData.constr(0, PlutusData.integer(keys.items().size()), primitiveKeys);
         var script = JulcScriptLoader.load(ConfigurationPossessionProbe.class, PlutusDataAdapter.toClientLib(primitiveConfig));
         var invocation = (PlutusData.ConstrData) decode(fixture.get("invocationCbor").asText());
-        assertEquals(2, invocation.tag()); assertEquals(4, invocation.fields().size()); assertEquals(state, invocation.fields().get(1));
+        assertEquals(2, invocation.tag());
+        assertEquals(4, invocation.fields().size());
+        assertEquals(state, invocation.fields().get(1));
         var proofs = (PlutusData.ListData) invocation.fields().get(2);
         for (int mutation = 0; mutation < 3; mutation++) {
-            var evidence = new ArrayList<>(proofs.items()); PlutusData envelope = proofEnvelope;
+            var evidence = new ArrayList<>(proofs.items());
+            PlutusData envelope = proofEnvelope;
             if (mutation == 1) evidence.removeLast();
             if (mutation == 2) envelope = PlutusData.constr(0, PlutusData.bytes(new byte[32]));
             var context = ScriptContextTestBuilder.rewarding(new Credential.ScriptCredential(new ScriptHash(script.getScriptHash())))

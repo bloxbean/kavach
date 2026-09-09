@@ -12,6 +12,7 @@ import com.bloxbean.cardano.julc.stdlib.annotation.SpendingValidator;
 import com.bloxbean.cardano.julc.stdlib.lib.ValuesLib;
 import com.bloxbean.cardano.kavach.contracts.AccountTypes.*;
 import com.bloxbean.cardano.kavach.contracts.PeriodicBudgetLib.*;
+
 import java.math.BigInteger;
 
 /**
@@ -23,62 +24,95 @@ import java.math.BigInteger;
  */
 @SpendingValidator
 public class PeriodicBudgetValidator {
-    @Param static BigInteger coreVersion;
-    @Param static DeploymentDomain deploymentDomain;
-    @Param static AccountId accountId;
-    @Param static byte[] stateValidatorHash;
-    @Param static byte[] coreCheckpointHash;
+    @Param
+    static BigInteger coreVersion;
+    @Param
+    static DeploymentDomain deploymentDomain;
+    @Param
+    static AccountId accountId;
+    @Param
+    static byte[] stateValidatorHash;
+    @Param
+    static byte[] coreCheckpointHash;
 
-    /** Enforces an exact counter successor under the same core-authorized account spend. */
+    /**
+     * Enforces an exact counter successor under the same core-authorized account spend.
+     */
     @Entrypoint
     public static boolean validate(AssetRedeemer redeemer, ScriptContext ctx) {
         if (!coreVersion.equals(BigInteger.ONE) || !redeemer.abiVersion().equals(BigInteger.ONE)
-                || !AccountLib.shape((PlutusData)(Object)redeemer, 0, 2)) return false;
+                || !AccountLib.shape((PlutusData) (Object) redeemer, 0, 2)) return false;
         var purpose = new ScriptPurpose.Rewarding(AccountLib.script(coreCheckpointHash));
         if (!ctx.txInfo().withdrawals().containsKey(AccountLib.script(coreCheckpointHash))
                 || !ctx.txInfo().redeemers().containsKey(purpose)) return false;
-        var core = (CoreRedeemer)(Object)ctx.txInfo().redeemers().get(purpose);
+        var core = (CoreRedeemer) (Object) ctx.txInfo().redeemers().get(purpose);
         if (!core.abiVersion().equals(BigInteger.ONE) || !AccountLib.envelope(core.intent(), ctx)
                 || !Builtins.equalsByteString(AccountLib.digest(core.intent()), redeemer.intentDigest())
-                || !Builtins.equalsData((PlutusData)(Object)core.intent().domain().accountId(), (PlutusData)(Object)accountId)) return false;
-        boolean transfer = switch (core.intent().action()) { case Spend spend -> true; case TransferWholeUtxo whole -> true; default -> false; };
+                || !Builtins.equalsData((PlutusData) (Object) core.intent().domain().accountId(), (PlutusData) (Object) accountId))
+            return false;
+        boolean transfer = switch (core.intent().action()) {
+            case Spend spend -> true;
+            case TransferWholeUtxo whole -> true;
+            default -> false;
+        };
         if (!transfer) return false;
         var state = AccountLib.resolve(core.intent().domain(), ctx);
         if (!AccountLib.authenticate(state, core.intent().domain(), deploymentDomain, stateValidatorHash, ctx)
                 || !Builtins.equalsByteString(state.coreBinding().checkpoint(), coreCheckpointHash)
                 || !PeriodicBudgetLib.isProfile(state.authConfig())) return false;
-        var configuration = (Configuration)(Object)state.authConfig();
-        if (!PeriodicBudgetLib.configuration(configuration) || !PeriodicBudgetLib.enabled(state.authConfig())) return false;
+        var configuration = (Configuration) (Object) state.authConfig();
+        if (!PeriodicBudgetLib.configuration(configuration) || !PeriodicBudgetLib.enabled(state.authConfig()))
+            return false;
         var budget = configuration.budget().get();
-        var ownRef = switch (ctx.scriptInfo()) { case ScriptInfo.SpendingScript own -> own.txOutRef(); default -> core.intent().domain().stateRef(); };
+        var ownRef = switch (ctx.scriptInfo()) {
+            case ScriptInfo.SpendingScript own -> own.txOutRef();
+            default -> core.intent().domain().stateRef();
+        };
         var accountAddress = AccountLib.enterprise(state.coreBinding().assetValidator());
-        BigInteger inputAda = BigInteger.ZERO; BigInteger changeAda = BigInteger.ZERO;
-        int ownMatches = 0; boolean valid = true;
+        BigInteger inputAda = BigInteger.ZERO;
+        BigInteger changeAda = BigInteger.ZERO;
+        int ownMatches = 0;
+        boolean valid = true;
         for (var input : ctx.txInfo().inputs()) {
-            if (input.resolved().address().equals(accountAddress)) inputAda = inputAda.add(ValuesLib.lovelaceOf(input.resolved().value()));
+            if (input.resolved().address().equals(accountAddress))
+                inputAda = inputAda.add(ValuesLib.lovelaceOf(input.resolved().value()));
             if (input.outRef().equals(ownRef)) {
                 ownMatches = ownMatches + 1;
-                var previous = switch (input.resolved().datum()) { case OutputDatum.OutputDatumInline inline -> (Usage)(Object)inline.datum(); default -> (Usage)(Object)Builtins.error(); };
+                var previous = switch (input.resolved().datum()) {
+                    case OutputDatum.OutputDatumInline inline -> (Usage) (Object) inline.datum();
+                    default -> (Usage) (Object) Builtins.error();
+                };
                 if (AccountLib.assetCount(input.resolved().value()) != 2
                         || !ValuesLib.assetOf(input.resolved().value(), budget.counter().policy(), budget.counter().name()).equals(BigInteger.ONE)
                         || !AccountLib.uint63(ValuesLib.lovelaceOf(input.resolved().value()))
                         || AccountLib.atMost(ValuesLib.lovelaceOf(input.resolved().value()), BigInteger.ZERO)
-                        || input.resolved().referenceScript().isPresent() || !PeriodicBudgetLib.usageShape(previous)) valid = false;
+                        || input.resolved().referenceScript().isPresent() || !PeriodicBudgetLib.usageShape(previous))
+                    valid = false;
             }
         }
-        for (var output : ctx.txInfo().outputs()) if (output.address().equals(accountAddress)) changeAda = changeAda.add(ValuesLib.lovelaceOf(output.value()));
+        for (var output : ctx.txInfo().outputs())
+            if (output.address().equals(accountAddress))
+                changeAda = changeAda.add(ValuesLib.lovelaceOf(output.value()));
         if (!valid || ownMatches != 1 || !AccountLib.uint63(inputAda) || !AccountLib.uint63(changeAda)) return false;
         int matches = 0;
         for (var input : ctx.txInfo().inputs()) {
             if (input.outRef().equals(ownRef)) {
-                var previous = switch (input.resolved().datum()) { case OutputDatum.OutputDatumInline inline -> (Usage)(Object)inline.datum(); default -> (Usage)(Object)Builtins.error(); };
+                var previous = switch (input.resolved().datum()) {
+                    case OutputDatum.OutputDatumInline inline -> (Usage) (Object) inline.datum();
+                    default -> (Usage) (Object) Builtins.error();
+                };
                 var next = PeriodicBudgetLib.successor(previous, budget, inputAda.subtract(changeAda), ctx);
                 for (var output : ctx.txInfo().outputs()) {
                     if (!ValuesLib.assetOf(output.value(), budget.counter().policy(), budget.counter().name()).equals(BigInteger.ZERO)) {
                         matches = matches + 1;
-                        boolean datum = switch (output.datum()) { case OutputDatum.OutputDatumInline inline -> Builtins.equalsData(inline.datum(), (PlutusData)(Object)next); default -> false; };
+                        boolean datum = switch (output.datum()) {
+                            case OutputDatum.OutputDatumInline inline ->
+                                    Builtins.equalsData(inline.datum(), (PlutusData) (Object) next);
+                            default -> false;
+                        };
                         if (!datum || !output.address().equals(input.resolved().address()) || output.referenceScript().isPresent()
-                                || !Builtins.equalsData((PlutusData)(Object)output.value(), (PlutusData)(Object)input.resolved().value())) valid = false;
+                                || !Builtins.equalsData((PlutusData) (Object) output.value(), (PlutusData) (Object) input.resolved().value()))
+                            valid = false;
                     }
                 }
             }

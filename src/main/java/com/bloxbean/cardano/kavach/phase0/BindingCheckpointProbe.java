@@ -14,36 +14,52 @@ import com.bloxbean.cardano.julc.stdlib.annotation.Entrypoint;
 import com.bloxbean.cardano.julc.stdlib.annotation.Param;
 import com.bloxbean.cardano.julc.stdlib.annotation.WithdrawValidator;
 import com.bloxbean.cardano.julc.stdlib.lib.ValuesLib;
+
 import java.math.BigInteger;
 
 /**
-     * Paired core/module invocation experiment; no account asset custody or state mutation. 
+ * Paired core/module invocation experiment; no account asset custody or state mutation.
  * <p>Immutable parameter order: {@code role, deploymentDomain, accountPolicy, stateVersion, publicKey, installedModule, rewardSink, stateValidatorHash, creator, stateDomain}.</p>
  */
 @WithdrawValidator
 public class BindingCheckpointProbe {
-    @Param static BigInteger role; // 0 = cryptographic module, 1 = calling core
-    @Param static byte[] deploymentDomain;
-    @Param static byte[] accountPolicy;
-    @Param static BigInteger stateVersion;
-    @Param static byte[] publicKey; // used only by module; both roles bind the same deployment
-    @Param static byte[] installedModule; // empty in module, exact module hash in core
-    @Param static Address rewardSink;
-    @Param static byte[] stateValidatorHash;
-    @Param static byte[] creator;
-    @Param static byte[] stateDomain;
+    @Param
+    static BigInteger role; // 0 = cryptographic module, 1 = calling core
+    @Param
+    static byte[] deploymentDomain;
+    @Param
+    static byte[] accountPolicy;
+    @Param
+    static BigInteger stateVersion;
+    @Param
+    static byte[] publicKey; // used only by module; both roles bind the same deployment
+    @Param
+    static byte[] installedModule; // empty in module, exact module hash in core
+    @Param
+    static Address rewardSink;
+    @Param
+    static byte[] stateValidatorHash;
+    @Param
+    static byte[] creator;
+    @Param
+    static byte[] stateDomain;
 
-    public record ProbeState(BigInteger schemaVersion, byte[] domain, byte[] creator) {}
+    public record ProbeState(BigInteger schemaVersion, byte[] domain, byte[] creator) {
+    }
 
     public record Envelope(byte[] domain, byte[] account, BigInteger version, BigInteger operation,
-                           TxOutRef consumedInput, byte[] coreHash, byte[] moduleHash) {}
-    public record Authorization(Envelope intent, byte[] signature, BigInteger coreReceipt, BigInteger moduleReceipt) {}
+                           TxOutRef consumedInput, byte[] coreHash, byte[] moduleHash) {
+    }
+
+    public record Authorization(Envelope intent, byte[] signature, BigInteger coreReceipt, BigInteger moduleReceipt) {
+    }
 
     /**
      * Exercises shared core/module binding, state reference and reward receipt checks.
      * This isolated fixture does not authorize a complete Kavach account operation.
+     *
      * @param authorization untrusted probe-specific evidence and declared inputs
-     * @param ctx ledger-supplied context for this isolated feasibility probe
+     * @param ctx           ledger-supplied context for this isolated feasibility probe
      * @return whether this probe accepts; malformed Data may instead raise a script error
      */
     @Entrypoint
@@ -60,17 +76,20 @@ public class BindingCheckpointProbe {
             var output = ref.resolved();
             if (ValuesLib.assetOf(output.value(), accountPolicy, new byte[]{}) != BigInteger.ZERO) {
                 boolean holder = switch (output.address().credential()) {
-                    case Credential.ScriptCredential script -> Builtins.equalsByteString(script.hash().hash(), stateValidatorHash);
+                    case Credential.ScriptCredential script ->
+                            Builtins.equalsByteString(script.hash().hash(), stateValidatorHash);
                     default -> false;
                 };
                 boolean datum = switch (output.datum()) {
-                    case OutputDatum.OutputDatumInline inline -> Builtins.equalsData(inline.datum(), (PlutusData) (Object) expectedState);
+                    case OutputDatum.OutputDatumInline inline ->
+                            Builtins.equalsData(inline.datum(), (PlutusData) (Object) expectedState);
                     default -> false;
                 };
                 if (!holder || !datum || output.address().stakingCredential().isPresent() || output.referenceScript().isPresent()
                         || ValuesLib.flattenTyped(output.value()).size() != 2
                         || ValuesLib.assetOf(output.value(), accountPolicy, new byte[]{}) != BigInteger.ONE
-                        || ValuesLib.assetOf(output.value(), new byte[]{}, new byte[]{}).signum() <= 0) validStates = false;
+                        || ValuesLib.assetOf(output.value(), new byte[]{}, new byte[]{}).signum() <= 0)
+                    validStates = false;
                 matchingStates = matchingStates + 1;
             }
         }
@@ -91,13 +110,16 @@ public class BindingCheckpointProbe {
                     ? rewarding.credential().equals(module) : rewarding.credential().equals(core);
             default -> false;
         };
-        if (!own || !ctx.txInfo().withdrawals().containsKey(core) || !ctx.txInfo().withdrawals().containsKey(module)) return false;
+        if (!own || !ctx.txInfo().withdrawals().containsKey(core) || !ctx.txInfo().withdrawals().containsKey(module))
+            return false;
         if (role == BigInteger.ONE && !Builtins.equalsByteString(installedModule, intent.moduleHash())) return false;
         var corePurpose = new ScriptPurpose.Rewarding(core);
         var modulePurpose = new ScriptPurpose.Rewarding(module);
-        if (!ctx.txInfo().redeemers().containsKey(corePurpose) || !ctx.txInfo().redeemers().containsKey(modulePurpose)) return false;
+        if (!ctx.txInfo().redeemers().containsKey(corePurpose) || !ctx.txInfo().redeemers().containsKey(modulePurpose))
+            return false;
         if (!Builtins.equalsData(ctx.txInfo().redeemers().get(corePurpose), (PlutusData) (Object) canonical)
-                || !Builtins.equalsData(ctx.txInfo().redeemers().get(modulePurpose), (PlutusData) (Object) canonical)) return false;
+                || !Builtins.equalsData(ctx.txInfo().redeemers().get(modulePurpose), (PlutusData) (Object) canonical))
+            return false;
         boolean consumed = false;
         for (var input : ctx.txInfo().inputs()) {
             if (input.outRef().equals(intent.consumedInput())) consumed = true;
@@ -105,12 +127,15 @@ public class BindingCheckpointProbe {
         if (!consumed) return false;
         var coreAmount = ctx.txInfo().withdrawals().get(core);
         var moduleAmount = ctx.txInfo().withdrawals().get(module);
-        if (!receipt(ctx, coreAmount, authorization.coreReceipt()) || !receipt(ctx, moduleAmount, authorization.moduleReceipt())) return false;
-        if (coreAmount.signum() > 0 && moduleAmount.signum() > 0 && authorization.coreReceipt() == authorization.moduleReceipt()) return false;
+        if (!receipt(ctx, coreAmount, authorization.coreReceipt()) || !receipt(ctx, moduleAmount, authorization.moduleReceipt()))
+            return false;
+        if (coreAmount.signum() > 0 && moduleAmount.signum() > 0 && authorization.coreReceipt() == authorization.moduleReceipt())
+            return false;
         if (role == BigInteger.ZERO) return Builtins.verifyEd25519Signature(publicKey,
                 Builtins.blake2b_256(Builtins.serialiseData((PlutusData) (Object) canonicalIntent)), authorization.signature());
         return true;
     }
+
     static boolean receipt(ScriptContext ctx, BigInteger amount, BigInteger index) {
         if (amount.signum() < 0) return false;
         if (amount == BigInteger.ZERO) return index == BigInteger.valueOf(-1);

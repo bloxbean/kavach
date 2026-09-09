@@ -18,7 +18,9 @@ import static org.junit.jupiter.api.Assertions.*;
 class AccountLifecycleMatrixTest {
     private final AccountLifecycleTest lifecycle = new AccountLifecycleTest();
     private final AccountFixtures f = lifecycle.f;
-    AccountLifecycleMatrixTest() throws Exception {}
+
+    AccountLifecycleMatrixTest() throws Exception {
+    }
 
     @ParameterizedTest
     @CsvSource({
@@ -37,7 +39,8 @@ class AccountLifecycleMatrixTest {
             default -> throw new AssertionError(mode);
         };
         var old = lifecycle.state(f.state, 1, 1, 0, oldMode);
-        var candidateHash = new byte[28]; candidateHash[0] = 42;
+        var candidateHash = new byte[28];
+        candidateHash[0] = 42;
         Action action = switch (operation) {
             case "config" -> new ReplaceConfig(old.authConfig());
             case "module" -> new ReplaceModule(new AuthModuleRef(candidateHash, BigInteger.ONE), old.authConfig());
@@ -51,7 +54,8 @@ class AccountLifecycleMatrixTest {
         long lower = 86400000, upper = 86409999;
         var request = lifecycle.intent(old, action, lower, upper);
         AccountState next;
-        if (allowed) next = AccountAdministration.successor(old, request, BigInteger.valueOf(lower), BigInteger.valueOf(upper), true);
+        if (allowed)
+            next = AccountAdministration.successor(old, request, BigInteger.valueOf(lower), BigInteger.valueOf(upper), true);
         else {
             assertThrows(IllegalArgumentException.class, () -> AccountAdministration.successor(old, request,
                     BigInteger.valueOf(lower), BigInteger.valueOf(upper), true));

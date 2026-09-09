@@ -38,7 +38,9 @@ import java.util.Arrays;
 
 import static org.junit.jupiter.api.Assertions.*;
 
-/** Four-script replacement composition; candidate possession never supplies old administration. */
+/**
+ * Four-script replacement composition; candidate possession never supplies old administration.
+ */
 class AccountModuleReplacementTest {
     private AccountLifecycleTest lifecycle;
     private AccountFixtures f;
@@ -51,11 +53,17 @@ class AccountModuleReplacementTest {
     private boolean maximumProfile;
     private Address candidateSink;
 
-    AccountModuleReplacementTest() throws Exception { initialize(false); }
+    AccountModuleReplacementTest() throws Exception {
+        initialize(false);
+    }
+
     private void initialize(boolean maximum) throws Exception {
         maximumProfile = maximum;
-        f = new AccountFixtures(maximum); lifecycle = new AccountLifecycleTest(); lifecycle.f = f;
-        var sinkHash = new byte[28]; sinkHash[0] = 1;
+        f = new AccountFixtures(maximum);
+        lifecycle = new AccountLifecycleTest();
+        lifecycle.f = f;
+        var sinkHash = new byte[28];
+        sinkHash[0] = 1;
         candidateSink = new Address(new Credential.PubKeyCredential(new PubKeyHash(sinkHash)), Optional.empty());
         candidateScript = AccountFixtures.load(Ed25519Module.class, BigInteger.ONE, BigInteger.ONE,
                 f.deployment, f.stateScript.getScriptHash(), f.coreScript.getScriptHash(), candidateSink);
@@ -65,7 +73,7 @@ class AccountModuleReplacementTest {
         successor = new AccountState(f.state.schemaVersion(), f.state.accountId(), f.deployment, f.state.coreBinding(),
                 BigInteger.ONE, replacement, f.state.authConfig(), BigInteger.ZERO, f.state.recoveryDelayMillis(),
                 f.state.recoveryCooldownMillis(), BigInteger.ZERO, new Normal());
-        oldApproval = lifecycle.approval(f.state, request, maximum ? new int[]{8,9,10,11,12,13,14,15} : new int[]{0,1});
+        oldApproval = lifecycle.approval(f.state, request, maximum ? new int[]{8, 9, 10, 11, 12, 13, 14, 15} : new int[]{0, 1});
         var digest = WireFormat.digest(ProofDomains.configuration(AccountCodec.data(f.state), AccountCodec.data(request)));
         var proofs = new ArrayList<Signature>();
         for (int id = 0; id < f.keys.size(); id++) proofs.add(AccountFixtures.sign(id, f.keys.get(id), digest));
@@ -74,8 +82,8 @@ class AccountModuleReplacementTest {
         if (maximum) {
             var entries = new ArrayList<RewardReceipt>(List.of(new RewardReceipt(f.core, BigInteger.valueOf(12)),
                     new RewardReceipt(f.module, BigInteger.valueOf(13)), new RewardReceipt(candidate, BigInteger.valueOf(15))));
-            entries.sort((a, b) -> Arrays.compareUnsigned(((Credential.ScriptCredential)a.rewardCredential()).hash().hash(),
-                    ((Credential.ScriptCredential)b.rewardCredential()).hash().hash()));
+            entries.sort((a, b) -> Arrays.compareUnsigned(((Credential.ScriptCredential) a.rewardCredential()).hash().hash(),
+                    ((Credential.ScriptCredential) b.rewardCredential()).hash().hash()));
             var receipts = AccountFixtures.list(entries.toArray(RewardReceipt[]::new));
             oldApproval = new ModuleRedeemer(BigInteger.ONE, request, oldApproval.operationProof(), oldApproval.configPossession(), receipts);
             candidateApproval = new ModuleRedeemer(BigInteger.ONE, request, Optional.empty(), candidateApproval.configPossession(), receipts);
@@ -92,8 +100,9 @@ class AccountModuleReplacementTest {
                 builder.input(new TxInInfo(AccountFixtures.ref(41 + index), AccountFixtures.output(f.sink, 1000000)))
                         .output(AccountFixtures.output(f.sink, 1000000));
             }
-            for (int index = 0; index < 4; index++) builder.referenceInput(new TxInInfo(AccountFixtures.ref(100 + index),
-                    AccountFixtures.output(f.sink, 1000000)));
+            for (int index = 0; index < 4; index++)
+                builder.referenceInput(new TxInInfo(AccountFixtures.ref(100 + index),
+                        AccountFixtures.output(f.sink, 1000000)));
         }
         return AccountFixtures.orderedInputs(builder.redeemer(AccountCodec.data(role.equals("candidate") ? next : role.equals("module") ? old : core))
                 .input(f.stateInput()).input(new TxInInfo(AccountFixtures.ref(40), AccountFixtures.output(f.sink, 10000000)))
@@ -115,11 +124,14 @@ class AccountModuleReplacementTest {
                 new ExBudget(10000000000L, 16500000), EvalOptions.DEFAULT);
     }
 
-    @Test void maximumOldApprovalAndCandidatePossessionFitTogether() throws Exception {
+    @Test
+    void maximumOldApprovalAndCandidatePossessionFitTogether() throws Exception {
         initialize(true);
         oldAdministrationAndAllCandidateKeysAuthorizeReplacement();
     }
-    @Test void oldAdministrationAndAllCandidateKeysAuthorizeReplacement() {
+
+    @Test
+    void oldAdministrationAndAllCandidateKeysAuthorizeReplacement() {
         assertEquals(AccountCodec.data(successor), AccountCodec.data(AccountAdministration.prepare(f.state, oldApproval, Optional.of(candidateApproval),
                 BigInteger.valueOf(1000), BigInteger.valueOf(9999), true).successor()), "SDK module successor");
         long memory = 0, cpu = 0, paddedMemory = 0, paddedCpu = 0;
@@ -127,7 +139,8 @@ class AccountModuleReplacementTest {
             var evaluated = evaluate(role, context(role, oldApproval, candidateApproval));
             var accepted = assertInstanceOf(EvalResult.Success.class, evaluated, role + ": " + evaluated);
             System.out.println("replacement " + role + " " + accepted.consumed());
-            memory += accepted.consumed().memoryUnits(); cpu += accepted.consumed().cpuSteps();
+            memory += accepted.consumed().memoryUnits();
+            cpu += accepted.consumed().cpuSteps();
             paddedMemory += (accepted.consumed().memoryUnits() * 105 + 99) / 100;
             paddedCpu += (accepted.consumed().cpuSteps() * 105 + 99) / 100;
         }
@@ -139,10 +152,18 @@ class AccountModuleReplacementTest {
     @ParameterizedTest
     @ValueSource(strings = {"spend-only", "candidate-self-approval", "old-possession", "missing-key", "ordinary-digest", "candidate-operation-proof", "different-intent"})
     void replacementRejectsAuthorityAndPossessionSubstitution(String attack) throws Exception {
-        var old = oldApproval; var next = candidateApproval; String rejectingRole = "candidate";
+        var old = oldApproval;
+        var next = candidateApproval;
+        String rejectingRole = "candidate";
         switch (attack) {
-            case "spend-only" -> { old = lifecycle.approval(f.state, request, 0); rejectingRole = "module"; }
-            case "candidate-self-approval" -> { old = candidateApproval; rejectingRole = "module"; }
+            case "spend-only" -> {
+                old = lifecycle.approval(f.state, request, 0);
+                rejectingRole = "module";
+            }
+            case "candidate-self-approval" -> {
+                old = candidateApproval;
+                rejectingRole = "module";
+            }
             case "old-possession" -> {
                 old = new ModuleRedeemer(BigInteger.ONE, request, oldApproval.operationProof(), candidateApproval.configPossession(), JulcList.empty());
                 rejectingRole = "module";
@@ -151,16 +172,20 @@ class AccountModuleReplacementTest {
                     AccountFixtures.list(candidateApproval.configPossession().head()), JulcList.empty());
             case "ordinary-digest" -> {
                 var proofs = new ArrayList<Signature>();
-                for (int id = 0; id < f.keys.size(); id++) proofs.add(AccountFixtures.sign(id, f.keys.get(id), WireFormat.digest(AccountCodec.data(request))));
+                for (int id = 0; id < f.keys.size(); id++)
+                    proofs.add(AccountFixtures.sign(id, f.keys.get(id), WireFormat.digest(AccountCodec.data(request))));
                 next = new ModuleRedeemer(BigInteger.ONE, request, Optional.empty(), AccountFixtures.list(proofs.toArray(Signature[]::new)), JulcList.empty());
             }
-            case "candidate-operation-proof" -> next = new ModuleRedeemer(BigInteger.ONE, request, oldApproval.operationProof(), next.configPossession(), JulcList.empty());
-            case "different-intent" -> next = new ModuleRedeemer(BigInteger.ONE, lifecycle.intent(f.state, new Freeze(), 1000, 9999),
-                    Optional.empty(), next.configPossession(), JulcList.empty());
+            case "candidate-operation-proof" ->
+                    next = new ModuleRedeemer(BigInteger.ONE, request, oldApproval.operationProof(), next.configPossession(), JulcList.empty());
+            case "different-intent" ->
+                    next = new ModuleRedeemer(BigInteger.ONE, lifecycle.intent(f.state, new Freeze(), 1000, 9999),
+                            Optional.empty(), next.configPossession(), JulcList.empty());
             default -> throw new AssertionError(attack);
         }
         assertInstanceOf(EvalResult.Failure.class, evaluate(rejectingRole, context(rejectingRole, old, next)), attack);
-        var suppliedOld = old; var suppliedNext = next;
+        var suppliedOld = old;
+        var suppliedNext = next;
         assertThrows(IllegalArgumentException.class, () -> AccountAdministration.prepare(f.state, suppliedOld,
                 Optional.of(suppliedNext), BigInteger.valueOf(1000), BigInteger.valueOf(9999), true), attack);
     }

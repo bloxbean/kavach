@@ -7,13 +7,18 @@ import com.bloxbean.cardano.julc.clientlib.PlutusDataAdapter;
 import com.bloxbean.cardano.julc.core.PlutusData;
 import com.bloxbean.cardano.julc.stdlib.Builtins;
 import com.bloxbean.cardano.kavach.sdk.AccountCodec;
+
 import java.nio.charset.StandardCharsets;
 import java.util.HexFormat;
+
 import org.junit.jupiter.api.Test;
 
-/** Language-neutral hand-encoded constructor vectors, independent of Java record declaration order. */
+/**
+ * Language-neutral hand-encoded constructor vectors, independent of Java record declaration order.
+ */
 class PolicyConfigurationTest {
-    @Test void canonicalMixedAndPeriodicVectorsRoundTripWithExactDigests() throws Exception {
+    @Test
+    void canonicalMixedAndPeriodicVectorsRoundTripWithExactDigests() throws Exception {
         try (var stream = getClass().getResourceAsStream("/policy/v1.json")) {
             assertNotNull(stream);
             var entries = JsonUtil.parseJson(new String(stream.readAllBytes(), StandardCharsets.UTF_8));

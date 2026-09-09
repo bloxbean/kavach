@@ -10,17 +10,23 @@ import com.bloxbean.cardano.kavach.contracts.AccountTypes.*;
 import com.bloxbean.cardano.kavach.contracts.PeriodicBudgetLib.Usage;
 import com.bloxbean.cardano.kavach.sdk.AccountCodec;
 import com.bloxbean.cardano.kavach.sdk.browser.BrowserSignatures;
+
 import java.math.BigInteger;
 import java.util.List;
 import java.util.ArrayList;
 import java.util.Arrays;
+
 import com.bloxbean.cardano.kavach.protocol.WireFormat;
+
 import java.time.Instant;
 import java.util.Optional;
+
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.ValueSource;
 
-/** Compiled full-composition counter checks; actual node acceptance is a separate gate. */
+/**
+ * Compiled full-composition counter checks; actual node acceptance is a separate gate.
+ */
 class PeriodicBudgetTest {
     @ParameterizedTest
     @ValueSource(strings = {"initial", "carry", "reset", "over-limit", "wrong-counter", "drop-counter",
@@ -37,22 +43,28 @@ class PeriodicBudgetTest {
         long start = Instant.parse("2026-09-07T00:00:00Z").toEpochMilli();
         long lower = start + 1_000, upper = start + 10_000;
         if (List.of("cross-window", "inclusive-boundary", "boundary").contains(scenario)) {
-            lower = start + duration - 1000; upper = start + duration;
+            lower = start + duration - 1000;
+            upper = start + duration;
         }
         long carried = scenario.equals("carry") ? 2_000_000 : scenario.equals("over-limit") || scenario.equals("reset-same-window") ? 4_000_000 : 0;
         var previous = scenario.equals("initial") ? PeriodicBudgetLib.initial()
                 : new Usage(BigInteger.ONE, period, BigInteger.valueOf(scenario.equals("reset") ? start - duration : start), BigInteger.valueOf(carried));
         var successor = new Usage(BigInteger.ONE, period, BigInteger.valueOf(start),
                 BigInteger.valueOf(scenario.equals("reset-same-window") ? 2_000_000 : scenario.equals("wrong-next-debit") ? 1_000_000 : carried + 2_000_000));
-        byte[] nativePolicy = new byte[28]; Arrays.fill(nativePolicy, (byte) 85);
+        byte[] nativePolicy = new byte[28];
+        Arrays.fill(nativePolicy, (byte) 85);
         var tokenValue = Value.singleton(new PolicyId(nativePolicy), TokenName.EMPTY, BigInteger.ONE);
         long accountAda = whole ? scenario.equals("whole-over-limit") ? 6_000_000 : 2_000_000 : 10_000_000;
         var inputValue = Value.lovelace(BigInteger.valueOf(accountAda));
         var recipientValue = Value.lovelace(BigInteger.valueOf(whole ? accountAda : 2_000_000));
-        if (nativeAsset) { inputValue = inputValue.merge(tokenValue); recipientValue = recipientValue.merge(tokenValue); }
+        if (nativeAsset) {
+            inputValue = inputValue.merge(tokenValue);
+            recipientValue = recipientValue.merge(tokenValue);
+        }
         var original = f.spend(0);
         if (maximum) {
-            var refs = new ArrayList<TxOutRef>(); refs.add(f.assetRef);
+            var refs = new ArrayList<TxOutRef>();
+            refs.add(f.assetRef);
             for (int i = 32; i <= 38; i++) refs.add(AccountFixtures.ref(i));
             var spend = (Spend) original.action();
             original = new IntentEnvelope(original.protocolTag(), original.domain(), original.validity(),
@@ -61,14 +73,16 @@ class PeriodicBudgetTest {
         Action action = original.action();
         if (whole) action = new TransferWholeUtxo(f.assetRef, BigInteger.ZERO, f.sink,
                 WireFormat.ledgerValueDigest(inputValue.toPlutusData()));
-        else if (nativeAsset) action = new Spend(AccountFixtures.list(f.assetRef), AccountFixtures.list(new Recipient(BigInteger.ZERO, f.sink,
-                AccountFixtures.list(new Asset(new byte[0], new byte[0], BigInteger.valueOf(2_000_000)), new Asset(nativePolicy, new byte[0], BigInteger.ONE)))), BigInteger.ZERO);
+        else if (nativeAsset)
+            action = new Spend(AccountFixtures.list(f.assetRef), AccountFixtures.list(new Recipient(BigInteger.ZERO, f.sink,
+                    AccountFixtures.list(new Asset(new byte[0], new byte[0], BigInteger.valueOf(2_000_000)), new Asset(nativePolicy, new byte[0], BigInteger.ONE)))), BigInteger.ZERO);
         var intent = new IntentEnvelope(original.protocolTag(), original.domain(),
                 new Validity(BigInteger.valueOf(lower), BigInteger.valueOf(upper + 2)), action);
         var digest = AccountCodec.intentDigest(intent, whole ? inputValue.toPlutusData() : null);
         var proofs = new ArrayList<Signature>();
-        for (int id = 0; id < (maximum ? 8 : nativeAsset ? 2 : 1); id++) proofs.add(id == 1
-                ? BrowserModuleTest.proofs(f, 2, digest, id).head() : new Signature(BigInteger.valueOf(id), new byte[0]));
+        for (int id = 0; id < (maximum ? 8 : nativeAsset ? 2 : 1); id++)
+            proofs.add(id == 1
+                    ? BrowserModuleTest.proofs(f, 2, digest, id).head() : new Signature(BigInteger.valueOf(id), new byte[0]));
         var module = new ModuleRedeemer(BigInteger.ONE, intent, Optional.of(new Proof(BigInteger.valueOf(4),
                 AccountFixtures.list(proofs.toArray(Signature[]::new)))), JulcList.empty(), JulcList.empty());
         var core = new CoreRedeemer(BigInteger.ONE, intent, JulcList.empty());
@@ -99,9 +113,11 @@ class PeriodicBudgetTest {
                     .signer(BrowserSignatures.keyHash(AccountFixtures.publicKey(f.keys.get(0))));
             if (!whole) ctx.output(AccountFixtures.output(f.accountAddress, maximum ? 78_000_000 : 8_000_000));
             if (maximum) {
-                for (int i = 32; i <= 38; i++) ctx.input(new TxInInfo(AccountFixtures.ref(i), AccountFixtures.output(f.accountAddress, 10_000_000)))
-                        .redeemerEntry(new ScriptPurpose.Spending(AccountFixtures.ref(i)), AccountCodec.data(spending));
-                for (int id = 2; id < 8; id++) ctx.signer(BrowserSignatures.keyHash(AccountFixtures.publicKey(f.keys.get(id))));
+                for (int i = 32; i <= 38; i++)
+                    ctx.input(new TxInInfo(AccountFixtures.ref(i), AccountFixtures.output(f.accountAddress, 10_000_000)))
+                            .redeemerEntry(new ScriptPurpose.Spending(AccountFixtures.ref(i)), AccountCodec.data(spending));
+                for (int id = 2; id < 8; id++)
+                    ctx.signer(BrowserSignatures.keyHash(AccountFixtures.publicKey(f.keys.get(id))));
             }
             if (!scenario.equals("drop-counter")) {
                 ctx.input(new TxInInfo(counterRef, new TxOut(address, value,
@@ -114,7 +130,8 @@ class PeriodicBudgetTest {
             boolean accepted = List.of("initial", "carry", "reset", "boundary", "maximum", "native", "whole").contains(scenario);
             if (accepted) {
                 var success = assertInstanceOf(EvalResult.Success.class, result, role + ": " + result);
-                memory += success.consumed().memoryUnits(); cpu += success.consumed().cpuSteps();
+                memory += success.consumed().memoryUnits();
+                cpu += success.consumed().cpuSteps();
             } else if (role.equals("budget") || (role.equals("asset") && List.of("drop-counter", "wrong-counter").contains(scenario)))
                 assertInstanceOf(EvalResult.Failure.class, result, role + ": " + scenario);
         }

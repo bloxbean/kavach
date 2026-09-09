@@ -1,4 +1,5 @@
 package com.bloxbean.cardano.kavach.phase0;
+
 import com.bloxbean.cardano.client.account.Account;
 import com.bloxbean.cardano.client.address.AddressProvider;
 import com.bloxbean.cardano.client.api.model.Amount;
@@ -9,9 +10,11 @@ import com.bloxbean.cardano.client.backend.api.DefaultProtocolParamsSupplier;
 import com.bloxbean.cardano.client.backend.api.DefaultScriptSupplier;
 import com.bloxbean.cardano.client.api.common.OrderEnum;
 import com.bloxbean.cardano.julc.clientlib.eval.JulcTransactionEvaluator;
+
 import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.Optional;
+
 import com.bloxbean.cardano.client.transaction.spec.Asset;
 import com.bloxbean.cardano.client.transaction.spec.script.ScriptPubkey;
 import com.bloxbean.cardano.client.plutus.spec.BigIntPlutusData;
@@ -70,8 +73,11 @@ class WholeUtxoTransferDevkitTest {
     private final Account sponsor = new Account(NETWORK);
     private final Account recipient = new Account(NETWORK);
 
-    @Test void oversizedDepositCanMoveWholeWithSponsorTopup() throws Exception {
-        topUp(sponsor.baseAddress(), 500); topUp(sponsor.baseAddress(), 10); awaitUtxos(2);
+    @Test
+    void oversizedDepositCanMoveWholeWithSponsorTopup() throws Exception {
+        topUp(sponsor.baseAddress(), 500);
+        topUp(sponsor.baseAddress(), 10);
+        awaitUtxos(2);
         byte[] authority = sponsor.hdKeyPair().getPublicKey().getKeyHash();
         var holder = JulcScriptLoader.load(OwnedAssetFixture.class, PlutusDataAdapter.toClientLib(PlutusData.bytes(authority)));
         var account = new Address(new Credential.ScriptCredential(new ScriptHash(holder.getScriptHash())), Optional.empty());
@@ -79,54 +85,82 @@ class WholeUtxoTransferDevkitTest {
         String holderAddress = AddressProvider.getEntAddress(holder, NETWORK).toBech32();
         var checkpoint = JulcScriptLoader.load(WholeUtxoTransferProbe.class, PlutusDataAdapter.toClientLib(account.toPlutusData()));
         String reward = AddressProvider.getRewardAddress(checkpoint, NETWORK).toBech32();
-        var policy = new ScriptPubkey(HexUtil.encodeHexString(authority)); var assets = new ArrayList<Asset>();
-        for (int i = 0; i < 140; i++) { byte[] name = new byte[32]; name[0] = (byte) i; assets.add(new Asset("0x" + HexUtil.encodeHexString(name), BigInteger.ONE)); }
+        var policy = new ScriptPubkey(HexUtil.encodeHexString(authority));
+        var assets = new ArrayList<Asset>();
+        for (int i = 0; i < 140; i++) {
+            byte[] name = new byte[32];
+            name[0] = (byte) i;
+            assets.add(new Asset("0x" + HexUtil.encodeHexString(name), BigInteger.ONE));
+        }
         String mintId = submit(builder.compose(new Tx().mintAssets(policy, assets, holderAddress).registerStakeAddress(reward).from(sponsor.baseAddress()))
                 .withSigner(SignerProviders.signerFrom(sponsor)).buildAndSign());
-        var found = backend.getUtxoService().getUtxos(holderAddress, 100, 1, OrderEnum.desc); assertTrue(found.isSuccessful());
+        var found = backend.getUtxoService().getUtxos(holderAddress, 100, 1, OrderEnum.desc);
+        assertTrue(found.isSuccessful());
         var input = found.getValue().stream().filter(u -> u.getTxHash().equals(mintId)).findFirst().orElseThrow();
         assertEquals(141, input.getAmount().size(), "140 tokens must remain together in one deposit");
         var ada = input.getAmount().stream().filter(a -> a.getUnit().equals("lovelace")).findFirst().orElseThrow().getQuantity();
         Value incoming = Value.lovelace(ada);
         var ordered = input.getAmount().stream().filter(a -> !a.getUnit().equals("lovelace")).sorted(Comparator.comparing(Amount::getUnit).reversed()).toList();
-        for (var amount : ordered) incoming = incoming.merge(Value.singleton(new PolicyId(HexUtil.decodeHexString(amount.getUnit().substring(0,56))),
-                new TokenName(HexUtil.decodeHexString(amount.getUnit().substring(56))), amount.getQuantity()));
+        for (var amount : ordered)
+            incoming = incoming.merge(Value.singleton(new PolicyId(HexUtil.decodeHexString(amount.getUnit().substring(0, 56))),
+                    new TokenName(HexUtil.decodeHexString(amount.getUnit().substring(56))), amount.getQuantity()));
         var ref = new TxOutRef(new TxId(HexUtil.decodeHexString(input.getTxHash())), BigInteger.valueOf(input.getOutputIndex()));
         var transfer = PlutusData.constr(0, ref.toPlutusData(), PlutusData.integer(0), destination.toPlutusData(), PlutusData.bytes(WireFormat.ledgerValueDigest(incoming.toPlutusData())));
         var amounts = new ArrayList<Amount>();
-        for (var amount : input.getAmount()) amounts.add(new Amount(amount.getUnit(), amount.getUnit().equals("lovelace") ? amount.getQuantity().add(BigInteger.valueOf(1_000_000)) : amount.getQuantity()));
-        var missingToken = new ArrayList<>(amounts); missingToken.removeIf(a -> a.getUnit().equals(ordered.getFirst().getUnit()));
+        for (var amount : input.getAmount())
+            amounts.add(new Amount(amount.getUnit(), amount.getUnit().equals("lovelace") ? amount.getQuantity().add(BigInteger.valueOf(1_000_000)) : amount.getQuantity()));
+        var missingToken = new ArrayList<>(amounts);
+        missingToken.removeIf(a -> a.getUnit().equals(ordered.getFirst().getUnit()));
         var invalid = spending(holder, checkpoint, reward, input, transfer, missingToken, authority).withTxEvaluator((cbor, utxos) -> budget(cbor)).buildAndSign();
-        var rejection = backend.getTransactionService().submitTransaction(invalid.serialize()); assertFalse(rejection.isSuccessful());
+        var rejection = backend.getTransactionService().submitTransaction(invalid.serialize());
+        assertFalse(rejection.isSuccessful());
         assertTrue(rejection.toString().contains("ValidationTagMismatch") && rejection.toString().contains("Caused by: error"), rejection.toString());
         var tx = spending(holder, checkpoint, reward, input, transfer, amounts, authority).withTxEvaluator((cbor, utxos) -> budget(cbor)).buildAndSign();
-        var evaluated = backend.getTransactionService().evaluateTx(tx.serialize()); assertTrue(evaluated.isSuccessful(), evaluated.toString());
+        var evaluated = backend.getTransactionService().evaluateTx(tx.serialize());
+        assertTrue(evaluated.isSuccessful(), evaluated.toString());
         String transferId = submit(tx);
-        var evidence = new LinkedHashMap<String, Object>(); evidence.put("scope", "Whole-value component with separately key-authorized disposable script holder; not a Kavach account");
-        evidence.put("mintTx", mintId); evidence.put("transferTx", transferId); evidence.put("nativeAssets", 140);
-        evidence.put("inputLovelace", ada); evidence.put("externalTopupLovelace", 1_000_000); evidence.put("inputValueCbor", PlutusDataAdapter.toClientLib(incoming.toPlutusData()).serializeToHex());
-        evidence.put("transactionBytes", tx.serialize().length); evidence.put("redeemers", tx.getWitnessSet().getRedeemers());
-        evidence.put("missingTokenNodeFailure", rejection.toString()); evidence.put("protocolParameters", backend.getEpochService().getProtocolParameters().getValue());
-        Files.createDirectories(Path.of("build/phase0")); Files.writeString(Path.of("build/phase0/whole-utxo-evidence.json"), JsonUtil.getPrettyJson(evidence));
+        var evidence = new LinkedHashMap<String, Object>();
+        evidence.put("scope", "Whole-value component with separately key-authorized disposable script holder; not a Kavach account");
+        evidence.put("mintTx", mintId);
+        evidence.put("transferTx", transferId);
+        evidence.put("nativeAssets", 140);
+        evidence.put("inputLovelace", ada);
+        evidence.put("externalTopupLovelace", 1_000_000);
+        evidence.put("inputValueCbor", PlutusDataAdapter.toClientLib(incoming.toPlutusData()).serializeToHex());
+        evidence.put("transactionBytes", tx.serialize().length);
+        evidence.put("redeemers", tx.getWitnessSet().getRedeemers());
+        evidence.put("missingTokenNodeFailure", rejection.toString());
+        evidence.put("protocolParameters", backend.getEpochService().getProtocolParameters().getValue());
+        Files.createDirectories(Path.of("build/phase0"));
+        Files.writeString(Path.of("build/phase0/whole-utxo-evidence.json"), JsonUtil.getPrettyJson(evidence));
     }
+
     private QuickTxBuilder.TxContext spending(PlutusV3Script holder, PlutusV3Script checkpoint, String reward, Utxo input, PlutusData transfer, List<Amount> amounts, byte[] authority) {
         return builder.compose(new Tx().attachSpendingValidator(holder).attachRewardValidator(checkpoint).collectFrom(input, BigIntPlutusData.of(0))
                         .payToAddress(recipient.enterpriseAddress(), amounts).withdraw(reward, BigInteger.ZERO, PlutusDataAdapter.toClientLib(transfer)))
                 .feePayer(sponsor.baseAddress()).collateralPayer(sponsor.baseAddress()).withRequiredSigners(authority).withSigner(SignerProviders.signerFrom(sponsor))
                 .withTxEvaluator(new JulcTransactionEvaluator(new DefaultUtxoSupplier(backend.getUtxoService()), new DefaultProtocolParamsSupplier(backend.getEpochService()), null));
     }
-    @SuppressWarnings("unchecked") private Result<List<EvaluationResult>> budget(byte[] cbor) {
+
+    @SuppressWarnings("unchecked")
+    private Result<List<EvaluationResult>> budget(byte[] cbor) {
         try {
             var tx = Transaction.deserialize(cbor);
             var results = tx.getWitnessSet().getRedeemers().stream().map(r -> new EvaluationResult(r.getTag(), r.getIndex().intValueExact(),
                     new ExUnits(BigInteger.valueOf(2_000_000), BigInteger.valueOf(1_000_000_000)))).toList();
             return Result.success("Explicit adversarial budget").withValue(results);
-        } catch (Exception exception) { throw new IllegalStateException(exception); }
+        } catch (Exception exception) {
+            throw new IllegalStateException(exception);
+        }
     }
+
     private String submit(Transaction tx) throws Exception {
-        var result = backend.getTransactionService().submitTransaction(tx.serialize()); assertTrue(result.isSuccessful(), result.toString());
-        confirm(result.getValue()); return result.getValue();
+        var result = backend.getTransactionService().submitTransaction(tx.serialize());
+        assertTrue(result.isSuccessful(), result.toString());
+        confirm(result.getValue());
+        return result.getValue();
     }
+
     private void topUp(String address, long ada) throws Exception {
         var request = HttpRequest.newBuilder(URI.create("http://localhost:10000/local-cluster/api/addresses/topup"))
                 .timeout(Duration.ofSeconds(30)).header("Content-Type", "application/json")

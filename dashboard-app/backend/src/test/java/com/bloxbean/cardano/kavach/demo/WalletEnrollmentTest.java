@@ -7,12 +7,16 @@ import com.bloxbean.cardano.client.address.Address;
 import com.bloxbean.cardano.client.cip.cip30.CIP30DataSigner;
 import com.bloxbean.cardano.client.common.model.Networks;
 import com.bloxbean.cardano.client.util.HexUtil;
+
 import java.nio.charset.StandardCharsets;
 import java.security.MessageDigest;
 import java.util.Map;
+
 import org.junit.jupiter.api.Test;
 
-/** Verifies the public-key export API against Yano's CCL signer without funding or a node. */
+/**
+ * Verifies the public-key export API against Yano's CCL signer without funding or a node.
+ */
 class WalletEnrollmentTest {
     @Test
     void verifiesCclExportAndRejectsAnotherPayloadOrNetwork() throws Exception {

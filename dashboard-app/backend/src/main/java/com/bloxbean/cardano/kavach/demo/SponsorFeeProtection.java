@@ -5,20 +5,29 @@ import com.bloxbean.cardano.client.function.helper.FeeCalculators;
 import com.bloxbean.cardano.client.function.helper.ScriptCostEvaluators;
 import com.bloxbean.cardano.client.transaction.spec.Transaction;
 import com.bloxbean.cardano.client.transaction.spec.TransactionOutput;
+
 import java.math.BigInteger;
 import java.util.List;
 
-/** Keeps signed allocations unchanged when a recipient is also the fee payer. */
+/**
+ * Keeps signed allocations unchanged when a recipient is also the fee payer.
+ */
 final class SponsorFeeProtection {
     private List<TransactionOutput> original;
     private final int feeIndex;
     private final int signers;
 
-    SponsorFeeProtection(int feeIndex, int signers) { this.feeIndex = feeIndex; this.signers = signers; }
+    SponsorFeeProtection(int feeIndex, int signers) {
+        this.feeIndex = feeIndex;
+        this.signers = signers;
+    }
 
     void capture(TxBuilderContext context, Transaction tx) {
-        try { original = Transaction.deserialize(tx.serialize()).getBody().getOutputs(); }
-        catch (Exception e) { throw new IllegalStateException("Cannot preserve signed output allocations", e); }
+        try {
+            original = Transaction.deserialize(tx.serialize()).getBody().getOutputs();
+        } catch (Exception e) {
+            throw new IllegalStateException("Cannot preserve signed output allocations", e);
+        }
         if (original.size() != feeIndex + 1) throw new IllegalStateException("Unexpected sponsor change output layout");
     }
 
@@ -28,8 +37,11 @@ final class SponsorFeeProtection {
         restore(tx, tx.getBody().getFee());
         for (int attempt = 0; attempt < 6; attempt++) {
             String before;
-            try { before = tx.serializeToHex(); }
-            catch (Exception e) { throw new IllegalStateException(e); }
+            try {
+                before = tx.serializeToHex();
+            } catch (Exception e) {
+                throw new IllegalStateException(e);
+            }
             // The final candidate must evaluate successfully; never ignore a script failure.
             ScriptCostEvaluators.evaluateScriptCost().apply(context, tx);
             FeeCalculators.feeCalculator(signers, (fee, outputs) -> restore(tx, fee)).apply(context, tx);
@@ -38,12 +50,16 @@ final class SponsorFeeProtection {
                 BigInteger available = body.getCollateralReturn().getValue().getCoin().add(body.getTotalCollateral());
                 BigInteger required = body.getFee().multiply(context.getProtocolParams().getCollateralPercent().toBigIntegerExact())
                         .add(BigInteger.valueOf(99)).divide(BigInteger.valueOf(100));
-                if (required.compareTo(available) > 0) throw new IllegalStateException("Insufficient sponsor collateral after balancing");
+                if (required.compareTo(available) > 0)
+                    throw new IllegalStateException("Insufficient sponsor collateral after balancing");
                 body.setTotalCollateral(required);
                 body.getCollateralReturn().getValue().setCoin(available.subtract(required));
             }
-            try { if (before.equals(tx.serializeToHex())) return; }
-            catch (Exception e) { throw new IllegalStateException(e); }
+            try {
+                if (before.equals(tx.serializeToHex())) return;
+            } catch (Exception e) {
+                throw new IllegalStateException(e);
+            }
         }
         throw new IllegalStateException("Sponsor fee balancing did not converge");
     }

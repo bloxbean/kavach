@@ -1,4 +1,5 @@
 package com.bloxbean.cardano.kavach.phase0;
+
 import com.bloxbean.cardano.client.account.Account;
 import com.bloxbean.cardano.client.address.AddressProvider;
 import com.bloxbean.cardano.client.api.model.Amount;
@@ -9,8 +10,10 @@ import com.bloxbean.cardano.client.backend.api.DefaultProtocolParamsSupplier;
 import com.bloxbean.cardano.client.backend.api.DefaultScriptSupplier;
 import com.bloxbean.cardano.client.api.common.OrderEnum;
 import com.bloxbean.cardano.julc.clientlib.eval.JulcTransactionEvaluator;
+
 import java.util.ArrayList;
 import java.util.Set;
+
 import com.bloxbean.cardano.client.api.model.Result;
 import com.bloxbean.cardano.client.api.model.EvaluationResult;
 import com.bloxbean.cardano.client.plutus.spec.ExUnits;
@@ -59,51 +62,78 @@ class ValidityWindowDevkitTest {
     private final Account sponsor = new Account(NETWORK);
 
 
-    @Test void ledgerUsesPosixMillisecondsAndExclusiveUpperBound() throws Exception {
-        topUp(sponsor.baseAddress(), 100); topUp(sponsor.baseAddress(), 10); awaitUtxos(2);
+    @Test
+    void ledgerUsesPosixMillisecondsAndExclusiveUpperBound() throws Exception {
+        topUp(sponsor.baseAddress(), 100);
+        topUp(sponsor.baseAddress(), 10);
+        awaitUtxos(2);
         byte[] authority = sponsor.hdKeyPair().getPublicKey().getKeyHash();
         var script = JulcScriptLoader.load(ValidityWindowProbe.class, PlutusDataAdapter.toClientLib(PlutusData.bytes(authority)));
         String reward = AddressProvider.getRewardAddress(script, NETWORK).toBech32();
         String registration = submit(builder.compose(new Tx().registerStakeAddress(reward).from(sponsor.baseAddress()))
                 .withSigner(SignerProviders.signerFrom(sponsor)).buildAndSign());
-        var latest = backend.getBlockService().getLatestBlock(); assertTrue(latest.isSuccessful());
-        var block = latest.getValue(); var previous = backend.getBlockService().getBlockByHash(block.getPreviousBlock()); assertTrue(previous.isSuccessful());
+        var latest = backend.getBlockService().getLatestBlock();
+        assertTrue(latest.isSuccessful());
+        var block = latest.getValue();
+        var previous = backend.getBlockService().getBlockByHash(block.getPreviousBlock());
+        assertTrue(previous.isSuccessful());
         long slotDelta = block.getSlot() - previous.getValue().getSlot();
-        assertTrue(slotDelta > 0); assertEquals(slotDelta, block.getTime() - previous.getValue().getTime(), "This DevKit profile requires one-second slots");
+        assertTrue(slotDelta > 0);
+        assertEquals(slotDelta, block.getTime() - previous.getValue().getTime(), "This DevKit profile requires one-second slots");
         var slots = new SlotConfig(block.getSlot(), Math.multiplyExact(block.getTime(), 1000), 1000);
-        long from = block.getSlot(); long until = Math.addExact(from, 120);
+        long from = block.getSlot();
+        long until = Math.addExact(from, 120);
         var window = PlutusData.constr(0, PlutusData.integer(slots.slotToPosixMs(from)), PlutusData.integer(slots.slotToPosixMs(until)), PlutusData.integer(slots.slotToPosixMs(from)));
         var futureDeadline = PlutusData.constr(0, PlutusData.integer(slots.slotToPosixMs(from)), PlutusData.integer(slots.slotToPosixMs(until)), PlutusData.integer(slots.slotToPosixMs(from) + 1));
         var bad = context(script, reward, futureDeadline, authority, from, until).withTxEvaluator((cbor, inputs) -> budget()).buildAndSign();
-        var rejection = backend.getTransactionService().submitTransaction(bad.serialize()); assertFalse(rejection.isSuccessful());
+        var rejection = backend.getTransactionService().submitTransaction(bad.serialize());
+        assertFalse(rejection.isSuccessful());
         assertTrue(rejection.toString().contains("ValidationTagMismatch") && rejection.toString().contains("Caused by: error"), rejection.toString());
-        var utxos = new DefaultUtxoSupplier(backend.getUtxoService()); var parameters = new DefaultProtocolParamsSupplier(backend.getEpochService());
+        var utxos = new DefaultUtxoSupplier(backend.getUtxoService());
+        var parameters = new DefaultProtocolParamsSupplier(backend.getEpochService());
         var configured = new JulcTransactionEvaluator(utxos, parameters, null, slots);
         var tx = context(script, reward, window, authority, from, until).withTxEvaluator(configured).buildAndSign();
         var noConversion = new JulcTransactionEvaluator(utxos, parameters, null).evaluateTx(tx.serialize(), Set.of());
         assertFalse(noConversion.isSuccessful(), "Treating slots as milliseconds must fail this preflight");
-        var backendEvaluation = backend.getTransactionService().evaluateTx(tx.serialize()); assertTrue(backendEvaluation.isSuccessful(), backendEvaluation.toString());
+        var backendEvaluation = backend.getTransactionService().evaluateTx(tx.serialize());
+        assertTrue(backendEvaluation.isSuccessful(), backendEvaluation.toString());
         String withdrawal = submit(tx);
-        var evidence = new LinkedHashMap<String, Object>(); evidence.put("scope", "Validity containment and deadline primitive; not a recovery state transition");
-        evidence.put("registrationTx", registration); evidence.put("withdrawalTx", withdrawal); evidence.put("anchorSlot", block.getSlot()); evidence.put("anchorPosixMillis", slots.zeroSlotPosixMs());
-        evidence.put("slotLengthMillis", 1000); evidence.put("validFromSlot", from); evidence.put("validToExclusiveSlot", until);
-        evidence.put("oneMillisecondFutureDeadlineFailure", rejection.toString()); evidence.put("missingSlotConversionFailure", noConversion.toString());
-        evidence.put("redeemers", tx.getWitnessSet().getRedeemers()); evidence.put("protocolParameters", backend.getEpochService().getProtocolParameters().getValue());
-        Files.createDirectories(Path.of("build/phase0")); Files.writeString(Path.of("build/phase0/validity-window-evidence.json"), JsonUtil.getPrettyJson(evidence));
+        var evidence = new LinkedHashMap<String, Object>();
+        evidence.put("scope", "Validity containment and deadline primitive; not a recovery state transition");
+        evidence.put("registrationTx", registration);
+        evidence.put("withdrawalTx", withdrawal);
+        evidence.put("anchorSlot", block.getSlot());
+        evidence.put("anchorPosixMillis", slots.zeroSlotPosixMs());
+        evidence.put("slotLengthMillis", 1000);
+        evidence.put("validFromSlot", from);
+        evidence.put("validToExclusiveSlot", until);
+        evidence.put("oneMillisecondFutureDeadlineFailure", rejection.toString());
+        evidence.put("missingSlotConversionFailure", noConversion.toString());
+        evidence.put("redeemers", tx.getWitnessSet().getRedeemers());
+        evidence.put("protocolParameters", backend.getEpochService().getProtocolParameters().getValue());
+        Files.createDirectories(Path.of("build/phase0"));
+        Files.writeString(Path.of("build/phase0/validity-window-evidence.json"), JsonUtil.getPrettyJson(evidence));
     }
+
     private QuickTxBuilder.TxContext context(PlutusV3Script script, String reward, PlutusData window, byte[] authority, long from, long until) {
         return builder.compose(new Tx().attachRewardValidator(script).withdraw(reward, BigInteger.ZERO, PlutusDataAdapter.toClientLib(window)).from(sponsor.baseAddress()))
                 .feePayer(sponsor.baseAddress()).collateralPayer(sponsor.baseAddress()).withRequiredSigners(authority)
                 .withSigner(SignerProviders.signerFrom(sponsor)).validFrom(from).validTo(until);
     }
-    @SuppressWarnings("unchecked") private Result<List<EvaluationResult>> budget() {
+
+    @SuppressWarnings("unchecked")
+    private Result<List<EvaluationResult>> budget() {
         return Result.success("Explicit adversarial budget").withValue(List.of(new EvaluationResult(RedeemerTag.Reward, 0,
                 new ExUnits(BigInteger.valueOf(1_000_000), BigInteger.valueOf(200_000_000)))));
     }
+
     private String submit(Transaction tx) throws Exception {
-        var result = backend.getTransactionService().submitTransaction(tx.serialize()); assertTrue(result.isSuccessful(), result.toString());
-        confirm(result.getValue()); return result.getValue();
+        var result = backend.getTransactionService().submitTransaction(tx.serialize());
+        assertTrue(result.isSuccessful(), result.toString());
+        confirm(result.getValue());
+        return result.getValue();
     }
+
     private void topUp(String address, long ada) throws Exception {
         var request = HttpRequest.newBuilder(URI.create("http://localhost:10000/local-cluster/api/addresses/topup"))
                 .timeout(Duration.ofSeconds(30)).header("Content-Type", "application/json")

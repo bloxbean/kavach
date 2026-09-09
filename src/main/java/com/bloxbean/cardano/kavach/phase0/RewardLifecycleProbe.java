@@ -16,21 +16,26 @@ import com.bloxbean.cardano.julc.stdlib.lib.ValuesLib;
 import java.math.BigInteger;
 
 /**
-     * Disposable single-withdrawal lifecycle experiment, not an account checkpoint. 
+ * Disposable single-withdrawal lifecycle experiment, not an account checkpoint.
  * <p>Immutable parameter order: {@code authority, rewardSink, registrationDeposit}.</p>
  */
 @MultiValidator
 public class RewardLifecycleProbe {
-    @Param static byte[] authority;
-    @Param static Address rewardSink;
-    @Param static BigInteger registrationDeposit;
+    @Param
+    static byte[] authority;
+    @Param
+    static Address rewardSink;
+    @Param
+    static BigInteger registrationDeposit;
 
     // Integer redeemer is the receipt output index; zero withdrawals/registration use -1.
+
     /**
      * Checks the purpose-specific registration or withdrawal branch and immutable reward sink.
      * This isolated fixture does not authorize a complete Kavach account operation.
+     *
      * @param receiptIndex receipt output index, or -1 for registration and zero withdrawals
-     * @param ctx ledger-supplied context for this isolated feasibility probe
+     * @param ctx          ledger-supplied context for this isolated feasibility probe
      * @return whether this probe accepts; malformed Data may instead raise a script error
      */
     @Entrypoint(purpose = Purpose.CERTIFY)
@@ -41,8 +46,9 @@ public class RewardLifecycleProbe {
     /**
      * Checks the purpose-specific registration or withdrawal branch and immutable reward sink.
      * This isolated fixture does not authorize a complete Kavach account operation.
+     *
      * @param receiptIndex receipt output index, or -1 for registration and zero withdrawals
-     * @param ctx ledger-supplied context for this isolated feasibility probe
+     * @param ctx          ledger-supplied context for this isolated feasibility probe
      * @return whether this probe accepts; malformed Data may instead raise a script error
      */
     @Entrypoint(purpose = Purpose.WITHDRAW)
@@ -54,14 +60,14 @@ public class RewardLifecycleProbe {
         return switch (ctx.scriptInfo()) {
             case ScriptInfo.CertifyingScript certifying -> receiptIndex == BigInteger.valueOf(-1)
                     && registrationDeposit.signum() > 0 && switch (certifying.cert()) {
-                        case TxCert.RegStaking registration -> registration.deposit().isPresent()
-                                && registration.deposit().get() == registrationDeposit
-                                && switch (registration.credential()) {
-                                    case Credential.ScriptCredential script -> true;
-                                    default -> false;
-                                };
-                        default -> false;
-                    };
+                case TxCert.RegStaking registration -> registration.deposit().isPresent()
+                        && registration.deposit().get() == registrationDeposit
+                        && switch (registration.credential()) {
+                    case Credential.ScriptCredential script -> true;
+                    default -> false;
+                };
+                default -> false;
+            };
             case ScriptInfo.RewardingScript rewarding -> withdraw(receiptIndex, ctx, rewarding);
             default -> false;
         };
@@ -79,7 +85,8 @@ public class RewardLifecycleProbe {
         var amount = tx.withdrawals().get(rewarding.credential());
         if (amount.signum() < 0) return false;
         if (amount == BigInteger.ZERO) return receiptIndex == BigInteger.valueOf(-1);
-        if (receiptIndex.signum() < 0 || receiptIndex.compareTo(BigInteger.valueOf(tx.outputs().size())) >= 0) return false;
+        if (receiptIndex.signum() < 0 || receiptIndex.compareTo(BigInteger.valueOf(tx.outputs().size())) >= 0)
+            return false;
         var output = tx.outputs().get(receiptIndex.intValue());
         boolean keySink = switch (rewardSink.credential()) {
             case Credential.PubKeyCredential key -> true;

@@ -106,9 +106,9 @@ class BrowserSignaturesTest {
         var response = CIP30DataSigner.INSTANCE.signData(address, payload, secret, key);
         String addressHex = HEX.formatHex(address);
         String wrongAddress = "61" + addressHex.substring(2);
-        for (String badKey : new String[] {
+        for (String badKey : new String[]{
                 response.key().replace(addressHex, wrongAddress),
-                response.key().replace("02581d" + addressHex, "" ).replaceFirst("a5", "a4"),
+                response.key().replace("02581d" + addressHex, "").replaceFirst("a5", "a4"),
                 response.key().replace("02581d", "04581d"),
                 response.key().replaceFirst("a5", "a6") + "02581d" + addressHex
         }) {
@@ -171,11 +171,11 @@ class BrowserSignaturesTest {
     void rejectsUnsupportedAndAmbiguousHeaders() {
         String response = signed(address(6, 0));
         for (String altered :
-                new String[] {
-                    response.replace("a166686173686564f4", "a166686173686564f5"),
-                    response.replace("a2012767", "a2012667"),
-                    response.replaceFirst("8458", "9f58"),
-                    response.replaceFirst("84582a", "8459002a")
+                new String[]{
+                        response.replace("a166686173686564f4", "a166686173686564f5"),
+                        response.replace("a2012767", "a2012667"),
+                        response.replaceFirst("8458", "9f58"),
+                        response.replaceFirst("84582a", "8459002a")
                 }) {
             assertNotEquals(response, altered);
             assertThrows(
@@ -192,14 +192,14 @@ class BrowserSignaturesTest {
     @Test
     void keyParserRejectsDuplicateExtraWrongCurveAndTrailingFields() {
         for (String malformed :
-                new String[] {
-                    coseKey().replace("0327", "0101"),
-                    coseKey().replace("2006", "2001"),
-                    coseKey().replaceFirst("a4", "a5"),
-                    coseKey() + "00",
-                    "00",
-                    "a4",
-                    "g0"
+                new String[]{
+                        coseKey().replace("0327", "0101"),
+                        coseKey().replace("2006", "2001"),
+                        coseKey().replaceFirst("a4", "a5"),
+                        coseKey() + "00",
+                        "00",
+                        "a4",
+                        "g0"
                 }) {
             assertThrows(
                     IllegalArgumentException.class, () -> BrowserSignatures.publicKey(malformed));

@@ -13,11 +13,17 @@ import java.util.HexFormat;
  * header/address encodings fail explicitly; this is not a general COSE parser.
  */
 public final class BrowserSignatures {
-    /** Immutable evidence mode; values are distinct from raw Ed25519 scheme zero. */
+    /**
+     * Immutable evidence mode; values are distinct from raw Ed25519 scheme zero.
+     */
     public enum Mode {
-        /** Transaction-body required signers, with ledger-verified payment-key witnesses. */
+        /**
+         * Transaction-body required signers, with ledger-verified payment-key witnesses.
+         */
         TRANSACTION(1),
-        /** CIP-30 COSE intent approval with the bounded protected-header profile. */
+        /**
+         * CIP-30 COSE intent approval with the bounded protected-header profile.
+         */
         COSE(2);
         private final int id;
 
@@ -37,10 +43,10 @@ public final class BrowserSignatures {
      * Verifies a complete CIP-30 response and returns the bounded on-chain proof bytes.
      *
      * @param registeredKey authenticated 32-byte registry key, not a key trusted from the response
-     * @param payload expected 32-byte domain-specific Kavach digest
-     * @param coseSign1Hex wallet's complete COSE_Sign1 CBOR
-     * @param coseKeyHex wallet's COSE_Key CBOR
-     * @param network expected address network ID, zero or one
+     * @param payload       expected 32-byte domain-specific Kavach digest
+     * @param coseSign1Hex  wallet's complete COSE_Sign1 CBOR
+     * @param coseKeyHex    wallet's COSE_Key CBOR
+     * @param network       expected address network ID, zero or one
      * @return address and signature, with a trailing 1 for the protected address-valued kid variant
      * @throws IllegalArgumentException for malformed, unsupported, mismatched or invalid evidence
      */
@@ -62,7 +68,7 @@ public final class BrowserSignatures {
         if (reader.peek() == 0xa0) reader.take(0xa0);
         else {
             reader.take(0xa1);
-            reader.literal(new byte[] {0x66, 'h', 'a', 's', 'h', 'e', 'd', (byte) 0xf4});
+            reader.literal(new byte[]{0x66, 'h', 'a', 's', 'h', 'e', 'd', (byte) 0xf4});
         }
         require(
                 Arrays.equals(payload, reader.bytes()),
@@ -72,18 +78,18 @@ public final class BrowserSignatures {
         var headers = new Reader(protectedBytes);
         boolean withKid = headers.peek() == 0xa3;
         headers.take(withKid ? 0xa3 : 0xa2);
-        headers.literal(new byte[] {1, 0x27});
+        headers.literal(new byte[]{1, 0x27});
         byte[] kid = null;
         if (withKid) {
             headers.take(4);
             kid = headers.bytes();
         }
-        headers.literal(new byte[] {0x67, 'a', 'd', 'd', 'r', 'e', 's', 's'});
+        headers.literal(new byte[]{0x67, 'a', 'd', 'd', 'r', 'e', 's', 's'});
         byte[] address = headers.bytes();
         headers.end();
         require(Arrays.equals(kid, responseKey.kid()), "COSE key identifier differs between key and signature");
         require(!withKid || Arrays.equals(kid, address), "Unsupported COSE key identifier: expected signing address");
-        byte[] packed = withKid ? concat(address, signature, new byte[] {1}) : concat(address, signature);
+        byte[] packed = withKid ? concat(address, signature, new byte[]{1}) : concat(address, signature);
         require(
                 verify(registeredKey, payload, packed, network),
                 "Invalid COSE address or signature");
@@ -102,7 +108,8 @@ public final class BrowserSignatures {
         return readKey(coseKeyHex).key();
     }
 
-    private record ResponseKey(byte[] key, byte[] kid) {}
+    private record ResponseKey(byte[] key, byte[] kid) {
+    }
 
     private static ResponseKey readKey(String coseKeyHex) {
         var r = new Reader(hex(coseKeyHex, 128));
@@ -148,7 +155,9 @@ public final class BrowserSignatures {
         return new ResponseKey(key, kid);
     }
 
-    /** Verifies already packed proof bytes independently of the on-chain implementation. */
+    /**
+     * Verifies already packed proof bytes independently of the on-chain implementation.
+     */
     public static boolean verify(byte[] key, byte[] payload, byte[] packed, int network) {
         if (key == null
                 || key.length != 32
@@ -167,26 +176,30 @@ public final class BrowserSignatures {
         return Ed25519.verify(packed, length, key, 0, message, 0, message.length);
     }
 
-    /** Produces the exact CBOR signing structure for the supported address/header profile. */
+    /**
+     * Produces the exact CBOR signing structure for the supported address/header profile.
+     */
     public static byte[] signingStructure(byte[] address, byte[] payload) {
         return signingStructure(address, payload, false);
     }
 
-    /** Reconstructs one exact protected map; kid, when enabled, is the same address byte string. */
+    /**
+     * Reconstructs one exact protected map; kid, when enabled, is the same address byte string.
+     */
     public static byte[] signingStructure(byte[] address, byte[] payload, boolean withKid) {
         require(
                 (address.length == 29 || address.length == 57) && payload.length == 32,
                 "COSE profile size");
         byte[] headers =
                 concat(
-                        new byte[] {(byte) (withKid ? 0xa3 : 0xa2), 1, 0x27},
-                        withKid ? concat(new byte[] {4}, bytes(address)) : new byte[0],
-                        new byte[] {0x67, 'a', 'd', 'd', 'r', 'e', 's', 's'},
+                        new byte[]{(byte) (withKid ? 0xa3 : 0xa2), 1, 0x27},
+                        withKid ? concat(new byte[]{4}, bytes(address)) : new byte[0],
+                        new byte[]{0x67, 'a', 'd', 'd', 'r', 'e', 's', 's'},
                         bytes(address));
         return concat(
-                new byte[] {(byte) 0x84, 0x6a, 'S', 'i', 'g', 'n', 'a', 't', 'u', 'r', 'e', '1'},
+                new byte[]{(byte) 0x84, 0x6a, 'S', 'i', 'g', 'n', 'a', 't', 'u', 'r', 'e', '1'},
                 bytes(headers),
-                new byte[] {0x40},
+                new byte[]{0x40},
                 bytes(payload));
     }
 
@@ -203,7 +216,7 @@ public final class BrowserSignatures {
     }
 
     private static byte[] bytes(byte[] value) {
-        return concat(new byte[] {0x58, (byte) value.length}, value);
+        return concat(new byte[]{0x58, (byte) value.length}, value);
     }
 
     private static byte[] concat(byte[]... arrays) {
@@ -272,5 +285,6 @@ public final class BrowserSignatures {
         }
     }
 
-    private BrowserSignatures() {}
+    private BrowserSignatures() {
+    }
 }

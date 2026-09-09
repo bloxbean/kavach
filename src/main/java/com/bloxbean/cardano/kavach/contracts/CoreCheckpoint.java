@@ -11,7 +11,9 @@ import com.bloxbean.cardano.julc.ledger.ScriptPurpose;
 import com.bloxbean.cardano.julc.stdlib.Builtins;
 import com.bloxbean.cardano.julc.stdlib.annotation.*;
 import com.bloxbean.cardano.julc.stdlib.lib.ValuesLib;
+
 import java.math.BigInteger;
+
 import com.bloxbean.cardano.kavach.contracts.AccountTypes.*;
 
 /**
@@ -26,32 +28,39 @@ import com.bloxbean.cardano.kavach.contracts.AccountTypes.*;
  */
 @MultiValidator
 public class CoreCheckpoint {
-    @Param static BigInteger coreVersion;
-    @Param static DeploymentDomain deploymentDomain;
-    @Param static byte[] stateValidatorHash;
-    @Param static Address rewardSink;
+    @Param
+    static BigInteger coreVersion;
+    @Param
+    static DeploymentDomain deploymentDomain;
+    @Param
+    static byte[] stateValidatorHash;
+    @Param
+    static Address rewardSink;
 
     /**
      * Allows only the distinct empty registration redeemer under Certifying.
+     *
      * @param data untrusted ABI Data
-     * @param ctx ledger-supplied context for the selected script purpose
+     * @param ctx  ledger-supplied context for the selected script purpose
      * @return true for an accepted operation; malformed Data may instead raise a script error
      */
     @Entrypoint(purpose = Purpose.CERTIFY)
     public static boolean certify(PlutusData data, ScriptContext ctx) {
-        var invocation = (CoreInvocation)(Object)data;
-        return coreVersion.equals(BigInteger.ONE) && Builtins.equalsData((PlutusData)(Object)invocation,
-                (PlutusData)(Object)new CoreRegistration()) && AccountLib.registration(ctx);
+        var invocation = (CoreInvocation) (Object) data;
+        return coreVersion.equals(BigInteger.ONE) && Builtins.equalsData((PlutusData) (Object) invocation,
+                (PlutusData) (Object) new CoreRegistration()) && AccountLib.registration(ctx);
     }
+
     /**
      * Requires a canonical ordinary invocation under this checkpoint's Rewarding purpose.
+     *
      * @param data untrusted ABI Data
-     * @param ctx ledger-supplied context for the selected script purpose
+     * @param ctx  ledger-supplied context for the selected script purpose
      * @return true for an accepted operation; malformed Data may instead raise a script error
      */
     @Entrypoint(purpose = Purpose.WITHDRAW)
     public static boolean reward(PlutusData data, ScriptContext ctx) {
-        var invocation = (CoreInvocation)(Object)data;
+        var invocation = (CoreInvocation) (Object) data;
         return switch (invocation) {
             case CoreRedeemer core -> switch (core.intent().action()) {
                 case Spend spend -> transfer(core, ctx);
@@ -61,26 +70,35 @@ public class CoreCheckpoint {
             default -> false;
         };
     }
-    /** Composes state, module, receipts and value/replay checks without trusting relayer hints. */
+
+    /**
+     * Composes state, module, receipts and value/replay checks without trusting relayer hints.
+     */
     static boolean transfer(CoreRedeemer core, ScriptContext ctx) {
         if (!coreVersion.equals(BigInteger.ONE) || !core.abiVersion().equals(BigInteger.ONE) || !AccountLib.transactionShape(ctx)
                 || !(AccountLib.assetCount(ctx.txInfo().mint()) == 0) || ctx.txInfo().withdrawals().size() != 2
-                || !Builtins.equalsData((PlutusData)(Object)core, (PlutusData)(Object)new CoreRedeemer(core.abiVersion(), core.intent(), core.receipts()))
+                || !Builtins.equalsData((PlutusData) (Object) core, (PlutusData) (Object) new CoreRedeemer(core.abiVersion(), core.intent(), core.receipts()))
                 || !AccountLib.envelope(core.intent(), ctx)) return false;
         var state = AccountLib.resolve(core.intent().domain(), ctx);
-        if (!AccountLib.authenticate(state, core.intent().domain(), deploymentDomain, stateValidatorHash, ctx)) return false;
+        if (!AccountLib.authenticate(state, core.intent().domain(), deploymentDomain, stateValidatorHash, ctx))
+            return false;
         var own = AccountLib.script(state.coreBinding().checkpoint());
-        boolean purpose = switch (ctx.scriptInfo()) { case ScriptInfo.RewardingScript rewarding -> rewarding.credential().equals(own); default -> false; };
+        boolean purpose = switch (ctx.scriptInfo()) {
+            case ScriptInfo.RewardingScript rewarding -> rewarding.credential().equals(own);
+            default -> false;
+        };
         var module = AccountLib.script(state.authModule().scriptHash());
         var modulePurpose = new ScriptPurpose.Rewarding(module);
         var ownPurpose = new ScriptPurpose.Rewarding(own);
         if (!purpose || !ctx.txInfo().withdrawals().containsKey(own) || !ctx.txInfo().withdrawals().containsKey(module)
                 || !ctx.txInfo().redeemers().containsKey(modulePurpose) || !ctx.txInfo().redeemers().containsKey(ownPurpose)
-                || !Builtins.equalsData(ctx.txInfo().redeemers().get(ownPurpose), (PlutusData)(Object)core)) return false;
-        var auth = (ModuleRedeemer)(Object)ctx.txInfo().redeemers().get(modulePurpose);
+                || !Builtins.equalsData(ctx.txInfo().redeemers().get(ownPurpose), (PlutusData) (Object) core))
+            return false;
+        var auth = (ModuleRedeemer) (Object) ctx.txInfo().redeemers().get(modulePurpose);
         var expected = new ModuleRedeemer(BigInteger.ONE, core.intent(), auth.operationProof(), auth.configPossession(), core.receipts());
-        if (!Builtins.equalsData((PlutusData)(Object)auth, (PlutusData)(Object)expected) || !auth.configPossession().isEmpty()
-                || !AccountLib.receipts(core.receipts(), ctx) || !AccountLib.ownSink(own, rewardSink, core.receipts(), ctx)) return false;
+        if (!Builtins.equalsData((PlutusData) (Object) auth, (PlutusData) (Object) expected) || !auth.configPossession().isEmpty()
+                || !AccountLib.receipts(core.receipts(), ctx) || !AccountLib.ownSink(own, rewardSink, core.receipts(), ctx))
+            return false;
         var accountAddress = AccountLib.enterprise(state.coreBinding().assetValidator());
         var anchor = switch (core.intent().action()) {
             case Spend spend -> spend.accountInputs().head();
@@ -89,7 +107,8 @@ public class CoreCheckpoint {
         };
         boolean anchorPresent = false;
         for (var input : ctx.txInfo().inputs()) {
-            if (input.outRef().equals(anchor) && input.resolved().address().equals(accountAddress)) anchorPresent = true;
+            if (input.outRef().equals(anchor) && input.resolved().address().equals(accountAddress))
+                anchorPresent = true;
         }
         boolean supported = switch (core.intent().action()) {
             case Spend spend -> true;
@@ -99,7 +118,10 @@ public class CoreCheckpoint {
         // This exact consumed anchor must execute the immutable asset validator's accounting branch.
         return anchorPresent && supported;
     }
-    /** Requires old-module approval and a consumed immutable state anchor for a mutation. */
+
+    /**
+     * Requires old-module approval and a consumed immutable state anchor for a mutation.
+     */
     static boolean mutate(CoreRedeemer invocation, ScriptContext ctx) {
         if (!coreVersion.equals(BigInteger.ONE) || !AccountLib.envelope(invocation.intent(), ctx)) return false;
         var previous = StateTransitionLib.resolve(invocation.intent().domain(), ctx);
@@ -112,7 +134,7 @@ public class CoreCheckpoint {
         };
         var statePurpose = new ScriptPurpose.Spending(invocation.intent().domain().stateRef());
         if (!purpose || !ctx.txInfo().redeemers().containsKey(statePurpose)
-                || !Builtins.equalsData(ctx.txInfo().redeemers().get(statePurpose), (PlutusData)(Object)invocation)
+                || !Builtins.equalsData(ctx.txInfo().redeemers().get(statePurpose), (PlutusData) (Object) invocation)
                 || !AccountLib.receipts(invocation.receipts(), ctx)
                 || !AccountLib.ownSink(own, rewardSink, invocation.receipts(), ctx)) return false;
         var oldCredential = AccountLib.script(previous.authModule().scriptHash());
@@ -133,12 +155,15 @@ public class CoreCheckpoint {
         };
     }
 
-    /** Binds each independently executing module to the exact same envelope and receipt table. */
+    /**
+     * Binds each independently executing module to the exact same envelope and receipt table.
+     */
     static boolean moduleInvocation(CoreRedeemer invocation, Credential selected, ScriptContext ctx) {
         var purpose = new ScriptPurpose.Rewarding(selected);
-        if (!ctx.txInfo().withdrawals().containsKey(selected) || !ctx.txInfo().redeemers().containsKey(purpose)) return false;
-        var module = (ModuleRedeemer)(Object)ctx.txInfo().redeemers().get(purpose);
-        return Builtins.equalsData((PlutusData)(Object)module, (PlutusData)(Object)new ModuleRedeemer(BigInteger.ONE,
+        if (!ctx.txInfo().withdrawals().containsKey(selected) || !ctx.txInfo().redeemers().containsKey(purpose))
+            return false;
+        var module = (ModuleRedeemer) (Object) ctx.txInfo().redeemers().get(purpose);
+        return Builtins.equalsData((PlutusData) (Object) module, (PlutusData) (Object) new ModuleRedeemer(BigInteger.ONE,
                 invocation.intent(), module.operationProof(), module.configPossession(), invocation.receipts()));
     }
 }

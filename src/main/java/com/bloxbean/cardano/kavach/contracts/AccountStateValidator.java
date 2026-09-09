@@ -10,6 +10,7 @@ import com.bloxbean.cardano.julc.stdlib.annotation.Entrypoint;
 import com.bloxbean.cardano.julc.stdlib.annotation.Param;
 import com.bloxbean.cardano.julc.stdlib.annotation.SpendingValidator;
 import com.bloxbean.cardano.kavach.contracts.AccountTypes.DeploymentDomain;
+
 import java.math.BigInteger;
 
 /**
@@ -22,22 +23,26 @@ import java.math.BigInteger;
  */
 @SpendingValidator
 public class AccountStateValidator {
-    @Param static BigInteger coreVersion;
-    @Param static DeploymentDomain deploymentDomain;
+    @Param
+    static BigInteger coreVersion;
+    @Param
+    static DeploymentDomain deploymentDomain;
 
     /**
      * Checks the complete mutation at the consumed state input's immutable boundary.
+     *
      * @param redeemer exact core/state invocation, never an independent caller-selected digest
-     * @param ctx ledger context selecting this state input under Spending
+     * @param ctx      ledger context selecting this state input under Spending
      * @return true only when custody, lifecycle, successor and core binding all hold
      */
     @Entrypoint
     public static boolean validate(PlutusData redeemer, ScriptContext ctx) {
         if (!coreVersion.equals(BigInteger.ONE)) return false;
-        var invocation = (CoreRedeemer)(Object)redeemer;
+        var invocation = (CoreRedeemer) (Object) redeemer;
         var previous = StateTransitionLib.resolve(invocation.intent().domain(), ctx);
         boolean ownInput = switch (ctx.scriptInfo()) {
-            case ScriptInfo.SpendingScript spending -> spending.txOutRef().equals(invocation.intent().domain().stateRef());
+            case ScriptInfo.SpendingScript spending ->
+                    spending.txOutRef().equals(invocation.intent().domain().stateRef());
             default -> false;
         };
         if (!ownInput || !StateTransitionLib.authenticate(previous, invocation.intent().domain(), deploymentDomain,

@@ -15,7 +15,9 @@ final class StateProbeFixtures {
         return PlutusData.constr(0, PlutusData.integer(0), PlutusData.bytes(DOMAIN), PlutusData.bytes(creator));
     }
 
-    static PlutusV3Script holder() { return JulcScriptLoader.load(SealedStateProbe.class); }
+    static PlutusV3Script holder() {
+        return JulcScriptLoader.load(SealedStateProbe.class);
+    }
 
     static PlutusV3Script mint(TxOutRef seed, byte[] creator, byte[] holderHash) {
         return JulcScriptLoader.load(StateNftMintProbe.class, PlutusDataAdapter.toClientLib(seed.toPlutusData()),

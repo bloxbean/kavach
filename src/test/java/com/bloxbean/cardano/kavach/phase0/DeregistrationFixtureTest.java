@@ -16,13 +16,16 @@ import com.bloxbean.cardano.julc.vm.LedgerEvaluationTarget;
 import com.bloxbean.cardano.julc.vm.PlutusLanguage;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.ValueSource;
+
 import java.math.BigInteger;
 import java.util.List;
 import java.util.Optional;
+
 import static org.junit.jupiter.api.Assertions.*;
 
 class DeregistrationFixtureTest {
-    @ParameterizedTest @ValueSource(strings={"authorized", "no-authority", "registration", "rewarding", "wrong-redeemer"})
+    @ParameterizedTest
+    @ValueSource(strings = {"authorized", "no-authority", "registration", "rewarding", "wrong-redeemer"})
     void fixtureHasNoUnconditionalCertificateOrRewardBranch(String branch) {
         byte[] authority = new byte[28];
         var script = JulcScriptLoader.load(DeregistrationFixture.class, PlutusDataAdapter.toClientLib(PlutusData.bytes(authority)));

@@ -3,6 +3,7 @@ package com.bloxbean.cardano.kavach.contracts;
 import com.bloxbean.cardano.client.api.model.ProtocolParams;
 import com.bloxbean.cardano.client.plutus.spec.PlutusV3Script;
 import com.bloxbean.cardano.client.transaction.spec.Transaction;
+
 import java.math.BigDecimal;
 import java.math.BigInteger;
 import java.math.RoundingMode;
@@ -11,6 +12,7 @@ import java.util.HashSet;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
+
 import com.bloxbean.cardano.client.util.HexUtil;
 
 /**
@@ -19,7 +21,8 @@ import com.bloxbean.cardano.client.util.HexUtil;
  * spend no reference-script-bearing inputs. This is reporting, not transaction balancing.
  */
 final class FeeEvidence {
-    private FeeEvidence() {}
+    private FeeEvidence() {
+    }
 
     /**
      * Prices the final declared budgets, including the evaluator allowance. Uses Conway's
@@ -27,7 +30,7 @@ final class FeeEvidence {
      * Retains any difference from the paid fee explicitly instead of attributing it to scripts.
      */
     static Map<String, Object> analyze(Transaction transaction, ProtocolParams parameters,
-            List<PlutusV3Script> referencedScripts) throws Exception {
+                                       List<PlutusV3Script> referencedScripts) throws Exception {
         var result = new LinkedHashMap<String, Object>();
         int bytes = transaction.serialize().length;
         BigInteger base = BigInteger.valueOf(parameters.getMinFeeA()).multiply(BigInteger.valueOf(bytes))

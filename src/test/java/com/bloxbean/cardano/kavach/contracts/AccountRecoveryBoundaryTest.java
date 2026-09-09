@@ -10,12 +10,15 @@ import java.math.BigInteger;
 
 import static org.junit.jupiter.api.Assertions.*;
 
-/** Independent SDK/compiled immutable-boundary checks; synthetic time is not elapsed ledger evidence. */
+/**
+ * Independent SDK/compiled immutable-boundary checks; synthetic time is not elapsed ledger evidence.
+ */
 class AccountRecoveryBoundaryTest {
     private final AccountLifecycleTest lifecycle = new AccountLifecycleTest();
     private final AccountFixtures f = lifecycle.f;
 
-    AccountRecoveryBoundaryTest() throws Exception {}
+    AccountRecoveryBoundaryTest() throws Exception {
+    }
 
     @ParameterizedTest
     @ValueSource(strings = {"before-deadline", "exact-deadline", "after-deadline", "wrong-sequence",
@@ -41,7 +44,9 @@ class AccountRecoveryBoundaryTest {
                 action = new StartRecovery(BigInteger.valueOf(Long.MAX_VALUE), old.authConfig());
             }
             case "delay-overflow" -> {
-                old = f.state; lower = Long.MAX_VALUE - 1000; upper = Long.MAX_VALUE - 1;
+                old = f.state;
+                lower = Long.MAX_VALUE - 1000;
+                upper = Long.MAX_VALUE - 1;
                 action = new StartRecovery(BigInteger.ONE, old.authConfig());
             }
             case "before-cooldown", "exact-cooldown" -> {
@@ -50,16 +55,20 @@ class AccountRecoveryBoundaryTest {
                 if (boundary.equals("before-cooldown")) lower--;
             }
             case "wrong-cancel-commitment" -> {
-                var wrong = new byte[32]; wrong[0] = 1;
+                var wrong = new byte[32];
+                wrong[0] = 1;
                 action = new CancelRecovery(BigInteger.ONE, wrong);
             }
-            case "exact-deadline" -> { }
+            case "exact-deadline" -> {
+            }
             default -> throw new AssertionError(boundary);
         }
         var request = lifecycle.intent(old, action, lower, upper);
-        var current = old; long start = lower, end = upper;
+        var current = old;
+        long start = lower, end = upper;
         AccountState next;
-        if (allowed) next = AccountAdministration.successor(old, request, BigInteger.valueOf(lower), BigInteger.valueOf(upper), true);
+        if (allowed)
+            next = AccountAdministration.successor(old, request, BigInteger.valueOf(lower), BigInteger.valueOf(upper), true);
         else {
             assertThrows(IllegalArgumentException.class, () -> AccountAdministration.successor(current, request,
                     BigInteger.valueOf(start), BigInteger.valueOf(end), true), boundary);

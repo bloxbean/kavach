@@ -15,29 +15,41 @@ import com.bloxbean.cardano.kavach.phase0.WireDigestProbe;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.ValueSource;
+
 import java.math.BigInteger;
 import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 import java.util.HexFormat;
 import java.util.List;
+
 import static com.bloxbean.cardano.kavach.protocol.WireFixtures.*;
 import static org.junit.jupiter.api.Assertions.*;
 
 class WireFormatTest {
     private String resource(String path) throws Exception {
-        try (var stream = getClass().getResourceAsStream(path)) { assertNotNull(stream); return new String(stream.readAllBytes(), StandardCharsets.UTF_8); }
+        try (var stream = getClass().getResourceAsStream(path)) {
+            assertNotNull(stream);
+            return new String(stream.readAllBytes(), StandardCharsets.UTF_8);
+        }
     }
+
     private PlutusData replace(PlutusData data, int field, PlutusData replacement) {
-        var c = (PlutusData.ConstrData) data; var fields = new ArrayList<>(c.fields()); fields.set(field, replacement);
+        var c = (PlutusData.ConstrData) data;
+        var fields = new ArrayList<>(c.fields());
+        fields.set(field, replacement);
         return new PlutusData.ConstrData(c.tag(), fields);
     }
-    @Test void allNineVectorsAgreeAcrossDecoderRendererCclAndCompiledDigestSignature() throws Exception {
-        var vectors = JsonUtil.parseJson(resource("/v1/intent-vectors.json")); assertEquals(9, vectors.size());
+
+    @Test
+    void allNineVectorsAgreeAcrossDecoderRendererCclAndCompiledDigestSignature() throws Exception {
+        var vectors = JsonUtil.parseJson(resource("/v1/intent-vectors.json"));
+        assertEquals(9, vectors.size());
         var program = JulcScriptAdapter.toProgram(JulcScriptLoader.load(WireDigestProbe.class).getCborHex());
         for (var vector : vectors) {
             var cbor = HexFormat.of().parseHex(vector.get("cbor").asText());
             var decoded = PlutusDataAdapter.fromClientLib(com.bloxbean.cardano.client.plutus.spec.PlutusData.deserialize(cbor));
-            int tag = vector.get("actionTag").asInt(); assertEquals(envelope(tag), decoded);
+            int tag = vector.get("actionTag").asInt();
+            assertEquals(envelope(tag), decoded);
             assertEquals(vector.get("rendering").asText(), WireFormat.renderIntent(decoded, tag == 8 ? wholeValue() : null));
             assertArrayEquals(cbor, PlutusDataAdapter.toClientLib(decoded).serializeToBytes());
             byte[] digest = Blake2bUtil.blake2bHash256(cbor);
@@ -56,8 +68,11 @@ class WireFormatTest {
                     LedgerEvaluationTarget.pv11(PlutusLanguage.PLUTUS_V3), List.of(bad.buildPlutusData()), new ExBudget(500_000_000, 2_000_000), EvalOptions.DEFAULT));
         }
     }
-    @Test void nativeTokenAndAddressEdgesAgreeWithCompiledCanonicalDigests() throws Exception {
-        var vectors = JsonUtil.parseJson(resource("/v1/edge-vectors.json")); assertEquals(3, vectors.size());
+
+    @Test
+    void nativeTokenAndAddressEdgesAgreeWithCompiledCanonicalDigests() throws Exception {
+        var vectors = JsonUtil.parseJson(resource("/v1/edge-vectors.json"));
+        assertEquals(3, vectors.size());
         var program = JulcScriptAdapter.toProgram(JulcScriptLoader.load(WireDigestProbe.class).getCborHex());
         for (var vector : vectors) {
             byte[] cbor = HexFormat.of().parseHex(vector.get("cbor").asText());
@@ -76,7 +91,9 @@ class WireFormatTest {
             assertInstanceOf(EvalResult.Success.class, result, vector.get("name").asText() + ": " + result);
         }
     }
-    @Test void wholeTransferRenderingRequiresTheExactResolvedValue() {
+
+    @Test
+    void wholeTransferRenderingRequiresTheExactResolvedValue() {
         assertThrows(IllegalArgumentException.class, () -> WireFormat.renderIntent(envelope(8)));
         var wrong = Value.lovelace(BigInteger.valueOf(1)).toPlutusData();
         assertThrows(IllegalArgumentException.class, () -> WireFormat.renderIntent(envelope(8), wrong));
@@ -84,7 +101,9 @@ class WireFormatTest {
         assertTrue(rendered.contains("digest.blake2b256="));
         assertThrows(IllegalArgumentException.class, () -> WireFormat.ledgerValueDigest(number(0)));
     }
-    @Test void signerStateDisplayBindsTheResolvedReferenceAndIncludesRecoveryTerms() {
+
+    @Test
+    void signerStateDisplayBindsTheResolvedReferenceAndIncludesRecoveryTerms() {
         var ref = ((PlutusData.ConstrData) domain()).fields().get(5);
         String display = WireFormat.renderSigningRequest(envelope(5), state(), ref, null);
         assertTrue(display.contains("state.recoveryDelayMs=86400000\n"));
@@ -95,7 +114,9 @@ class WireFormatTest {
         assertTrue(WireFormat.renderState(pending).contains("state.pending.proposalCommitment="));
         assertTrue(WireFormat.renderState(pending).contains("state.pending.targetConfig.spend.threshold="));
     }
-    @Test void stateVectorAndModesValidateStrictly() throws Exception {
+
+    @Test
+    void stateVectorAndModesValidateStrictly() throws Exception {
         WireFormat.validateState(state());
         assertEquals(resource("/v1/state-rendering.txt"), WireFormat.renderState(state()));
         assertEquals(resource("/v1/state.hex").strip(), PlutusDataAdapter.toClientLib(state()).serializeToHex());
@@ -106,33 +127,58 @@ class WireFormatTest {
         assertThrows(IllegalArgumentException.class, () -> WireFormat.validateState(replace(state(), 11, PlutusData.constr(2))));
         assertThrows(IllegalArgumentException.class, () -> WireFormat.validateState(replace(state(), 8, number(0))));
     }
-    @ParameterizedTest @ValueSource(strings = {"tag", "version", "extra-field", "unknown-action", "interval-zero", "interval-wide", "negative-version", "overflow-version", "input-duplicate", "input-empty", "recipient-duplicate", "fee", "negative-asset", "overflow-asset", "asset-duplicate", "missing-ada", "bad-key-alias", "invalid-key", "recipient-source", "defensive-overlap", "admin-overlap", "threshold-zero", "deep", "huge-bytes"})
+
+    @ParameterizedTest
+    @ValueSource(strings = {"tag", "version", "extra-field", "unknown-action", "interval-zero", "interval-wide", "negative-version", "overflow-version", "input-duplicate", "input-empty", "recipient-duplicate", "fee", "negative-asset", "overflow-asset", "asset-duplicate", "missing-ada", "bad-key-alias", "invalid-key", "recipient-source", "defensive-overlap", "admin-overlap", "threshold-zero", "deep", "huge-bytes"})
     void malformedOrUnsafePayloadsReject(String mutation) {
-        PlutusData payload = envelope(0); var spend = action(0);
+        PlutusData payload = envelope(0);
+        var spend = action(0);
         switch (mutation) {
             case "tag" -> payload = replace(payload, 0, bytes(14, 0));
             case "version" -> payload = replace(payload, 1, replace(domain(), 0, number(2)));
-            case "extra-field" -> { var f = new ArrayList<>(((PlutusData.ConstrData) payload).fields()); f.add(number(0)); payload = new PlutusData.ConstrData(0, f); }
+            case "extra-field" -> {
+                var f = new ArrayList<>(((PlutusData.ConstrData) payload).fields());
+                f.add(number(0));
+                payload = new PlutusData.ConstrData(0, f);
+            }
             case "unknown-action" -> payload = replace(payload, 3, PlutusData.constr(9));
             case "interval-zero" -> payload = replace(payload, 2, rec(number(1), number(1)));
             case "interval-wide" -> payload = replace(payload, 2, rec(number(0), number(300001)));
             case "negative-version" -> payload = replace(payload, 1, replace(domain(), 4, number(-1)));
-            case "overflow-version" -> payload = replace(payload, 1, replace(domain(), 4, PlutusData.integer(BigInteger.ONE.shiftLeft(63))));
+            case "overflow-version" ->
+                    payload = replace(payload, 1, replace(domain(), 4, PlutusData.integer(BigInteger.ONE.shiftLeft(63))));
             case "input-duplicate" -> payload = replace(payload, 3, replace(spend, 0, list(input(1), input(1))));
             case "input-empty" -> payload = replace(payload, 3, replace(spend, 0, list()));
-            case "recipient-duplicate" -> payload = replace(payload, 3, replace(spend, 1, list(rec(number(0), address(), value()), rec(number(0), address(), value()))));
+            case "recipient-duplicate" ->
+                    payload = replace(payload, 3, replace(spend, 1, list(rec(number(0), address(), value()), rec(number(0), address(), value()))));
             case "fee" -> payload = replace(payload, 3, replace(spend, 2, number(5_000_001)));
-            case "overflow-asset" -> payload = replace(payload, 3, replace(spend, 1, list(rec(number(0), address(), list(rec(bytes(0,0), bytes(0,0), PlutusData.integer(BigInteger.ONE.shiftLeft(63))))))));
-            case "negative-asset" -> payload = replace(payload, 3, replace(spend, 1, list(rec(number(0), address(), list(rec(bytes(0,0), bytes(0,0), number(-1)))))));
-            case "asset-duplicate" -> { var ada = rec(bytes(0,0), bytes(0,0), number(1)); payload = replace(payload, 3, replace(spend, 1, list(rec(number(0), address(), list(ada, ada))))); }
-            case "missing-ada" -> payload = replace(payload, 3, replace(spend, 1, list(rec(number(0), address(), list(rec(bytes(28,1), bytes(0,0), number(1)))))));
-            case "recipient-source" -> payload = replace(payload, 3, replace(spend, 1, list(rec(number(0), rec(PlutusData.constr(1, bytes(28, 4)), PlutusData.constr(1)), value()))));
-            case "invalid-key" -> payload = replace(payload, 3, PlutusData.constr(1, replace(config(), 1, list(rec(number(0), bytes(32, 0)), key(1), key(2)))));
-            case "bad-key-alias" -> payload = replace(payload, 3, PlutusData.constr(1, replace(config(), 1, list(key(0), rec(number(1), ((PlutusData.ConstrData) key(0)).fields().get(1)), key(2)))));
-            case "defensive-overlap" -> payload = replace(payload, 3, PlutusData.constr(1, replace(config(), 5, policy(2))));
-            case "admin-overlap" -> payload = replace(payload, 3, PlutusData.constr(1, replace(config(), 3, policy(0))));
-            case "threshold-zero" -> payload = replace(payload, 3, PlutusData.constr(1, replace(config(), 2, rec(number(0), list(number(0))))));
-            case "deep" -> { PlutusData deep = number(0); for(int i=0;i<40;i++) deep=rec(deep); payload = replace(payload, 3, PlutusData.constr(1, deep)); }
+            case "overflow-asset" ->
+                    payload = replace(payload, 3, replace(spend, 1, list(rec(number(0), address(), list(rec(bytes(0, 0), bytes(0, 0), PlutusData.integer(BigInteger.ONE.shiftLeft(63))))))));
+            case "negative-asset" ->
+                    payload = replace(payload, 3, replace(spend, 1, list(rec(number(0), address(), list(rec(bytes(0, 0), bytes(0, 0), number(-1)))))));
+            case "asset-duplicate" -> {
+                var ada = rec(bytes(0, 0), bytes(0, 0), number(1));
+                payload = replace(payload, 3, replace(spend, 1, list(rec(number(0), address(), list(ada, ada)))));
+            }
+            case "missing-ada" ->
+                    payload = replace(payload, 3, replace(spend, 1, list(rec(number(0), address(), list(rec(bytes(28, 1), bytes(0, 0), number(1)))))));
+            case "recipient-source" ->
+                    payload = replace(payload, 3, replace(spend, 1, list(rec(number(0), rec(PlutusData.constr(1, bytes(28, 4)), PlutusData.constr(1)), value()))));
+            case "invalid-key" ->
+                    payload = replace(payload, 3, PlutusData.constr(1, replace(config(), 1, list(rec(number(0), bytes(32, 0)), key(1), key(2)))));
+            case "bad-key-alias" ->
+                    payload = replace(payload, 3, PlutusData.constr(1, replace(config(), 1, list(key(0), rec(number(1), ((PlutusData.ConstrData) key(0)).fields().get(1)), key(2)))));
+            case "defensive-overlap" ->
+                    payload = replace(payload, 3, PlutusData.constr(1, replace(config(), 5, policy(2))));
+            case "admin-overlap" ->
+                    payload = replace(payload, 3, PlutusData.constr(1, replace(config(), 3, policy(0))));
+            case "threshold-zero" ->
+                    payload = replace(payload, 3, PlutusData.constr(1, replace(config(), 2, rec(number(0), list(number(0))))));
+            case "deep" -> {
+                PlutusData deep = number(0);
+                for (int i = 0; i < 40; i++) deep = rec(deep);
+                payload = replace(payload, 3, PlutusData.constr(1, deep));
+            }
             case "huge-bytes" -> payload = replace(payload, 0, bytes(8193, 0));
             default -> throw new AssertionError(mutation);
         }

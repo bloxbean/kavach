@@ -16,23 +16,29 @@ import com.bloxbean.cardano.julc.stdlib.annotation.WithdrawValidator;
 import java.math.BigInteger;
 
 /**
-     * Authenticates immutable genesis state by the complete NFT identity and address. 
+ * Authenticates immutable genesis state by the complete NFT identity and address.
  * <p>Immutable parameter order: {@code nftPolicy, stateValidatorHash, domain, creator}.</p>
  */
 @WithdrawValidator
 public class StateReferenceProbe {
-    @Param static byte[] nftPolicy;
-    @Param static byte[] stateValidatorHash;
-    @Param static byte[] domain;
-    @Param static byte[] creator;
+    @Param
+    static byte[] nftPolicy;
+    @Param
+    static byte[] stateValidatorHash;
+    @Param
+    static byte[] domain;
+    @Param
+    static byte[] creator;
 
-    public record ProbeState(BigInteger schemaVersion, byte[] domain, byte[] creator) {}
+    public record ProbeState(BigInteger schemaVersion, byte[] domain, byte[] creator) {
+    }
 
     /**
      * Checks the complete fixture NFT identity, custody address and inline probe datum.
      * This isolated fixture does not authorize a complete Kavach account operation.
+     *
      * @param redeemer untrusted fixture redeemer; not the Kavach account ABI
-     * @param ctx ledger-supplied context for this isolated feasibility probe
+     * @param ctx      ledger-supplied context for this isolated feasibility probe
      * @return whether this probe accepts; malformed Data may instead raise a script error
      */
     @Entrypoint
@@ -56,11 +62,13 @@ public class StateReferenceProbe {
             var output = input.resolved();
             if (output.value().assetOf(policy, new TokenName(new byte[]{})) != BigInteger.ZERO) {
                 boolean addressMatches = switch (output.address().credential()) {
-                    case Credential.ScriptCredential script -> Builtins.equalsByteString(script.hash().hash(), stateValidatorHash);
+                    case Credential.ScriptCredential script ->
+                            Builtins.equalsByteString(script.hash().hash(), stateValidatorHash);
                     default -> false;
                 };
                 boolean datumMatches = switch (output.datum()) {
-                    case OutputDatum.OutputDatumInline inline -> Builtins.equalsData(inline.datum(), (PlutusData) (Object) expected);
+                    case OutputDatum.OutputDatumInline inline ->
+                            Builtins.equalsData(inline.datum(), (PlutusData) (Object) expected);
                     default -> false;
                 };
                 if (addressMatches && datumMatches && output.address().stakingCredential().isEmpty()

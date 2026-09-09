@@ -31,54 +31,59 @@ import java.util.Optional;
  * input belongs in a mutation transaction; the immutable state validator enforces this.
  */
 public final class AccountMutation {
-    private AccountMutation() {}
+    private AccountMutation() {
+    }
 
     /**
      * Effective transaction validity bounds after converting slots to POSIX milliseconds.
-     * @param lower finite ledger lower endpoint
-     * @param upper finite ledger upper endpoint
+     *
+     * @param lower          finite ledger lower endpoint
+     * @param upper          finite ledger upper endpoint
      * @param upperInclusive whether the ledger includes the upper endpoint
      */
-    public record Window(BigInteger lower, BigInteger upper, boolean upperInclusive) {}
+    public record Window(BigInteger lower, BigInteger upper, boolean upperInclusive) {
+    }
 
     /**
      * Validates state custody, signatures, lifecycle and reward allocations before touching
      * the caller's builder. The same core redeemer is attached to the consumed state and
      * immutable checkpoint. Candidate approval never substitutes for old administration.
      *
-     * @param tx caller-owned transaction with successor and receipt outputs already positioned
-     * @param scripts independently verified current script graph, including the installed module
-     * @param previous resolved current state datum
-     * @param stateInput current state NFT UTxO to consume
-     * @param current current-module invocation containing the canonical signed request
-     * @param candidate optional candidate invocation, only for ReplaceModule
+     * @param tx              caller-owned transaction with successor and receipt outputs already positioned
+     * @param scripts         independently verified current script graph, including the installed module
+     * @param previous        resolved current state datum
+     * @param stateInput      current state NFT UTxO to consume
+     * @param current         current-module invocation containing the canonical signed request
+     * @param candidate       optional candidate invocation, only for ReplaceModule
      * @param candidateScript independently approved candidate artifact, only for ReplaceModule
-     * @param rewardBalances complete nonnegative current balances for every required reward credential, including zeros
-     * @param window actual ledger time bounds corresponding to the transaction's validity slots
+     * @param rewardBalances  complete nonnegative current balances for every required reward credential, including zeros
+     * @param window          actual ledger time bounds corresponding to the transaction's validity slots
      * @return the same transaction with state input and all required withdrawal invocations attached
-     * @throws IllegalArgumentException for mismatched state, scripts, authority, successor semantics or receipt allocations
-     * @throws CborSerializationException if script identity computation fails
+     * @throws IllegalArgumentException     for mismatched state, scripts, authority, successor semantics or receipt allocations
+     * @throws CborSerializationException   if script identity computation fails
      * @throws CborDeserializationException if the backend state datum cannot be decoded
      */
     public static Tx attach(Tx tx, AccountDeployment.Scripts scripts, AccountState previous, Utxo stateInput,
-            ModuleRedeemer current, Optional<ModuleRedeemer> candidate, Optional<PlutusV3Script> candidateScript,
-            Map<Credential, BigInteger> rewardBalances, Window window)
+                            ModuleRedeemer current, Optional<ModuleRedeemer> candidate, Optional<PlutusV3Script> candidateScript,
+                            Map<Credential, BigInteger> rewardBalances, Window window)
             throws CborSerializationException, CborDeserializationException {
         return attachInternal(tx, scripts, previous, stateInput, current, candidate, candidateScript, rewardBalances, window, null);
     }
 
-    /** Browser-profile attachment; the caller must put the profile's exact required signers in the final body. */
+    /**
+     * Browser-profile attachment; the caller must put the profile's exact required signers in the final body.
+     */
     public static Tx attach(Tx tx, AccountDeployment.Scripts scripts, AccountState previous, Utxo stateInput,
-            ModuleRedeemer current, Optional<ModuleRedeemer> candidate, Optional<PlutusV3Script> candidateScript,
-            Map<Credential, BigInteger> rewardBalances, Window window, BrowserAuthorization authorization)
+                            ModuleRedeemer current, Optional<ModuleRedeemer> candidate, Optional<PlutusV3Script> candidateScript,
+                            Map<Credential, BigInteger> rewardBalances, Window window, BrowserAuthorization authorization)
             throws CborSerializationException, CborDeserializationException {
         if (authorization == null) throw new IllegalArgumentException("Missing browser profile");
         return attachInternal(tx, scripts, previous, stateInput, current, candidate, candidateScript, rewardBalances, window, authorization);
     }
 
     private static Tx attachInternal(Tx tx, AccountDeployment.Scripts scripts, AccountState previous, Utxo stateInput,
-            ModuleRedeemer current, Optional<ModuleRedeemer> candidate, Optional<PlutusV3Script> candidateScript,
-            Map<Credential, BigInteger> rewardBalances, Window window, BrowserAuthorization authorization)
+                                     ModuleRedeemer current, Optional<ModuleRedeemer> candidate, Optional<PlutusV3Script> candidateScript,
+                                     Map<Credential, BigInteger> rewardBalances, Window window, BrowserAuthorization authorization)
             throws CborSerializationException, CborDeserializationException {
         var network = AccountTransfer.authenticateState(scripts, previous, stateInput);
         WireFormat.renderSigningRequest(AccountCodec.data(current.intent()), AccountCodec.data(previous),
@@ -112,7 +117,9 @@ public final class AccountMutation {
         return tx;
     }
 
-    /** Positive withdrawals appear once, in canonical hash order, at distinct bounded output indices. */
+    /**
+     * Positive withdrawals appear once, in canonical hash order, at distinct bounded output indices.
+     */
     private static void checkReceipts(JulcList<RewardReceipt> receipts, Map<Credential, BigInteger> balances) {
         var expected = new HashSet<PlutusData>();
         for (var entry : balances.entrySet()) {
@@ -120,7 +127,8 @@ public final class AccountMutation {
             require(quantity != null && quantity.signum() >= 0 && quantity.bitLength() <= 63, "Reward balance bound");
             if (quantity.signum() > 0) expected.add(entry.getKey().toPlutusData());
         }
-        var indices = new HashSet<BigInteger>(); byte[] previousHash = new byte[0];
+        var indices = new HashSet<BigInteger>();
+        byte[] previousHash = new byte[0];
         for (var receipt : receipts) {
             require(receipt.rewardCredential() instanceof Credential.ScriptCredential, "Script receipt required");
             byte[] hash = ((Credential.ScriptCredential) receipt.rewardCredential()).hash().hash();
@@ -135,5 +143,8 @@ public final class AccountMutation {
     private static Credential credential(PlutusV3Script script) throws CborSerializationException {
         return new Credential.ScriptCredential(new ScriptHash(script.getScriptHash()));
     }
-    private static void require(boolean condition, String message) { if (!condition) throw new IllegalArgumentException(message); }
+
+    private static void require(boolean condition, String message) {
+        if (!condition) throw new IllegalArgumentException(message);
+    }
 }

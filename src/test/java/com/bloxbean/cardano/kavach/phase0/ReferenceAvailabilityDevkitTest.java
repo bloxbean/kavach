@@ -1,4 +1,5 @@
 package com.bloxbean.cardano.kavach.phase0;
+
 import com.bloxbean.cardano.client.account.Account;
 import com.bloxbean.cardano.client.address.AddressProvider;
 import com.bloxbean.cardano.client.api.model.Amount;
@@ -9,7 +10,9 @@ import com.bloxbean.cardano.client.backend.api.DefaultProtocolParamsSupplier;
 import com.bloxbean.cardano.client.backend.api.DefaultScriptSupplier;
 import com.bloxbean.cardano.client.api.common.OrderEnum;
 import com.bloxbean.cardano.julc.clientlib.eval.JulcTransactionEvaluator;
+
 import java.util.ArrayList;
+
 import com.bloxbean.cardano.client.backend.blockfrost.service.BFBackendService;
 import com.bloxbean.cardano.client.common.model.Network;
 import com.bloxbean.cardano.client.function.helper.SignerProviders;
@@ -53,50 +56,70 @@ class ReferenceAvailabilityDevkitTest {
     private final Account sponsor = new Account(NETWORK);
     private final Account inputOwner = new Account(NETWORK);
 
-    @Test void redundantLockedReferencesAndFullWitnessFallback() throws Exception {
-        topUp(sponsor.baseAddress(), 100); topUp(sponsor.baseAddress(), 10); topUp(inputOwner.baseAddress(), 20); awaitUtxos(2);
-        var key = ProbeFixtures.keyPair(); var script = ProbeFixtures.script(key);
+    @Test
+    void redundantLockedReferencesAndFullWitnessFallback() throws Exception {
+        topUp(sponsor.baseAddress(), 100);
+        topUp(sponsor.baseAddress(), 10);
+        topUp(inputOwner.baseAddress(), 20);
+        awaitUtxos(2);
+        var key = ProbeFixtures.keyPair();
+        var script = ProbeFixtures.script(key);
         String reward = AddressProvider.getRewardAddress(script, NETWORK).toBech32();
         String holder = AddressProvider.getEntAddress(StateProbeFixtures.holder(), NETWORK).toBech32();
         String publication = submit(builder.compose(new Tx().payToAddress(holder, Amount.ada(5), script)
-                .payToAddress(holder, Amount.ada(5), script).registerStakeAddress(reward).from(sponsor.baseAddress()))
+                        .payToAddress(holder, Amount.ada(5), script).registerStakeAddress(reward).from(sponsor.baseAddress()))
                 .withSigner(SignerProviders.signerFrom(sponsor)).buildAndSign());
-        var refsResult = backend.getUtxoService().getUtxos(holder, 100, 1, OrderEnum.desc); assertTrue(refsResult.isSuccessful());
-        var refs = refsResult.getValue().stream().filter(u -> u.getTxHash().equals(publication)).toList(); assertEquals(2, refs.size());
+        var refsResult = backend.getUtxoService().getUtxos(holder, 100, 1, OrderEnum.desc);
+        assertTrue(refsResult.isSuccessful());
+        var refs = refsResult.getValue().stream().filter(u -> u.getTxHash().equals(publication)).toList();
+        assertEquals(2, refs.size());
         var runs = new ArrayList<Object>();
         for (int mode = 0; mode < 3; mode++) {
-            var inputs = backend.getUtxoService().getUtxos(inputOwner.baseAddress(), 100, 1, OrderEnum.desc); assertTrue(inputs.isSuccessful());
+            var inputs = backend.getUtxoService().getUtxos(inputOwner.baseAddress(), 100, 1, OrderEnum.desc);
+            assertTrue(inputs.isSuccessful());
             var input = inputs.getValue().getFirst();
             var ref = new TxOutRef(new TxId(HexUtil.decodeHexString(input.getTxHash())), BigInteger.valueOf(input.getOutputIndex()));
             var auth = ProbeFixtures.authorize(key, ProbeFixtures.challenge(ProbeFixtures.DOMAIN, ref));
             var withdrawal = new Tx().attachRewardValidator(script).withdraw(reward, BigInteger.ZERO, PlutusDataAdapter.toClientLib(auth));
             if (mode < 2) withdrawal.readFrom(refs.get(mode));
             var context = builder.compose(withdrawal,
-                    new Tx().collectFrom(List.of(input)).payToAddress(inputOwner.baseAddress(), Amount.ada(20)).from(inputOwner.baseAddress()))
+                            new Tx().collectFrom(List.of(input)).payToAddress(inputOwner.baseAddress(), Amount.ada(20)).from(inputOwner.baseAddress()))
                     .feePayer(sponsor.baseAddress()).collateralPayer(sponsor.baseAddress())
                     .withSigner(SignerProviders.signerFrom(sponsor)).withSigner(SignerProviders.signerFrom(inputOwner))
                     .withTxEvaluator(new JulcTransactionEvaluator(new DefaultUtxoSupplier(backend.getUtxoService()),
                             new DefaultProtocolParamsSupplier(backend.getEpochService()), new DefaultScriptSupplier(backend.getScriptService())));
             if (mode < 2) context.withReferenceScripts(script).removeDuplicateScriptWitnesses(true);
             var tx = context.buildAndSign();
-            if (mode < 2) assertTrue(tx.getWitnessSet().getPlutusV3Scripts() == null || tx.getWitnessSet().getPlutusV3Scripts().isEmpty(), "Reference path must omit full script witness");
+            if (mode < 2)
+                assertTrue(tx.getWitnessSet().getPlutusV3Scripts() == null || tx.getWitnessSet().getPlutusV3Scripts().isEmpty(), "Reference path must omit full script witness");
             else assertEquals(1, tx.getWitnessSet().getPlutusV3Scripts().size());
             String txId = submit(tx);
-            var run = new LinkedHashMap<String, Object>(); run.put("mode", mode == 0 ? "primary-reference" : mode == 1 ? "secondary-reference" : "full-witness-fallback");
-            run.put("tx", txId); run.put("transactionBytes", tx.serialize().length); run.put("redeemers", tx.getWitnessSet().getRedeemers()); runs.add(run);
+            var run = new LinkedHashMap<String, Object>();
+            run.put("mode", mode == 0 ? "primary-reference" : mode == 1 ? "secondary-reference" : "full-witness-fallback");
+            run.put("tx", txId);
+            run.put("transactionBytes", tx.serialize().length);
+            run.put("redeemers", tx.getWitnessSet().getRedeemers());
+            runs.add(run);
         }
         var evidence = new LinkedHashMap<String, Object>();
         evidence.put("scope", "Same compiled withdrawal hash via two always-fails-locked references and an independent full witness");
-        evidence.put("publicationTx", publication); evidence.put("scriptHash", HexUtil.encodeHexString(script.getScriptHash()));
-        evidence.put("scriptCbor", script.getCborHex()); evidence.put("runs", runs);
+        evidence.put("publicationTx", publication);
+        evidence.put("scriptHash", HexUtil.encodeHexString(script.getScriptHash()));
+        evidence.put("scriptCbor", script.getCborHex());
+        evidence.put("runs", runs);
         evidence.put("protocolParameters", backend.getEpochService().getProtocolParameters().getValue());
-        Files.createDirectories(Path.of("build/phase0")); Files.writeString(Path.of("build/phase0/reference-availability-evidence.json"), JsonUtil.getPrettyJson(evidence));
+        Files.createDirectories(Path.of("build/phase0"));
+        Files.writeString(Path.of("build/phase0/reference-availability-evidence.json"), JsonUtil.getPrettyJson(evidence));
         System.out.println("Reference copies and full-witness fallback all confirmed for " + HexUtil.encodeHexString(script.getScriptHash()));
     }
+
     private String submit(Transaction tx) throws Exception {
-        var result = backend.getTransactionService().submitTransaction(tx.serialize()); assertTrue(result.isSuccessful(), result.toString());
-        confirm(result.getValue()); return result.getValue();
+        var result = backend.getTransactionService().submitTransaction(tx.serialize());
+        assertTrue(result.isSuccessful(), result.toString());
+        confirm(result.getValue());
+        return result.getValue();
     }
+
     private void topUp(String address, long ada) throws Exception {
         var request = HttpRequest.newBuilder(URI.create("http://localhost:10000/local-cluster/api/addresses/topup"))
                 .timeout(Duration.ofSeconds(30)).header("Content-Type", "application/json")

@@ -42,7 +42,9 @@ import java.util.concurrent.atomic.AtomicReference;
 
 import static org.junit.jupiter.api.Assertions.*;
 
-/** Only uses disposable keys and the local DevKit faucet. Never reads wallet credentials. */
+/**
+ * Only uses disposable keys and the local DevKit faucet. Never reads wallet credentials.
+ */
 @Tag("devkit")
 @Timeout(180)
 class WithdrawalProbeDevkitTest {
@@ -87,15 +89,18 @@ class WithdrawalProbeDevkitTest {
         assertTrue(signatureFailure.contains("Error evaluated"), signatureFailure);
         System.out.println("Wrong-key authorization rejected by DevKit evaluator: " + signatureFailure);
 
-        byte[] identity = new byte[32]; identity[0] = 1;
+        byte[] identity = new byte[32];
+        identity[0] = 1;
         byte[] identityDomain = ProbeFixtures.publicKey(key); // fresh public domain avoids duplicate registration on reruns
         var identityScript = JulcScriptLoader.load(WithdrawalProbe.class,
                 PlutusDataAdapter.toClientLib(PlutusData.bytes(identity)), PlutusDataAdapter.toClientLib(PlutusData.bytes(identityDomain)));
         String identityReward = AddressProvider.getRewardAddress(identityScript, NETWORK).toBech32();
         var identityRegistration = builder.compose(new Tx().registerStakeAddress(identityReward).from(sponsor.baseAddress()))
                 .withSigner(SignerProviders.signerFrom(sponsor)).complete();
-        assertTrue(identityRegistration.isSuccessful(), identityRegistration.toString()); confirm(identityRegistration.getValue());
-        byte[] universalForgery = new byte[64]; universalForgery[0] = 1; // R = identity, S = zero
+        assertTrue(identityRegistration.isSuccessful(), identityRegistration.toString());
+        confirm(identityRegistration.getValue());
+        byte[] universalForgery = new byte[64];
+        universalForgery[0] = 1; // R = identity, S = zero
         var forged = PlutusData.constr(0, ProbeFixtures.challenge(identityDomain, ref), PlutusData.bytes(universalForgery));
         var forgedTx = context(identityScript, identityReward, input, forged).withTxEvaluator((cbor, utxos) -> adversarialBudget()).buildAndSign();
         var identityFailure = backend.getTransactionService().submitTransaction(forgedTx.serialize());
@@ -158,9 +163,9 @@ class WithdrawalProbeDevkitTest {
     private QuickTxBuilder.TxContext context(PlutusV3Script script, String reward,
                                              Utxo input, PlutusData authorization) {
         return builder.compose(new Tx().attachRewardValidator(script)
-                        .withdraw(reward, BigInteger.ZERO, PlutusDataAdapter.toClientLib(authorization)),
-                new Tx().collectFrom(List.of(input)).payToAddress(inputOwner.baseAddress(), Amount.ada(20))
-                        .from(inputOwner.baseAddress()))
+                                .withdraw(reward, BigInteger.ZERO, PlutusDataAdapter.toClientLib(authorization)),
+                        new Tx().collectFrom(List.of(input)).payToAddress(inputOwner.baseAddress(), Amount.ada(20))
+                                .from(inputOwner.baseAddress()))
                 .feePayer(sponsor.baseAddress()).collateralPayer(sponsor.baseAddress())
                 .withSigner(SignerProviders.signerFrom(sponsor))
                 .withSigner(SignerProviders.signerFrom(inputOwner));
@@ -171,11 +176,11 @@ class WithdrawalProbeDevkitTest {
         var failure = new AtomicReference<String>();
         try {
             var transaction = context(script, reward, input, authorization)
-                .withTxEvaluator((cbor, inputs) -> {
-                    var result = backend.getTransactionService().evaluateTx(cbor);
-                    if (!result.isSuccessful()) failure.set(result.toString());
-                    return result;
-                }).buildAndSign();
+                    .withTxEvaluator((cbor, inputs) -> {
+                        var result = backend.getTransactionService().evaluateTx(cbor);
+                        if (!result.isSuccessful()) failure.set(result.toString());
+                        return result;
+                    }).buildAndSign();
             var evaluation = backend.getTransactionService().evaluateTx(transaction.serialize());
             if (!evaluation.isSuccessful()) failure.set(evaluation.toString());
         } catch (RuntimeException exception) {

@@ -32,17 +32,20 @@ public final class AccountLocator {
     private AccountLocator(PlutusData value) {
         var fields = record(value, 4);
         require(number(fields.get(0)).equals(BigInteger.ONE), "Locator version");
-        var account = record(fields.get(1), 2); bytes(account.get(0), 28); bytes(account.get(1), 0);
+        var account = record(fields.get(1), 2);
+        bytes(account.get(0), 28);
+        bytes(account.get(1), 0);
         var deployment = record(fields.get(2), 3);
         require(number(deployment.get(0)).signum() >= 0 && number(deployment.get(0)).compareTo(BigInteger.ONE) <= 0, "Network ID");
         require(number(deployment.get(1)).signum() >= 0 && number(deployment.get(1)).bitLength() <= 32, "Network magic");
         bytes(deployment.get(2), 32);
         for (var hash : record(fields.get(3), 3)) bytes(hash, 28);
-        data = (PlutusData.ConstrData)value;
+        data = (PlutusData.ConstrData) value;
     }
 
     /**
      * Creates a key-free locator from a state whose custody the caller has authenticated.
+     *
      * @param state complete current first-module state
      * @return locator that remains valid across configuration, module and recovery changes
      * @throws IllegalArgumentException for invalid state encoding or configuration
@@ -56,12 +59,16 @@ public final class AccountLocator {
     /**
      * Encodes the immutable locator as a versioned prefix and canonical Plutus Data CBOR hex.
      * No keys, current version, policy members or pending recovery commitment are included.
+     *
      * @return portable lowercase backup text
      */
-    public String backup() { return PREFIX + HexFormat.of().formatHex(Builtins.serialiseData(data)); }
+    public String backup() {
+        return PREFIX + HexFormat.of().formatHex(Builtins.serialiseData(data));
+    }
 
     /**
      * Parses a bounded canonical backup; trailing bytes, alternate encodings and unknown fields reject.
+     *
      * @param backup complete backup text
      * @return parsed immutable locator
      * @throws IllegalArgumentException if the prefix, canonical encoding or locator fields are invalid
@@ -88,7 +95,8 @@ public final class AccountLocator {
     public interface StateProvider {
         /**
          * Resolves the exact asset at its immutable state address.
-         * @param address expected complete state custody address
+         *
+         * @param address   expected complete state custody address
          * @param assetUnit full policy-and-name identifier
          * @return matching current outputs; zero or multiple outputs cause restoration to fail
          * @throws ApiException if the provider cannot supply current ledger data
@@ -99,37 +107,44 @@ public final class AccountLocator {
     /**
      * Adapts a replacement CCL backend to exact-address/exact-asset discovery. Requesting two
      * entries is sufficient to reject ambiguous NFT claims instead of selecting the first.
+     *
      * @param backend independently trusted current ledger backend
      * @return provider with no dependency on the old device or collateral account
      */
     public static StateProvider provider(BackendService backend) {
         return (address, unit) -> {
             var result = backend.getUtxoService().getUtxos(address, unit, 2, 1, OrderEnum.asc);
-            if (!result.isSuccessful() || result.getValue() == null) throw new IllegalStateException("Current state provider failed: " + result.getResponse());
+            if (!result.isSuccessful() || result.getValue() == null)
+                throw new IllegalStateException("Current state provider failed: " + result.getResponse());
             return result.getValue();
         };
     }
 
     /**
      * Restored provider claim after identity and custody validation. It is not an inclusion proof.
+     *
      * @param state complete current state, including the installed module and any pending target
      * @param input current singleton NFT UTxO; revalidate before transaction preparation/submission
      */
-    public record Restored(AccountState state, Utxo input) {}
+    public record Restored(AccountState state, Utxo input) {
+    }
 
     /**
      * Locates and validates the current account using only the public locator and a provider.
      * It deliberately does not assume that the original module, keys, mode or state version
      * remain current. Recovery authority and a fresh key-controlled collateral provider are
      * separate requirements when constructing the next operation.
+     *
      * @param provider current ledger discovery source
      * @return exact current state and its resolved NFT UTxO
-     * @throws ApiException for provider transport/API errors
+     * @throws ApiException             for provider transport/API errors
      * @throws IllegalArgumentException for missing/ambiguous output, wrong identity/custody or malformed datum/value
      */
     public Restored restore(StateProvider provider) throws ApiException {
         var fields = data.fields();
-        var account = record(fields.get(1), 2); var deployment = record(fields.get(2), 3); var core = record(fields.get(3), 3);
+        var account = record(fields.get(1), 2);
+        var deployment = record(fields.get(2), 3);
+        var core = record(fields.get(3), 3);
         var network = new Network(number(deployment.get(0)).intValueExact(), number(deployment.get(1)).longValueExact());
         String holder = AddressProvider.getEntAddress(Credential.fromScript(bytes(core.get(0), 28)), network).toBech32();
         String unit = HexFormat.of().formatHex(bytes(account.get(0), 28));
@@ -145,7 +160,9 @@ public final class AccountLocator {
         try {
             var inline = PlutusDataAdapter.fromClientLib(com.bloxbean.cardano.client.plutus.spec.PlutusData.deserialize(HexFormat.of().parseHex(input.getInlineDatum())));
             state = AccountCodec.decodeState(inline);
-        } catch (Exception failure) { throw new IllegalArgumentException("Invalid restored state datum", failure); }
+        } catch (Exception failure) {
+            throw new IllegalArgumentException("Invalid restored state datum", failure);
+        }
         require(AccountCodec.data(state.accountId()).equals(fields.get(1)) && AccountCodec.data(state.deploymentDomain()).equals(fields.get(2))
                 && AccountCodec.data(state.coreBinding()).equals(fields.get(3)), "State differs from trusted locator identity");
         return new Restored(state, input);
@@ -153,14 +170,20 @@ public final class AccountLocator {
 
     private static List<PlutusData> record(PlutusData value, int arity) {
         require(value instanceof PlutusData.ConstrData c && c.constructorTag().equals(BigInteger.ZERO) && c.fields().size() == arity, "Locator record shape");
-        return ((PlutusData.ConstrData)value).fields();
+        return ((PlutusData.ConstrData) value).fields();
     }
+
     private static byte[] bytes(PlutusData value, int length) {
         require(value instanceof PlutusData.BytesData b && b.value().length == length, "Locator byte length");
-        return ((PlutusData.BytesData)value).value();
+        return ((PlutusData.BytesData) value).value();
     }
+
     private static BigInteger number(PlutusData value) {
-        require(value instanceof PlutusData.IntData, "Locator integer type"); return ((PlutusData.IntData)value).value();
+        require(value instanceof PlutusData.IntData, "Locator integer type");
+        return ((PlutusData.IntData) value).value();
     }
-    private static void require(boolean condition, String message) { if (!condition) throw new IllegalArgumentException(message); }
+
+    private static void require(boolean condition, String message) {
+        if (!condition) throw new IllegalArgumentException(message);
+    }
 }

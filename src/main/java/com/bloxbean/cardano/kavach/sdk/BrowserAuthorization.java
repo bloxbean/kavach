@@ -20,7 +20,9 @@ import java.util.Optional;
 import java.util.Set;
 import java.util.TreeMap;
 
-/** JVM verification for explicit raw, transaction-witness and bounded COSE module profiles. */
+/**
+ * JVM verification for explicit raw, transaction-witness and bounded COSE module profiles.
+ */
 public final class BrowserAuthorization {
     private final int currentMode;
     private final int candidateMode;
@@ -43,7 +45,7 @@ public final class BrowserAuthorization {
                 requiredSigners != null
                         && requiredSigners.size() <= 16
                         && requiredSigners.stream()
-                                .allMatch(value -> value.matches("[0-9a-f]{56}")),
+                        .allMatch(value -> value.matches("[0-9a-f]{56}")),
                 "Required signers");
         this.currentMode = currentMode;
         this.candidateMode = candidateMode;
@@ -53,7 +55,7 @@ public final class BrowserAuthorization {
 
     /**
      * @return immutable exact planned payment-key hashes; not evidence that witnesses were
-     *     collected
+     * collected
      */
     public Set<String> requiredSigners() {
         return requiredSigners;
@@ -67,7 +69,9 @@ public final class BrowserAuthorization {
         verifySpend(state, proof, digest, null);
     }
 
-    /** Verifies the amount-selected policy using the complete signed action. */
+    /**
+     * Verifies the amount-selected policy using the complete signed action.
+     */
     public void verifySpend(AccountState state, Proof proof, byte[] digest, Action action) {
         WireFormat.validateState(AccountCodec.data(state));
         require(
@@ -115,8 +119,7 @@ public final class BrowserAuthorization {
                     case Unfreeze ignored -> 5;
                     case StartRecovery ignored -> 6;
                     case CancelRecovery ignored -> 7;
-                    default ->
-                            throw new IllegalArgumentException("Unsupported administration action");
+                    default -> throw new IllegalArgumentException("Unsupported administration action");
                 };
         require(current.operationProof().isPresent(), "Missing old-role approval");
         var proof = current.operationProof().orElseThrow();
@@ -150,9 +153,9 @@ public final class BrowserAuthorization {
                         next.abiVersion().equals(BigInteger.ONE)
                                 && next.operationProof().isEmpty()
                                 && AccountCodec.data(next.intent())
-                                        .equals(AccountCodec.data(request))
+                                .equals(AccountCodec.data(request))
                                 && AccountCodec.list(next.receipts())
-                                        .equals(AccountCodec.list(current.receipts())),
+                                .equals(AccountCodec.list(current.receipts())),
                         "Candidate binding or proof shape mismatch");
                 var keys = registry(change.newConfig());
                 var all =
@@ -221,21 +224,19 @@ public final class BrowserAuthorization {
                     "Unsorted, unknown or malformed signature");
             boolean valid =
                     switch (PolicyConfigCodec.method(config, proof.credentialId(), mode)) {
-                        case 0 ->
-                                proof.signature().length == 64
-                                        && Ed25519.verify(
-                                                proof.signature(),
-                                                0,
-                                                key,
-                                                0,
-                                                digest,
-                                                0,
-                                                digest.length);
-                        case 1 ->
-                                proof.signature().length == 0
-                                        && requiredSigners.contains(
-                                                HexFormat.of()
-                                                        .formatHex(BrowserSignatures.keyHash(key)));
+                        case 0 -> proof.signature().length == 64
+                                && Ed25519.verify(
+                                proof.signature(),
+                                0,
+                                key,
+                                0,
+                                digest,
+                                0,
+                                digest.length);
+                        case 1 -> proof.signature().length == 0
+                                && requiredSigners.contains(
+                                HexFormat.of()
+                                        .formatHex(BrowserSignatures.keyHash(key)));
                         case 2 -> BrowserSignatures.verify(key, digest, proof.signature(), network);
                         default -> false;
                     };
@@ -251,9 +252,9 @@ public final class BrowserAuthorization {
         long count =
                 ((PlutusData.ListData) fields.get(1))
                         .items().stream()
-                                .map(BrowserAuthorization::integer)
-                                .filter(verified::contains)
-                                .count();
+                        .map(BrowserAuthorization::integer)
+                        .filter(verified::contains)
+                        .count();
         require(
                 BigInteger.valueOf(count).compareTo(integer(fields.get(0))) >= 0,
                 "Required role threshold not satisfied");

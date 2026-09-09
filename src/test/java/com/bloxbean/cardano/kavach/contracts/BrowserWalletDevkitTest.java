@@ -33,8 +33,10 @@ import com.bloxbean.cardano.kavach.sdk.BrowserAuthorization;
 import com.bloxbean.cardano.kavach.sdk.browser.BrowserSignatures;
 import com.bloxbean.cardano.client.transaction.spec.VkeyWitness;
 import com.bloxbean.cardano.client.transaction.util.TransactionUtil;
+
 import java.security.KeyPair;
 import java.util.stream.Collectors;
+
 import com.bloxbean.cardano.kavach.protocol.WireFormat;
 import com.bloxbean.cardano.kavach.sdk.AccountAdministration;
 import com.bloxbean.cardano.kavach.sdk.AccountCodec;
@@ -66,7 +68,9 @@ import java.util.concurrent.TimeUnit;
 
 import static org.junit.jupiter.api.Assertions.*;
 
-/** Short real-ledger lifecycle gate; this does not substitute for delayed recovery completion. */
+/**
+ * Short real-ledger lifecycle gate; this does not substitute for delayed recovery completion.
+ */
 @Tag("browserDevkit")
 @Timeout(600)
 class BrowserWalletDevkitTest {
@@ -88,9 +92,11 @@ class BrowserWalletDevkitTest {
     private String locatorBackup;
     private PlutusV3Script candidateForMutation;
 
-    BrowserWalletDevkitTest() throws Exception {}
+    BrowserWalletDevkitTest() throws Exception {
+    }
 
-    @Test void freezeUnfreezeConfigureInitiateCancelThroughSdk() throws Exception {
+    @Test
+    void freezeUnfreezeConfigureInitiateCancelThroughSdk() throws Exception {
         initialize();
         mutate("freeze", new Freeze(), 1);
         assertInstanceOf(Frozen.class, state.mode());
@@ -110,8 +116,11 @@ class BrowserWalletDevkitTest {
         persist();
     }
 
-    /** Replaces every key under old administration and exercises both new defensive roles on ledger. */
-    @Test void rotateEveryKeyUnderOldAdministration() throws Exception {
+    /**
+     * Replaces every key under old administration and exercises both new defensive roles on ledger.
+     */
+    @Test
+    void rotateEveryKeyUnderOldAdministration() throws Exception {
         evidencePath = Path.of("build/browser/" + signingMode + "/key-rotation.json");
         initialize();
         var target = new AccountFixtures();
@@ -126,8 +135,11 @@ class BrowserWalletDevkitTest {
         persist();
     }
 
-    /** Installs a separately parameterized module under old administration and candidate possession. */
-    @Test void replaceModuleThenUseCandidateAuthority() throws Exception {
+    /**
+     * Installs a separately parameterized module under old administration and candidate possession.
+     */
+    @Test
+    void replaceModuleThenUseCandidateAuthority() throws Exception {
         evidencePath = Path.of("build/browser/" + signingMode + "/module-replacement.json");
         initialize();
         var candidateSinkAccount = new Account(NETWORK);
@@ -142,7 +154,8 @@ class BrowserWalletDevkitTest {
                 .filter(u -> u.getTxHash().equals(publication)).findFirst().orElseThrow());
         submit(builder.compose(new Tx().registerStakeAddress(AddressProvider.getRewardAddress(candidate, NETWORK).toBech32()).from(sponsor.baseAddress()))
                 .withSigner(SignerProviders.signerFrom(sponsor)).buildAndSign(), "candidate-registration");
-        topUp(sponsor.baseAddress(), 20); awaitUtxos(sponsor.baseAddress(), 2);
+        topUp(sponsor.baseAddress(), 20);
+        awaitUtxos(sponsor.baseAddress(), 2);
         var target = new AccountFixtures();
         mutate("replace-module", new ReplaceModule(new AuthModuleRef(candidate.getScriptHash(), BigInteger.ONE),
                 AccountCodec.data(target.config)), target, 0, 1);
@@ -159,13 +172,18 @@ class BrowserWalletDevkitTest {
         persist();
     }
 
-    /** Creates a disposable account and publishes every mandatory reference script. */
+    /**
+     * Creates a disposable account and publishes every mandatory reference script.
+     */
     private void initialize() throws Exception {
         assertTrue(backend.getEpochService().getProtocolParameters().isSuccessful(), "DevKit required");
-        topUp(sponsor.baseAddress(), 1000); topUp(sponsor.baseAddress(), 20); topUp(creator.baseAddress(), 20);
+        topUp(sponsor.baseAddress(), 1000);
+        topUp(sponsor.baseAddress(), 20);
+        topUp(creator.baseAddress(), 20);
         awaitUtxos(sponsor.baseAddress(), 2);
         var seed = awaitUtxos(creator.baseAddress(), 1).getFirst();
-        byte[] discriminator = new byte[32]; new SecureRandom().nextBytes(discriminator);
+        byte[] discriminator = new byte[32];
+        new SecureRandom().nextBytes(discriminator);
         var domain = new DeploymentDomain(BigInteger.ZERO, BigInteger.valueOf(42), discriminator);
         var sink = new Address(new Credential.PubKeyCredential(new PubKeyHash(sponsor.hdKeyPair().getPublicKey().getKeyHash())), Optional.empty());
         scripts = AccountDeployment.derive(domain, ref(seed), creator.hdKeyPair().getPublicKey().getKeyHash(), sink, sink);
@@ -209,34 +227,48 @@ class BrowserWalletDevkitTest {
         awaitUtxos(sponsor.baseAddress(), 2);
     }
 
-    /** Recreates the client from the locator and surviving defensive key, discarding old caches and sponsor. */
+    /**
+     * Recreates the client from the locator and surviving defensive key, discarding old caches and sponsor.
+     */
     private void restoreWithNewProviderAndCollateral() throws Exception {
-        state = null; stateInput = null; scripts = null; holder = null; references.clear();
+        state = null;
+        stateInput = null;
+        scripts = null;
+        holder = null;
+        references.clear();
         keys.keys.set(0, null); // Lost primary signing key; the independent unfreeze key survives.
         backend = new BFBackendService("http://localhost:8080/api/v1/", "devkit");
         builder = new QuickTxBuilder(backend);
         sponsor = new Account(NETWORK);
         var restored = AccountLocator.parse(locatorBackup).restore(AccountLocator.provider(backend));
-        state = restored.state(); stateInput = restored.input(); holder = stateInput.getAddress();
+        state = restored.state();
+        stateInput = restored.input();
+        holder = stateInput.getAddress();
         assertTrue(state.mode() instanceof Frozen || state.mode() instanceof RecoveryPending);
         scripts = AccountDeployment.restore(state, backend);
-        for (var output : awaitUtxos(holder, 6)) if (output.getReferenceScriptHash() != null)
-            references.put(output.getReferenceScriptHash(), output);
+        for (var output : awaitUtxos(holder, 6))
+            if (output.getReferenceScriptHash() != null)
+                references.put(output.getReferenceScriptHash(), output);
         for (var script : List.of(scripts.state(), scripts.checkpoint(), scripts.module(), scripts.nft(), scripts.asset()))
             assertNotNull(reference(script), "Restored published reference");
-        topUp(sponsor.baseAddress(), 100); topUp(sponsor.baseAddress(), 20);
+        topUp(sponsor.baseAddress(), 100);
+        topUp(sponsor.baseAddress(), 20);
         awaitUtxos(sponsor.baseAddress(), 2);
         evidence.put("restoration", Map.of("locator", locatorBackup, "stateTx", stateInput.getTxHash(),
                 "version", state.stateVersion(), "newCollateralAddress", sponsor.baseAddress(), "primaryKeyDiscarded", true));
         persist();
     }
 
-    /** Signs semantic actions with old authorities and uses node-evaluated budgets for the actual transaction. */
+    /**
+     * Signs semantic actions with old authorities and uses node-evaluated budgets for the actual transaction.
+     */
     private void mutate(String name, Action action, int... signers) throws Exception {
         mutate(name, action, null, signers);
     }
 
-    /** Adds independent possession proofs when every registry key is replaced. */
+    /**
+     * Adds independent possession proofs when every registry key is replaced.
+     */
     private void mutate(String name, Action action, AccountFixtures replacementKeys, int... signers) throws Exception {
         var latest = backend.getBlockService().getLatestBlock().getValue();
         long lower = latest.getSlot(), upper = lower + 180;
@@ -253,7 +285,7 @@ class BrowserWalletDevkitTest {
         var approval = action instanceof CompleteRecovery
                 ? new ModuleRedeemer(BigInteger.ONE, request, Optional.empty(), signatures, JulcList.empty())
                 : new ModuleRedeemer(BigInteger.ONE, request, Optional.of(new Proof(BigInteger.valueOf(signingMode),
-                        signatures)), JulcList.empty(), JulcList.empty());
+                signatures)), JulcList.empty(), JulcList.empty());
         Optional<ModuleRedeemer> candidateApproval = Optional.empty();
         if (replacementKeys != null) {
             var possessionDigest = WireFormat.digest(ProofDomains.configuration(AccountCodec.data(state), AccountCodec.data(request)));
@@ -263,7 +295,8 @@ class BrowserWalletDevkitTest {
             var newProofs = AccountFixtures.list(possession.toArray(Signature[]::new));
             if (action instanceof ReplaceModule)
                 candidateApproval = Optional.of(new ModuleRedeemer(BigInteger.ONE, request, Optional.empty(), newProofs, JulcList.empty()));
-            else approval = new ModuleRedeemer(BigInteger.ONE, request, approval.operationProof(), newProofs, JulcList.empty());
+            else
+                approval = new ModuleRedeemer(BigInteger.ONE, request, approval.operationProof(), newProofs, JulcList.empty());
         }
         var prepared = AccountAdministration.prepare(state, approval, candidateApproval, window.lower(), window.upper(), false, authorization());
         // Seed a real plain fee input before CCL's first script evaluation. Otherwise its
@@ -273,11 +306,13 @@ class BrowserWalletDevkitTest {
         var tx = new Tx().collectFrom(List.of(feeInput)).payToContract(holder, List.copyOf(stateInput.getAmount()), PlutusDataAdapter.toClientLib(AccountCodec.data(prepared.successor())))
                 .readFrom(reference(scripts.state())).readFrom(reference(scripts.checkpoint())).readFrom(reference(scripts.module()));
         var balances = new LinkedHashMap<Credential, BigInteger>();
-        balances.put(credential(scripts.checkpoint()), BigInteger.ZERO); balances.put(credential(scripts.module()), BigInteger.ZERO);
+        balances.put(credential(scripts.checkpoint()), BigInteger.ZERO);
+        balances.put(credential(scripts.module()), BigInteger.ZERO);
         var requiredScripts = new ArrayList<>(List.of(scripts.state(), scripts.checkpoint(), scripts.module()));
         if (candidateForMutation != null) {
             balances.put(credential(candidateForMutation), BigInteger.ZERO);
-            tx.readFrom(reference(candidateForMutation)); requiredScripts.add(candidateForMutation);
+            tx.readFrom(reference(candidateForMutation));
+            requiredScripts.add(candidateForMutation);
         }
         AccountMutation.attach(tx, scripts, state, stateInput, approval, candidateApproval, Optional.ofNullable(candidateForMutation), balances, window, authorization());
         var unsigned = builder.compose(tx).feePayer(sponsor.baseAddress()).collateralPayer(sponsor.baseAddress())
@@ -285,14 +320,17 @@ class BrowserWalletDevkitTest {
                 .preBalanceTx(DuplicateScriptWitnessChecker.removeDuplicateScriptWitnesses()).removeDuplicateScriptWitnesses(true).build();
         var signed = addWitnesses(sponsor.sign(unsigned));
         String id = submit(signed, name);
-        stateInput = findState(id); state = prepared.successor();
+        stateInput = findState(id);
+        state = prepared.successor();
         var actual = PlutusDataAdapter.fromClientLib(com.bloxbean.cardano.client.plutus.spec.PlutusData.deserialize(HexUtil.decodeHexString(stateInput.getInlineDatum())));
         assertEquals(AccountCodec.data(state), actual, "Confirmed successor datum");
         evidence.put(name + "-state", stateInput.getInlineDatum());
         persist();
     }
 
-    /** Funds ordinary custody and proves a transfer under the currently installed spend authority. */
+    /**
+     * Funds ordinary custody and proves a transfer under the currently installed spend authority.
+     */
     private void transferWithCurrentSpendKey(String name) throws Exception {
         String address = AddressProvider.getEntAddress(scripts.asset(), NETWORK).toBech32();
         String funding = submit(builder.compose(new Tx().payToAddress(address, Amount.ada(20)).from(sponsor.baseAddress()))
@@ -319,24 +357,38 @@ class BrowserWalletDevkitTest {
         assertTrue(awaitUtxos(recipient.enterpriseAddress(), 1).stream().anyMatch(u -> u.getTxHash().equals(spent)), "Recipient received confirmed transfer");
     }
 
-    /** Emulates CIP-30 evidence with disposable in-memory keys; does not claim browser-wallet compatibility. */
+    /**
+     * Emulates CIP-30 evidence with disposable in-memory keys; does not claim browser-wallet compatibility.
+     */
     private Signature evidence(AccountFixtures registry, int id, byte[] message) throws Exception {
-        if (signingMode == 1 && !transactionKeys.contains(registry.keys.get(id))) transactionKeys.add(registry.keys.get(id));
+        if (signingMode == 1 && !transactionKeys.contains(registry.keys.get(id)))
+            transactionKeys.add(registry.keys.get(id));
         return BrowserModuleTest.proofs(registry, signingMode, message, id).head();
     }
-    private byte[][] required() { if (transactionKeys.isEmpty()) return new byte[][]{sponsor.hdKeyPair().getPublicKey().getKeyHash()}; return transactionKeys.stream().map(key -> BrowserSignatures.keyHash(AccountFixtures.publicKey(key))).toArray(byte[][]::new); }
-    private byte[][] requiredWithCreator() {
-        var all = new ArrayList<byte[]>(List.of(required())); all.add(creator.hdKeyPair().getPublicKey().getKeyHash()); return all.toArray(byte[][]::new);
+
+    private byte[][] required() {
+        if (transactionKeys.isEmpty()) return new byte[][]{sponsor.hdKeyPair().getPublicKey().getKeyHash()};
+        return transactionKeys.stream().map(key -> BrowserSignatures.keyHash(AccountFixtures.publicKey(key))).toArray(byte[][]::new);
     }
+
+    private byte[][] requiredWithCreator() {
+        var all = new ArrayList<byte[]>(List.of(required()));
+        all.add(creator.hdKeyPair().getPublicKey().getKeyHash());
+        return all.toArray(byte[][]::new);
+    }
+
     private BrowserAuthorization authorization() {
         return new BrowserAuthorization(signingMode, signingMode, 0,
                 transactionKeys.stream().map(key -> HexUtil.encodeHexString(BrowserSignatures.keyHash(AccountFixtures.publicKey(key)))).collect(Collectors.toSet()));
     }
+
     private Transaction addWitnesses(Transaction transaction) throws Exception {
         byte[] digest = HexUtil.decodeHexString(TransactionUtil.getTxHash(transaction));
         var witnesses = new ArrayList<>(transaction.getWitnessSet().getVkeyWitnesses());
-        for (var key : transactionKeys) witnesses.add(new VkeyWitness(AccountFixtures.publicKey(key), AccountFixtures.sign(0, key, digest).signature()));
-        transaction.getWitnessSet().setVkeyWitnesses(witnesses); return transaction;
+        for (var key : transactionKeys)
+            witnesses.add(new VkeyWitness(AccountFixtures.publicKey(key), AccountFixtures.sign(0, key, digest).signature()));
+        transaction.getWitnessSet().setVkeyWitnesses(witnesses);
+        return transaction;
     }
 
     private Utxo findState(String transaction) throws Exception {
@@ -344,11 +396,22 @@ class BrowserWalletDevkitTest {
         return awaitUtxos(holder, references.size() + 1).stream().filter(u -> u.getTxHash().equals(transaction)
                 && u.getAmount().stream().anyMatch(a -> a.getUnit().equals(policy) && a.getQuantity().equals(BigInteger.ONE))).findFirst().orElseThrow();
     }
-    private Utxo reference(PlutusV3Script script) throws Exception { return references.get(HexUtil.encodeHexString(script.getScriptHash())); }
-    private static Credential credential(PlutusV3Script script) throws Exception { return new Credential.ScriptCredential(new ScriptHash(script.getScriptHash())); }
-    private static TxOutRef ref(Utxo input) { return new TxOutRef(new TxId(HexUtil.decodeHexString(input.getTxHash())), BigInteger.valueOf(input.getOutputIndex())); }
+
+    private Utxo reference(PlutusV3Script script) throws Exception {
+        return references.get(HexUtil.encodeHexString(script.getScriptHash()));
+    }
+
+    private static Credential credential(PlutusV3Script script) throws Exception {
+        return new Credential.ScriptCredential(new ScriptHash(script.getScriptHash()));
+    }
+
+    private static TxOutRef ref(Utxo input) {
+        return new TxOutRef(new TxId(HexUtil.decodeHexString(input.getTxHash())), BigInteger.valueOf(input.getOutputIndex()));
+    }
+
     private TransactionEvaluator evaluator() throws Exception {
-        var parameters = backend.getEpochService().getProtocolParameters(); assertTrue(parameters.isSuccessful());
+        var parameters = backend.getEpochService().getProtocolParameters();
+        assertTrue(parameters.isSuccessful());
         return new ExecutionBudgetMargin((cbor, inputs) -> {
             var result = backend.getTransactionService().evaluateTx(cbor);
             if (!result.isSuccessful()) {
@@ -356,28 +419,40 @@ class BrowserWalletDevkitTest {
                     Files.createDirectories(evidencePath.getParent());
                     Files.writeString(evidencePath.resolveSibling("failed-evaluation.cborhex"), HexUtil.encodeHexString(cbor));
                     Files.writeString(evidencePath.resolveSibling("failed-evaluation.json"), JsonUtil.getPrettyJson(Transaction.deserialize(cbor)));
-                } catch (Exception failure) { throw new IllegalStateException("Could not preserve public evaluation failure", failure); }
+                } catch (Exception failure) {
+                    throw new IllegalStateException("Could not preserve public evaluation failure", failure);
+                }
             }
             return result;
         }, parameters.getValue());
     }
-    /** Persists only public results after each confirmed transaction, including partial-run evidence. */
+
+    /**
+     * Persists only public results after each confirmed transaction, including partial-run evidence.
+     */
     private String submit(Transaction tx, String name) throws Exception {
         assertTrue(tx.serialize().length <= 16384, name + " transaction bytes");
-        var result = backend.getTransactionService().submitTransaction(tx.serialize()); assertTrue(result.isSuccessful(), name + ": " + result);
+        var result = backend.getTransactionService().submitTransaction(tx.serialize());
+        assertTrue(result.isSuccessful(), name + ": " + result);
         for (int attempt = 0; attempt < 60; attempt++) {
             var confirmed = backend.getTransactionService().getTransaction(result.getValue());
             if (confirmed.isSuccessful() && confirmed.getValue() != null) {
                 evidence.put(name, Map.of("tx", result.getValue(), "bytes", tx.serialize().length, "fee", tx.getBody().getFee(),
                         "redeemers", tx.getWitnessSet().getRedeemers() == null ? List.of() : tx.getWitnessSet().getRedeemers()));
-                persist(); System.out.println(name + " confirmed " + result.getValue() + " fee=" + tx.getBody().getFee());
+                persist();
+                System.out.println(name + " confirmed " + result.getValue() + " fee=" + tx.getBody().getFee());
                 return result.getValue();
             }
             Thread.sleep(1000);
         }
         throw new AssertionError("Unconfirmed " + name + ": " + result.getValue());
     }
-    private void persist() throws Exception { Files.createDirectories(evidencePath.getParent()); Files.writeString(evidencePath, JsonUtil.getPrettyJson(evidence)); }
+
+    private void persist() throws Exception {
+        Files.createDirectories(evidencePath.getParent());
+        Files.writeString(evidencePath, JsonUtil.getPrettyJson(evidence));
+    }
+
     private List<Utxo> awaitUtxos(String address, int minimum) throws Exception {
         for (int attempt = 0; attempt < 60; attempt++) {
             var result = backend.getUtxoService().getUtxos(address, 100, 1, OrderEnum.desc);
@@ -386,13 +461,15 @@ class BrowserWalletDevkitTest {
         }
         throw new AssertionError("DevKit UTxOs unavailable at " + address);
     }
+
     private void topUp(String address, long ada) throws Exception {
         var request = HttpRequest.newBuilder(URI.create("http://localhost:10000/local-cluster/api/addresses/topup"))
                 .timeout(Duration.ofSeconds(30)).header("Content-Type", "application/json")
                 .POST(HttpRequest.BodyPublishers.ofString("{\"address\":\"" + address + "\",\"adaAmount\":" + ada + "}")).build();
         try (var client = HttpClient.newBuilder().connectTimeout(Duration.ofSeconds(5)).build()) {
             var response = client.send(request, HttpResponse.BodyHandlers.ofString());
-            assertEquals(200, response.statusCode()); assertFalse(response.body().contains("\"status\":false"));
+            assertEquals(200, response.statusCode());
+            assertFalse(response.body().contains("\"status\":false"));
         }
     }
 }

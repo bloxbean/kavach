@@ -1,4 +1,5 @@
 package com.bloxbean.cardano.kavach.phase0;
+
 import com.bloxbean.cardano.client.account.Account;
 import com.bloxbean.cardano.client.address.AddressProvider;
 import com.bloxbean.cardano.client.api.common.OrderEnum;
@@ -36,6 +37,7 @@ import com.bloxbean.cardano.julc.ledger.PubKeyHash;
 import org.junit.jupiter.api.Tag;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.Timeout;
+
 import java.math.BigInteger;
 import java.net.URI;
 import java.net.http.HttpClient;
@@ -49,6 +51,7 @@ import java.util.ArrayList;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Optional;
+
 import static org.junit.jupiter.api.Assertions.*;
 
 
@@ -69,7 +72,8 @@ class PositiveRewardDevkitTest {
                 PlutusDataAdapter.toClientLib(PlutusData.integer(deposit)));
     }
 
-    @Test void expiredInformationProposalCreditsRealRewards() throws Exception {
+    @Test
+    void expiredInformationProposalCreditsRealRewards() throws Exception {
         var params = backend.getEpochService().getProtocolParameters();
         assertTrue(params.isSuccessful());
         assertEquals(11, params.getValue().getProtocolMajorVer());
@@ -142,27 +146,32 @@ class PositiveRewardDevkitTest {
         Files.writeString(Path.of("build/phase0/positive-reward-evidence.json"), JsonUtil.getPrettyJson(evidence));
         System.out.println("Full positive withdrawal confirmed: " + fullId);
     }
+
     private QuickTxBuilder.TxContext withdraw(PlutusV3Script script, String reward, BigInteger amount, byte[] authorityHash) {
         var tx = new Tx().attachRewardValidator(script).withdraw(reward, amount, BigIntPlutusData.of(amount.signum() == 0 ? -1 : 0));
         if (amount.signum() > 0) tx.payToAddress(authority.enterpriseAddress(), Amount.lovelace(amount));
         return funded(tx.from(sponsor.baseAddress())).withRequiredSigners(authorityHash).withSigner(SignerProviders.signerFrom(authority));
     }
+
     private QuickTxBuilder.TxContext funded(Tx tx) {
         return builder.compose(tx).feePayer(sponsor.baseAddress()).collateralPayer(sponsor.baseAddress())
                 .withSigner(SignerProviders.signerFrom(sponsor)).withTxEvaluator(new JulcTransactionEvaluator(
                         new DefaultUtxoSupplier(backend.getUtxoService()), new DefaultProtocolParamsSupplier(backend.getEpochService()), null));
     }
+
     @SuppressWarnings("unchecked")
     private QuickTxBuilder.TxContext fixedBudget(Tx tx, RedeemerTag tag) {
         return funded(tx).withTxEvaluator((cbor, inputs) -> Result.success("Adversarial test budget").withValue(List.of(
                 new EvaluationResult(tag, 0, new ExUnits(BigInteger.valueOf(2_000_000), BigInteger.valueOf(500_000_000))))));
     }
+
     private String submit(Transaction tx) throws Exception {
         var result = backend.getTransactionService().submitTransaction(tx.serialize());
         assertTrue(result.isSuccessful(), result.toString());
         confirm(result.getValue());
         return result.getValue();
     }
+
     private void topUp(String address, long ada) throws Exception {
         var request = HttpRequest.newBuilder(URI.create("http://localhost:10000/local-cluster/api/addresses/topup"))
                 .timeout(Duration.ofSeconds(30)).header("Content-Type", "application/json")

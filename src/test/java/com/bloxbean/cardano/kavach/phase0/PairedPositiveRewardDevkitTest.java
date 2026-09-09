@@ -1,4 +1,5 @@
 package com.bloxbean.cardano.kavach.phase0;
+
 import com.bloxbean.cardano.client.account.Account;
 import com.bloxbean.cardano.client.address.AddressProvider;
 import com.bloxbean.cardano.client.api.model.Amount;
@@ -33,9 +34,11 @@ import org.junit.jupiter.api.Timeout;
 
 import java.math.BigInteger;
 import java.util.Optional;
+
 import com.bloxbean.cardano.julc.ledger.Address;
 import com.bloxbean.cardano.julc.ledger.Credential;
 import com.bloxbean.cardano.julc.ledger.PubKeyHash;
+
 import java.net.URI;
 import java.net.http.HttpClient;
 import java.net.http.HttpRequest;
@@ -47,6 +50,7 @@ import java.util.LinkedHashMap;
 import java.security.MessageDigest;
 import java.util.List;
 import java.util.Set;
+
 import com.bloxbean.cardano.client.transaction.spec.governance.actions.InfoAction;
 import com.bloxbean.cardano.client.transaction.spec.governance.Anchor;
 
@@ -62,7 +66,8 @@ class PairedPositiveRewardDevkitTest {
     private final Account sponsor = new Account(NETWORK);
     private final Account creator = new Account(NETWORK);
 
-    @Test void bothPositiveCheckpointsUseDistinctReceiptsAtTheSharedSink() throws Exception {
+    @Test
+    void bothPositiveCheckpointsUseDistinctReceiptsAtTheSharedSink() throws Exception {
         if (Boolean.getBoolean("kavach.resumePairedRewards")) {
             var saved = JsonUtil.parseJson(Files.readString(Path.of("build/phase0/paired-reward-pending.json")));
             var evidence = new LinkedHashMap<String, Object>();
@@ -73,9 +78,12 @@ class PairedPositiveRewardDevkitTest {
                     Transaction.deserialize(Files.readAllBytes(Path.of("build/phase0/paired-reward-reused-receipt.cbor"))), evidence);
             return;
         }
-        var params = backend.getEpochService().getProtocolParameters(); assertTrue(params.isSuccessful());
+        var params = backend.getEpochService().getProtocolParameters();
+        assertTrue(params.isSuccessful());
         assertEquals(11, params.getValue().getProtocolMajorVer());
-        topUp(sponsor.baseAddress(), 9000); topUp(sponsor.baseAddress(), 10); topUp(creator.baseAddress(), 20);
+        topUp(sponsor.baseAddress(), 9000);
+        topUp(sponsor.baseAddress(), 10);
+        topUp(creator.baseAddress(), 20);
         awaitUtxos(sponsor.baseAddress(), 2);
         var seed = awaitUtxos(creator.baseAddress(), 1).getFirst();
         byte[] creatorHash = creator.hdKeyPair().getPublicKey().getKeyHash();
@@ -90,9 +98,9 @@ class PairedPositiveRewardDevkitTest {
         String moduleReward = AddressProvider.getRewardAddress(pair.module(), NETWORK).toBech32();
         String coreReward = AddressProvider.getRewardAddress(pair.core(), NETWORK).toBech32();
         var mint = builder.compose(new Tx().collectFrom(List.of(seed))
-                .mintAsset(policy, new Asset("", BigInteger.ONE), BigIntPlutusData.of(0))
-                .payToContract(holderAddress, List.of(Amount.ada(4), Amount.asset(policyId, "", 1)), PlutusDataAdapter.toClientLib(StateProbeFixtures.state(creatorHash)))
-                .from(creator.baseAddress())).feePayer(sponsor.baseAddress()).collateralPayer(sponsor.baseAddress())
+                        .mintAsset(policy, new Asset("", BigInteger.ONE), BigIntPlutusData.of(0))
+                        .payToContract(holderAddress, List.of(Amount.ada(4), Amount.asset(policyId, "", 1)), PlutusDataAdapter.toClientLib(StateProbeFixtures.state(creatorHash)))
+                        .from(creator.baseAddress())).feePayer(sponsor.baseAddress()).collateralPayer(sponsor.baseAddress())
                 .withRequiredSigners(creatorHash).withSigner(SignerProviders.signerFrom(creator)).withSigner(SignerProviders.signerFrom(sponsor)).buildAndSign();
         String mintId = submit(mint);
         var state = awaitUtxos(holderAddress, 1).stream().filter(u -> u.getTxHash().equals(mintId)).findFirst().orElseThrow();
@@ -105,7 +113,7 @@ class PairedPositiveRewardDevkitTest {
         assertTrue(deposit.compareTo(BigInteger.valueOf(1_000_000_000)) <= 0);
         var anchor = new Anchor("https://example.invalid/kavach-paired-reward-fixture", new byte[32]);
         String proposalId = submit(builder.compose(new Tx().createProposal(new InfoAction(), coreReward, anchor)
-                .createProposal(new InfoAction(), moduleReward, anchor).from(sponsor.baseAddress()))
+                        .createProposal(new InfoAction(), moduleReward, anchor).from(sponsor.baseAddress()))
                 .withSigner(SignerProviders.signerFrom(sponsor)).buildAndSign());
         var auth = BindingFixtures.authorization(key, envelope, 0, 1);
         var reused = BindingFixtures.authorization(key, envelope, 0, 0);
@@ -116,53 +124,76 @@ class PairedPositiveRewardDevkitTest {
         Files.write(Path.of("build/phase0/paired-reward-full-withdrawal.cbor"), full.serialize());
         Files.write(Path.of("build/phase0/paired-reward-reused-receipt.cbor"), invalid.serialize());
         var local = new JulcTransactionEvaluator(new DefaultUtxoSupplier(backend.getUtxoService()), new DefaultProtocolParamsSupplier(backend.getEpochService()), null);
-        var preflight = local.evaluateTx(full.serialize(), Set.of()); assertTrue(preflight.isSuccessful(), preflight.toString());
+        var preflight = local.evaluateTx(full.serialize(), Set.of());
+        assertTrue(preflight.isSuccessful(), preflight.toString());
         assertFalse(local.evaluateTx(invalid.serialize(), Set.of()).isSuccessful(), "Receipt reuse must fail before waiting for rewards");
         var evidence = new LinkedHashMap<String, Object>();
         evidence.put("scope", "Paired genesis authorization probe with two real positive reward balances and a shared immutable sink; not wallet recovery implementation");
-        evidence.put("mintTx", mintId); evidence.put("registrationTx", registrationId); evidence.put("proposalTx", proposalId);
-        evidence.put("coreReward", coreReward); evidence.put("moduleReward", moduleReward); evidence.put("amountPerCredential", deposit);
-        evidence.put("positiveAndNegativeBranchesPreflighted", true); evidence.put("protocolParameters", params.getValue());
+        evidence.put("mintTx", mintId);
+        evidence.put("registrationTx", registrationId);
+        evidence.put("proposalTx", proposalId);
+        evidence.put("coreReward", coreReward);
+        evidence.put("moduleReward", moduleReward);
+        evidence.put("amountPerCredential", deposit);
+        evidence.put("positiveAndNegativeBranchesPreflighted", true);
+        evidence.put("protocolParameters", params.getValue());
         Files.writeString(Path.of("build/phase0/paired-reward-pending.json"), JsonUtil.getPrettyJson(evidence));
         System.out.println("Waiting for paired reward credits from proposal transaction " + proposalId);
         finish(coreReward, moduleReward, deposit, full, invalid, evidence);
     }
+
     private void finish(String coreReward, String moduleReward, BigInteger deposit, Transaction full,
                         Transaction invalid, LinkedHashMap<String, Object> evidence) throws Exception {
         long deadline = System.nanoTime() + Duration.ofMinutes(95).toNanos();
-        while (System.nanoTime() < deadline && (!balance(coreReward).equals(deposit) || !balance(moduleReward).equals(deposit))) Thread.sleep(15000);
-        assertEquals(deposit, balance(coreReward)); assertEquals(deposit, balance(moduleReward));
-        var bad = backend.getTransactionService().submitTransaction(invalid.serialize()); assertFalse(bad.isSuccessful());
+        while (System.nanoTime() < deadline && (!balance(coreReward).equals(deposit) || !balance(moduleReward).equals(deposit)))
+            Thread.sleep(15000);
+        assertEquals(deposit, balance(coreReward));
+        assertEquals(deposit, balance(moduleReward));
+        var bad = backend.getTransactionService().submitTransaction(invalid.serialize());
+        assertFalse(bad.isSuccessful());
         assertTrue(bad.toString().contains("ValidationTagMismatch") && bad.toString().contains("Caused by: error"), bad.toString());
-        var finalEvaluation = backend.getTransactionService().evaluateTx(full.serialize()); assertTrue(finalEvaluation.isSuccessful(), finalEvaluation.toString());
+        var finalEvaluation = backend.getTransactionService().evaluateTx(full.serialize());
+        assertTrue(finalEvaluation.isSuccessful(), finalEvaluation.toString());
         String withdrawalId = submit(full);
-        assertEquals(BigInteger.ZERO, balance(coreReward)); assertEquals(BigInteger.ZERO, balance(moduleReward));
-        evidence.put("withdrawalTx", withdrawalId); evidence.put("receiptReuseNodeFailure", bad.toString());
-        evidence.put("transactionBytes", full.serialize().length); evidence.put("redeemers", full.getWitnessSet().getRedeemers());
+        assertEquals(BigInteger.ZERO, balance(coreReward));
+        assertEquals(BigInteger.ZERO, balance(moduleReward));
+        evidence.put("withdrawalTx", withdrawalId);
+        evidence.put("receiptReuseNodeFailure", bad.toString());
+        evidence.put("transactionBytes", full.serialize().length);
+        evidence.put("redeemers", full.getWitnessSet().getRedeemers());
         Files.writeString(Path.of("build/phase0/paired-reward-evidence.json"), JsonUtil.getPrettyJson(evidence));
     }
+
     private BigInteger balance(String reward) throws Exception {
-        var result = backend.getAccountService().getAccountInformation(reward); assertTrue(result.isSuccessful(), result.toString());
+        var result = backend.getAccountService().getAccountInformation(reward);
+        assertTrue(result.isSuccessful(), result.toString());
         return new BigInteger(result.getValue().getWithdrawableAmount());
     }
-    @SuppressWarnings("unchecked") private Result<List<EvaluationResult>> budget() {
+
+    @SuppressWarnings("unchecked")
+    private Result<List<EvaluationResult>> budget() {
         return Result.success("Preflighted fixed paired budget").withValue(List.of(
                 new EvaluationResult(RedeemerTag.Reward, 0, new ExUnits(BigInteger.valueOf(4_000_000), BigInteger.valueOf(1_000_000_000))),
                 new EvaluationResult(RedeemerTag.Reward, 1, new ExUnits(BigInteger.valueOf(4_000_000), BigInteger.valueOf(1_000_000_000)))));
     }
+
     private QuickTxBuilder.TxContext context(BindingFixtures.Pair pair, String coreReward, String moduleReward, Utxo state, Utxo input,
                                              PlutusData auth, BigInteger amount) {
         return builder.compose(new Tx().readFrom(state).attachRewardValidator(pair.core()).attachRewardValidator(pair.module())
-                        .withdraw(coreReward, amount, PlutusDataAdapter.toClientLib(auth)).withdraw(moduleReward, amount, PlutusDataAdapter.toClientLib(auth))
-                        .payToAddress(creator.enterpriseAddress(), Amount.lovelace(amount)).payToAddress(creator.enterpriseAddress(), Amount.lovelace(amount)),
-                new Tx().collectFrom(List.of(input)).payToAddress(creator.baseAddress(), Amount.ada(16)).from(creator.baseAddress()))
+                                .withdraw(coreReward, amount, PlutusDataAdapter.toClientLib(auth)).withdraw(moduleReward, amount, PlutusDataAdapter.toClientLib(auth))
+                                .payToAddress(creator.enterpriseAddress(), Amount.lovelace(amount)).payToAddress(creator.enterpriseAddress(), Amount.lovelace(amount)),
+                        new Tx().collectFrom(List.of(input)).payToAddress(creator.baseAddress(), Amount.ada(16)).from(creator.baseAddress()))
                 .feePayer(sponsor.baseAddress()).collateralPayer(sponsor.baseAddress())
                 .withSigner(SignerProviders.signerFrom(sponsor)).withSigner(SignerProviders.signerFrom(creator)).withTxEvaluator((cbor, utxos) -> budget());
     }
+
     private String submit(Transaction tx) throws Exception {
-        var result = backend.getTransactionService().submitTransaction(tx.serialize()); assertTrue(result.isSuccessful(), result.toString());
-        confirm(result.getValue()); return result.getValue();
+        var result = backend.getTransactionService().submitTransaction(tx.serialize());
+        assertTrue(result.isSuccessful(), result.toString());
+        confirm(result.getValue());
+        return result.getValue();
     }
+
     private void topUp(String address, long ada) throws Exception {
         var request = HttpRequest.newBuilder(URI.create("http://localhost:10000/local-cluster/api/addresses/topup"))
                 .timeout(Duration.ofSeconds(30)).header("Content-Type", "application/json")

@@ -9,6 +9,7 @@ import com.bloxbean.cardano.julc.stdlib.Builtins;
 import com.bloxbean.cardano.julc.stdlib.annotation.OnchainLibrary;
 import com.bloxbean.cardano.julc.stdlib.lib.ValuesLib;
 import com.bloxbean.cardano.kavach.contracts.AccountTypes.*;
+
 import java.math.BigInteger;
 
 /**
@@ -20,8 +21,9 @@ import java.math.BigInteger;
 public class StateTransitionLib {
     /**
      * Resolves only the consumed reference named by the signed domain.
+     *
      * @param binding untrusted signed domain
-     * @param ctx ledger context
+     * @param ctx     ledger context
      * @return untrusted inline state; callers must authenticate it
      */
     public static AccountState resolve(IntentDomain binding, ScriptContext ctx) {
@@ -30,30 +32,34 @@ public class StateTransitionLib {
 
     /**
      * Authenticates singleton NFT custody and exact domain against consumed old state.
-     * @param previous candidate old datum
-     * @param binding signed domain
-     * @param deployment immutable deployment
+     *
+     * @param previous    candidate old datum
+     * @param binding     signed domain
+     * @param deployment  immutable deployment
      * @param custodyHash immutable state hash
-     * @param ctx ledger context
+     * @param ctx         ledger context
      * @return whether the old consumed state is authentic; the state validator separately restricts sponsor inputs
      */
     public static boolean authenticate(AccountState previous, IntentDomain binding, DeploymentDomain deployment,
-            byte[] custodyHash, ScriptContext ctx) {
+                                       byte[] custodyHash, ScriptContext ctx) {
         if (!LifecycleLib.stateShape(previous, deployment, custodyHash)
                 || !AccountLib.transactionShape(ctx) || AccountLib.assetCount(ctx.txInfo().mint()) != 0) return false;
-        if (!AccountLib.authenticateFrom(previous, binding, deployment, custodyHash, ctx.txInfo().inputs())) return false;
+        if (!AccountLib.authenticateFrom(previous, binding, deployment, custodyHash, ctx.txInfo().inputs()))
+            return false;
         boolean valid = true;
         for (var reference : ctx.txInfo().referenceInputs()) {
             if (reference.outRef().equals(binding.stateRef())
-                    || ValuesLib.containsPolicy(reference.resolved().value(), previous.accountId().policy())) valid = false;
+                    || ValuesLib.containsPolicy(reference.resolved().value(), previous.accountId().policy()))
+                valid = false;
         }
         return valid;
     }
 
     /**
      * Prevents state mutations from also consuming account assets or unrelated script inputs.
+     *
      * @param invocation exact state invocation
-     * @param ctx ledger context
+     * @param ctx        ledger context
      * @return whether every non-state input is a plain ADA-only key input
      */
     public static boolean sponsorInputs(CoreRedeemer invocation, ScriptContext ctx) {
@@ -64,7 +70,8 @@ public class StateTransitionLib {
                     case Credential.PubKeyCredential pubkey -> true;
                     default -> false;
                 };
-                if (!key || !AccountLib.plain(input.resolved()) || !AccountLib.positiveAdaOnly(input.resolved().value())) valid = false;
+                if (!key || !AccountLib.plain(input.resolved()) || !AccountLib.positiveAdaOnly(input.resolved().value()))
+                    valid = false;
             }
         }
         return valid;
@@ -72,36 +79,42 @@ public class StateTransitionLib {
 
     /**
      * Requires exact core invocation under the old immutable checkpoint credential.
+     *
      * @param invocation canonical mutation invocation
-     * @param previous authenticated old state
-     * @param ctx ledger context
+     * @param previous   authenticated old state
+     * @param ctx        ledger context
      * @return whether the Rewarding redeemer and withdrawal match the state invocation
      */
     public static boolean coreBinding(CoreRedeemer invocation, AccountState previous, ScriptContext ctx) {
         var credential = AccountLib.script(previous.coreBinding().checkpoint());
         var purpose = new ScriptPurpose.Rewarding(credential);
         return invocation.abiVersion().equals(BigInteger.ONE)
-                && AccountLib.shape((PlutusData)(Object)invocation, 0, 3)
+                && AccountLib.shape((PlutusData) (Object) invocation, 0, 3)
                 && ctx.txInfo().withdrawals().containsKey(credential) && ctx.txInfo().redeemers().containsKey(purpose)
-                && Builtins.equalsData(ctx.txInfo().redeemers().get(purpose), (PlutusData)(Object)invocation);
+                && Builtins.equalsData(ctx.txInfo().redeemers().get(purpose), (PlutusData) (Object) invocation);
     }
 
     /**
      * Requires exactly one NFT successor with nondecreasing state ADA. All other outputs
      * are plain ADA-only key outputs, so account change and hidden script effects reject.
+     *
      * @param invocation canonical state/core invocation
-     * @param previous authenticated consumed state
-     * @param nextState exact successor computed by immutable lifecycle rules
-     * @param ctx ledger context
+     * @param previous   authenticated consumed state
+     * @param nextState  exact successor computed by immutable lifecycle rules
+     * @param ctx        ledger context
      * @return whether all successor, value, receipt-disjointness and output constraints hold
      */
     public static boolean outputs(CoreRedeemer invocation, AccountState previous, AccountState nextState, ScriptContext ctx) {
-        if (!LifecycleLib.stateShape(nextState, previous.deploymentDomain(), previous.coreBinding().stateValidator())) return false;
+        if (!LifecycleLib.stateShape(nextState, previous.deploymentDomain(), previous.coreBinding().stateValidator()))
+            return false;
         BigInteger oldAda = BigInteger.ZERO;
         for (var input : ctx.txInfo().inputs()) {
-            if (input.outRef().equals(invocation.intent().domain().stateRef())) oldAda = ValuesLib.lovelaceOf(input.resolved().value());
+            if (input.outRef().equals(invocation.intent().domain().stateRef()))
+                oldAda = ValuesLib.lovelaceOf(input.resolved().value());
         }
-        int matches = 0; int index = 0; boolean valid = true;
+        int matches = 0;
+        int index = 0;
+        boolean valid = true;
         for (var output : ctx.txInfo().outputs()) {
             if (ValuesLib.containsPolicy(output.value(), previous.accountId().policy())) {
                 matches = matches + 1;

@@ -21,6 +21,7 @@ import com.bloxbean.cardano.kavach.auth.ed25519.Ed25519Lib.*;
 import com.bloxbean.cardano.kavach.contracts.AccountTypes.*;
 import com.bloxbean.cardano.kavach.protocol.WireFormat;
 import com.bloxbean.cardano.kavach.sdk.AccountCodec;
+
 import java.math.BigInteger;
 import java.security.KeyPair;
 import java.security.KeyPairGenerator;
@@ -30,7 +31,9 @@ import java.util.Arrays;
 import java.util.List;
 import java.util.Optional;
 
-/** Disposable compiled-script fixtures; none of these keys or contexts represent ledger authority. */
+/**
+ * Disposable compiled-script fixtures; none of these keys or contexts represent ledger authority.
+ */
 final class AccountFixtures {
     final List<KeyPair> keys = new ArrayList<>();
     final DeploymentDomain deployment = new DeploymentDomain(BigInteger.ZERO, BigInteger.valueOf(42), new byte[32]);
@@ -52,16 +55,34 @@ final class AccountFixtures {
     final PlutusV3Script finalModuleScript;
     final Address accountAddress;
 
-    AccountFixtures() throws Exception { this(false); }
-    /** Maximum registry and broad policies, retaining independent cancellation and unfreeze. */
-    AccountFixtures(boolean maximum) throws Exception { this(maximum, 0); }
-    /** Uses a separately applied browser module without changing any immutable validator. */
-    AccountFixtures(boolean maximum, int browserMode) throws Exception { this(maximum, browserMode, BigInteger.ONE); }
-    AccountFixtures(boolean maximum, int browserMode, BigInteger budgetPeriod) throws Exception { this(maximum, browserMode, budgetPeriod, false); }
+    AccountFixtures() throws Exception {
+        this(false);
+    }
+
+    /**
+     * Maximum registry and broad policies, retaining independent cancellation and unfreeze.
+     */
+    AccountFixtures(boolean maximum) throws Exception {
+        this(maximum, 0);
+    }
+
+    /**
+     * Uses a separately applied browser module without changing any immutable validator.
+     */
+    AccountFixtures(boolean maximum, int browserMode) throws Exception {
+        this(maximum, browserMode, BigInteger.ONE);
+    }
+
+    AccountFixtures(boolean maximum, int browserMode, BigInteger budgetPeriod) throws Exception {
+        this(maximum, browserMode, budgetPeriod, false);
+    }
+
     AccountFixtures(boolean maximum, int browserMode, BigInteger budgetPeriod, boolean mixedSetup) throws Exception {
-        var lateHash = new byte[32]; lateHash[31] = (byte) 255;
+        var lateHash = new byte[32];
+        lateHash[31] = (byte) 255;
         stateRef = maximum ? new TxOutRef(new TxId(lateHash), BigInteger.ZERO) : ref(20);
-        for (int i = 0; i < (maximum ? 16 : 3); i++) keys.add(KeyPairGenerator.getInstance("Ed25519").generateKeyPair());
+        for (int i = 0; i < (maximum ? 16 : 3); i++)
+            keys.add(KeyPairGenerator.getInstance("Ed25519").generateKeyPair());
         stateScript = load(AccountStateValidator.class, BigInteger.ONE, deployment);
         coreScript = load(CoreCheckpoint.class, BigInteger.ONE, deployment, stateScript.getScriptHash(), sink);
         finalModuleScript = browserMode == 0 ? load(Ed25519Module.class, BigInteger.ONE, BigInteger.ONE, deployment, stateScript.getScriptHash(), coreScript.getScriptHash(), sink)
@@ -76,10 +97,11 @@ final class AccountFixtures {
                 stateScript.getScriptHash(), coreScript.getScriptHash(), budgetScript.getScriptHash())
                 : load(AccountAssetValidator.class, BigInteger.ONE, deployment, id, stateScript.getScriptHash(), coreScript.getScriptHash());
         var registry = new ArrayList<KeyEntry>();
-        for (int keyId = 0; keyId < keys.size(); keyId++) registry.add(new KeyEntry(BigInteger.valueOf(keyId), publicKey(keys.get(keyId))));
+        for (int keyId = 0; keyId < keys.size(); keyId++)
+            registry.add(new KeyEntry(BigInteger.valueOf(keyId), publicKey(keys.get(keyId))));
         config = maximum ? new Ed25519Config(BigInteger.ONE, list(registry.toArray(KeyEntry[]::new)),
-                policy(8, 0,1,2,3,4,5,6,7), policy(8, 8,9,10,11,12,13,14,15), policy(8, 8,9,10,11,12,13,14,15),
-                policy(8, 8,9,10,11,12,13,14,15), policy(8, 0,1,2,3,4,5,6,7), policy(8, 8,9,10,11,12,13,14,15))
+                policy(8, 0, 1, 2, 3, 4, 5, 6, 7), policy(8, 8, 9, 10, 11, 12, 13, 14, 15), policy(8, 8, 9, 10, 11, 12, 13, 14, 15),
+                policy(8, 8, 9, 10, 11, 12, 13, 14, 15), policy(8, 0, 1, 2, 3, 4, 5, 6, 7), policy(8, 8, 9, 10, 11, 12, 13, 14, 15))
                 : new Ed25519Config(BigInteger.ONE, list(new KeyEntry(BigInteger.ZERO, publicKey(keys.get(0))),
                 new KeyEntry(BigInteger.ONE, publicKey(keys.get(1))), new KeyEntry(BigInteger.TWO, publicKey(keys.get(2)))),
                 browserMode >= 3 ? policy(2, 0, 1) : policy(1, 0),
@@ -98,36 +120,61 @@ final class AccountFixtures {
         module = new Credential.ScriptCredential(new ScriptHash(moduleScript.getScriptHash()));
         accountAddress = new Address(new Credential.ScriptCredential(new ScriptHash(assetScript.getScriptHash())), Optional.empty());
     }
+
     static PlutusV3Script load(Class<?> type, Object... args) {
         var data = Arrays.stream(args).map(AccountCodec::data).map(PlutusDataAdapter::toClientLib)
                 .toArray(com.bloxbean.cardano.client.plutus.spec.PlutusData[]::new);
         return JulcScriptLoader.load(type, data);
     }
-    @SafeVarargs static <T> JulcList<T> list(T... entries) { JulcList<T> result = JulcList.empty(); for (int i = entries.length - 1; i >= 0; i--) result = result.prepend(entries[i]); return result; }
+
+    @SafeVarargs
+    static <T> JulcList<T> list(T... entries) {
+        JulcList<T> result = JulcList.empty();
+        for (int i = entries.length - 1; i >= 0; i--) result = result.prepend(entries[i]);
+        return result;
+    }
+
     static ThresholdPolicy policy(int threshold, int... ids) {
         return new ThresholdPolicy(BigInteger.valueOf(threshold), list(Arrays.stream(ids).mapToObj(BigInteger::valueOf).toArray(BigInteger[]::new)));
     }
-    static TxOutRef ref(int index) { return new TxOutRef(new TxId(new byte[32]), BigInteger.valueOf(index)); }
-    static byte[] publicKey(KeyPair pair) { var bytes = pair.getPublic().getEncoded(); return Arrays.copyOfRange(bytes, bytes.length - 32, bytes.length); }
+
+    static TxOutRef ref(int index) {
+        return new TxOutRef(new TxId(new byte[32]), BigInteger.valueOf(index));
+    }
+
+    static byte[] publicKey(KeyPair pair) {
+        var bytes = pair.getPublic().getEncoded();
+        return Arrays.copyOfRange(bytes, bytes.length - 32, bytes.length);
+    }
+
     static Signature sign(int id, KeyPair pair, byte[] digest) throws Exception {
-        var signer = java.security.Signature.getInstance("Ed25519"); signer.initSign(pair.getPrivate()); signer.update(digest);
+        var signer = java.security.Signature.getInstance("Ed25519");
+        signer.initSign(pair.getPrivate());
+        signer.update(digest);
         return new Signature(BigInteger.valueOf(id), signer.sign());
     }
+
     IntentEnvelope spend(long accountFee) {
         return new IntentEnvelope(WireFormat.protocolTag(), new IntentDomain(BigInteger.ONE, deployment, state.accountId(), state.coreBinding(), BigInteger.ZERO, stateRef),
                 new Validity(BigInteger.valueOf(1000), BigInteger.valueOf(10000)),
                 new Spend(list(assetRef), list(new Recipient(BigInteger.ZERO, sink, list(new Asset(new byte[]{}, new byte[]{}, BigInteger.valueOf(2000000))))), BigInteger.valueOf(accountFee)));
     }
+
     ModuleRedeemer authorization(IntentEnvelope intent) throws Exception {
         return new ModuleRedeemer(BigInteger.ONE, intent, Optional.of(new Proof(BigInteger.ZERO,
                 list(sign(0, keys.get(0), WireFormat.digest(AccountCodec.data(intent)))))), JulcList.empty(), JulcList.empty());
     }
+
     TxInInfo stateInput() {
         return new TxInInfo(stateRef, new TxOut(new Address(new Credential.ScriptCredential(new ScriptHash(state.coreBinding().stateValidator())), Optional.empty()),
                 Value.lovelace(BigInteger.valueOf(10000000)).merge(Value.singleton(new PolicyId(state.accountId().policy()), TokenName.EMPTY, BigInteger.ONE)),
                 new OutputDatum.OutputDatumInline(AccountCodec.data(state)), Optional.empty()));
     }
-    static TxOut output(Address address, long ada) { return new TxOut(address, Value.lovelace(BigInteger.valueOf(ada)), new OutputDatum.NoOutputDatum(), Optional.empty()); }
+
+    static TxOut output(Address address, long ada) {
+        return new TxOut(address, Value.lovelace(BigInteger.valueOf(ada)), new OutputDatum.NoOutputDatum(), Optional.empty());
+    }
+
     ScriptContextTestBuilder context(String role, IntentEnvelope intent, ModuleRedeemer auth) {
         var coreRedeemer = new CoreRedeemer(BigInteger.ONE, intent, auth.receipts());
         var assetRedeemer = new AssetRedeemer(BigInteger.ONE, WireFormat.digest(AccountCodec.data(intent)));
@@ -141,21 +188,26 @@ final class AccountFixtures {
                 .redeemerEntry(new ScriptPurpose.Rewarding(module), AccountCodec.data(auth))
                 .redeemerEntry(new ScriptPurpose.Spending(assetRef), AccountCodec.data(assetRedeemer));
     }
-    /** Canonical ledger input order; maximum fixtures place the authenticated state last. */
+
+    /**
+     * Canonical ledger input order; maximum fixtures place the authenticated state last.
+     */
     static PlutusData orderedInputs(PlutusData context) {
-        var tx = (PlutusData.ConstrData)((PlutusData.ConstrData)context).fields().get(0);
-        var inputs = new ArrayList<>(((PlutusData.ListData)tx.fields().get(0)).items());
+        var tx = (PlutusData.ConstrData) ((PlutusData.ConstrData) context).fields().get(0);
+        var inputs = new ArrayList<>(((PlutusData.ListData) tx.fields().get(0)).items());
         inputs.sort((a, b) -> {
-            var left = ((PlutusData.ConstrData)((PlutusData.ConstrData)a).fields().get(0)).fields();
-            var right = ((PlutusData.ConstrData)((PlutusData.ConstrData)b).fields().get(0)).fields();
-            int order = Arrays.compareUnsigned(((PlutusData.BytesData)left.get(0)).value(), ((PlutusData.BytesData)right.get(0)).value());
-            return order != 0 ? order : ((PlutusData.IntData)left.get(1)).value().compareTo(((PlutusData.IntData)right.get(1)).value());
+            var left = ((PlutusData.ConstrData) ((PlutusData.ConstrData) a).fields().get(0)).fields();
+            var right = ((PlutusData.ConstrData) ((PlutusData.ConstrData) b).fields().get(0)).fields();
+            int order = Arrays.compareUnsigned(((PlutusData.BytesData) left.get(0)).value(), ((PlutusData.BytesData) right.get(0)).value());
+            return order != 0 ? order : ((PlutusData.IntData) left.get(1)).value().compareTo(((PlutusData.IntData) right.get(1)).value());
         });
         return AccountAdversarialTest.field(context, new PlutusData.ListData(inputs), 0, 0);
     }
+
     EvalResult evaluate(String role, ScriptContextTestBuilder context) {
         return evaluate(role, context.buildPlutusData());
     }
+
     EvalResult evaluate(String role, PlutusData context) {
         var script = role.equals("budget") ? budgetScript : role.equals("core") ? coreScript : role.equals("asset") ? assetScript : role.equals("nft") ? nftScript : role.equals("state") ? stateScript : moduleScript;
         return JulcVm.create("Java").evaluateWithArgs(JulcScriptAdapter.toProgram(script.getCborHex()), LedgerEvaluationTarget.pv11(PlutusLanguage.PLUTUS_V3),

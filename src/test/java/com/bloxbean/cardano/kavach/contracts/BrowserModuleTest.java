@@ -4,7 +4,9 @@ import static org.junit.jupiter.api.Assertions.*;
 
 import com.bloxbean.cardano.client.cip.cip30.CIP30DataSigner;
 import com.bloxbean.cardano.julc.core.types.JulcList;
+
 import java.security.interfaces.EdECPrivateKey;
+
 import com.bloxbean.cardano.julc.ledger.PolicyId;
 import com.bloxbean.cardano.julc.ledger.ScriptPurpose;
 import com.bloxbean.cardano.julc.ledger.TokenName;
@@ -35,18 +37,18 @@ import java.util.Optional;
 class BrowserModuleTest {
     @ParameterizedTest
     @CsvSource({
-        "1,freeze",
-        "2,freeze",
-        "1,unfreeze",
-        "2,unfreeze",
-        "1,config",
-        "2,config",
-        "1,start",
-        "2,start",
-        "1,cancel",
-        "2,cancel",
-        "1,complete",
-        "2,complete"
+            "1,freeze",
+            "2,freeze",
+            "1,unfreeze",
+            "2,unfreeze",
+            "1,config",
+            "2,config",
+            "1,start",
+            "2,start",
+            "1,cancel",
+            "2,cancel",
+            "1,complete",
+            "2,complete"
     })
     void browserLifecyclePreservesImmutableBindings(int mode, String operation) throws Exception {
         var life = new AccountLifecycleTest();
@@ -60,11 +62,11 @@ class BrowserModuleTest {
             case "unfreeze" -> {
                 old = life.state(old, 1, 0, 0, new Frozen());
                 action = new Unfreeze();
-                ids = new int[] {2};
+                ids = new int[]{2};
             }
             case "config" -> {
                 action = new ReplaceConfig(old.authConfig());
-                ids = new int[] {0, 1};
+                ids = new int[]{0, 1};
             }
             case "start" -> action = new StartRecovery(BigInteger.ONE, old.authConfig());
             case "cancel", "complete" -> {
@@ -78,10 +80,10 @@ class BrowserModuleTest {
                                         new byte[32], BigInteger.valueOf(lower), old.authConfig()));
                 if (operation.equals("cancel")) {
                     action = new CancelRecovery(BigInteger.ONE, new byte[32]);
-                    ids = new int[] {2};
+                    ids = new int[]{2};
                 } else {
                     action = new CompleteRecovery(BigInteger.ONE, old.authConfig());
-                    ids = new int[] {0};
+                    ids = new int[]{0};
                 }
             }
         }
@@ -92,8 +94,8 @@ class BrowserModuleTest {
         byte[] message =
                 operation.equals("complete")
                         ? WireFormat.digest(
-                                ProofDomains.target(
-                                        AccountCodec.data(old), AccountCodec.data(intent)))
+                        ProofDomains.target(
+                                AccountCodec.data(old), AccountCodec.data(intent)))
                         : AccountCodec.intentDigest(intent, null);
         var proofs = proofs(f, mode, message, ids);
         var auth =
@@ -118,8 +120,8 @@ class BrowserModuleTest {
         }
         int wrongId =
                 operation.equals("unfreeze")
-                                || operation.equals("cancel")
-                                || operation.equals("complete")
+                        || operation.equals("cancel")
+                        || operation.equals("complete")
                         ? 1
                         : 0;
         var wrongProofs = proofs(f, mode, message, wrongId);
@@ -144,30 +146,30 @@ class BrowserModuleTest {
 
     @ParameterizedTest
     @CsvSource({
-        "1,valid",
-        "2,valid",
-        "2,valid-legacy",
-        "2,valid-base",
-        "2,marker",
-        "2,strip-kid",
-        "1,missing",
-        "2,signature",
-        "1,wrong-signer",
-        "2,network",
-        "2,payload",
-        "1,wrong-mode",
-        "2,wrong-mode",
-        "1,duplicate",
-        "2,duplicate",
-        "1,extra-bytes",
-        "2,extra-bytes"
+            "1,valid",
+            "2,valid",
+            "2,valid-legacy",
+            "2,valid-base",
+            "2,marker",
+            "2,strip-kid",
+            "1,missing",
+            "2,signature",
+            "1,wrong-signer",
+            "2,network",
+            "2,payload",
+            "1,wrong-mode",
+            "2,wrong-mode",
+            "1,duplicate",
+            "2,duplicate",
+            "1,extra-bytes",
+            "2,extra-bytes"
     })
     void transferProofsRejectInvalidEvidence(int mode, String attack) throws Exception {
         var f = new AccountFixtures(false, mode);
         var intent = f.spend(0);
         byte[] digest = AccountCodec.intentDigest(intent, null);
         if (attack.equals("payload")) digest[0] ^= 1;
-        var signatures = proofs(f, mode, digest, !attack.equals("valid-legacy"), attack.equals("valid-base") ? 0 : 6, new int[] {0});
+        var signatures = proofs(f, mode, digest, !attack.equals("valid-legacy"), attack.equals("valid-base") ? 0 : 6, new int[]{0});
         if (attack.equals("strip-kid")) {
             var bytes = signatures.head().signature();
             signatures = AccountFixtures.list(new Signature(BigInteger.ZERO, Arrays.copyOf(bytes, bytes.length - 1)));
@@ -177,7 +179,8 @@ class BrowserModuleTest {
                 || attack.equals("extra-bytes")) {
             var bytes = signatures.head().signature().clone();
             if (attack.equals("extra-bytes")) bytes = Arrays.copyOf(bytes, bytes.length + 1);
-            else bytes[attack.equals("network") ? 0 : attack.equals("signature") ? bytes.length - 2 : bytes.length - 1] ^= 1;
+            else
+                bytes[attack.equals("network") ? 0 : attack.equals("signature") ? bytes.length - 2 : bytes.length - 1] ^= 1;
             signatures = AccountFixtures.list(new Signature(BigInteger.ZERO, bytes));
         }
         if (attack.equals("duplicate"))
@@ -206,12 +209,12 @@ class BrowserModuleTest {
 
     @ParameterizedTest
     @CsvSource({
-        "1,valid",
-        "2,valid",
-        "1,missing-key",
-        "2,missing-key",
-        "1,missing-witness",
-        "2,wrong-domain"
+            "1,valid",
+            "2,valid",
+            "1,missing-key",
+            "2,missing-key",
+            "1,missing-witness",
+            "2,wrong-domain"
     })
     void genesisRequiresEveryEnrolledKey(int mode, String attack) throws Exception {
         var f = new AccountFixtures(false, mode);
@@ -299,7 +302,7 @@ class BrowserModuleTest {
     }
 
     private static JulcList<Signature> proofs(AccountFixtures fixture, int mode, byte[] message,
-            boolean withKid, int addressType, int... ids) throws Exception {
+                                              boolean withKid, int addressType, int... ids) throws Exception {
         var evidence = new ArrayList<Signature>();
         for (int id : ids) {
             byte[] packed = new byte[0];

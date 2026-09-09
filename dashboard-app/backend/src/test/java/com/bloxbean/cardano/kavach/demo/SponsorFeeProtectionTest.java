@@ -8,13 +8,16 @@ import com.bloxbean.cardano.client.transaction.spec.TransactionOutput;
 import com.bloxbean.cardano.client.transaction.spec.TransactionWitnessSet;
 import com.bloxbean.cardano.client.transaction.spec.Value;
 import org.junit.jupiter.api.Test;
+
 import java.math.BigInteger;
 import java.util.ArrayList;
 import java.util.List;
+
 import static org.junit.jupiter.api.Assertions.*;
 
 class SponsorFeeProtectionTest {
-    @Test void failsClosedIfBalancingChangesOutputLayout() {
+    @Test
+    void failsClosedIfBalancingChangesOutputLayout() {
         String address = new Account(Networks.testnet()).baseAddress();
         var tx = Transaction.builder().body(TransactionBody.builder().inputs(new ArrayList<>())
                 .outputs(new ArrayList<>(List.of(new TransactionOutput(address, Value.builder().coin(BigInteger.valueOf(22_000_000)).build()),

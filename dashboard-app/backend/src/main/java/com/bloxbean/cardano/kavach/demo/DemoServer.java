@@ -22,7 +22,9 @@ public final class DemoServer {
     private static final Set<String> ORIGINS =
             Set.of("http://localhost:6670", "http://127.0.0.1:6670");
 
-    /** Starts the local API on 127.0.0.1:8095; configuration is controlled by the operator. */
+    /**
+     * Starts the local API on 127.0.0.1:8095; configuration is controlled by the operator.
+     */
     public static void main(String[] args) throws Exception {
         var service = new DemoService();
         var server = HttpServer.create(new InetSocketAddress("127.0.0.1", 8095), 32);
@@ -54,7 +56,8 @@ public final class DemoServer {
                     throw new IllegalArgumentException("JSON required");
                 byte[] bytes = exchange.getRequestBody().readNBytes(65537);
                 if (bytes.length > 65536) throw new IllegalArgumentException("Request too large");
-                Map<String, Object> body = JSON.readValue(bytes, new TypeReference<>() {});
+                Map<String, Object> body = JSON.readValue(bytes, new TypeReference<>() {
+                });
                 result =
                         switch (path) {
                             case "accounts/restore" -> service.restore(string(body, "locator"));
@@ -106,5 +109,6 @@ public final class DemoServer {
         return text;
     }
 
-    private DemoServer() {}
+    private DemoServer() {
+    }
 }

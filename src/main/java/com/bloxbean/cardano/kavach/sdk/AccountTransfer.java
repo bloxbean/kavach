@@ -18,6 +18,7 @@ import com.bloxbean.cardano.julc.ledger.TxOutRef;
 import com.bloxbean.cardano.kavach.contracts.AccountTypes.*;
 import com.bloxbean.cardano.kavach.protocol.WireFormat;
 import org.bouncycastle.math.ec.rfc8032.Ed25519;
+
 import java.math.BigInteger;
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -37,7 +38,8 @@ import java.util.TreeMap;
  * still require script evaluation and node validation; this helper is not a signing UI.
  */
 public final class AccountTransfer {
-    private AccountTransfer() {}
+    private AccountTransfer() {
+    }
 
     /**
      * Attaches the complete ordinary authorization chain to a caller-owned transaction.
@@ -45,49 +47,54 @@ public final class AccountTransfer {
      * sinks remain immutable-validator obligations. Use the same signed envelope for display;
      * do not authorize a caller-selected digest. Only raw Ed25519 scheme 0 is supported.
      *
-     * @param tx transaction containing the intended recipient/change/receipt outputs
-     * @param scripts script graph independently derived with {@link AccountDeployment#derive}
-     * @param state expected complete state, authenticated against the supplied NFT-bearing UTxO
-     * @param stateInput current resolved state UTxO, used only as a reference
+     * @param tx            transaction containing the intended recipient/change/receipt outputs
+     * @param scripts       script graph independently derived with {@link AccountDeployment#derive}
+     * @param state         expected complete state, authenticated against the supplied NFT-bearing UTxO
+     * @param stateInput    current resolved state UTxO, used only as a reference
      * @param accountInputs resolved account inputs in canonical TxOutRef order
-     * @param intent complete signed Spend or TransferWholeUtxo envelope
-     * @param proof raw Ed25519 spend-role evidence over that envelope's digest
-     * @param receipts credential-ordered allocations for all positive checkpoint withdrawals
-     * @param coreRewards complete current core reward balance, in lovelace
+     * @param intent        complete signed Spend or TransferWholeUtxo envelope
+     * @param proof         raw Ed25519 spend-role evidence over that envelope's digest
+     * @param receipts      credential-ordered allocations for all positive checkpoint withdrawals
+     * @param coreRewards   complete current core reward balance, in lovelace
      * @param moduleRewards complete current module reward balance, in lovelace
      * @return the same transaction with inputs, state reference and both withdrawals attached
-     * @throws IllegalArgumentException if supplied state, inputs, domain, receipts or proofs are inconsistent
-     * @throws CborSerializationException if script identities cannot be computed
+     * @throws IllegalArgumentException     if supplied state, inputs, domain, receipts or proofs are inconsistent
+     * @throws CborSerializationException   if script identities cannot be computed
      * @throws CborDeserializationException if the ledger inline datum cannot be decoded
      */
     public static Tx attach(Tx tx, AccountDeployment.Scripts scripts, AccountState state, Utxo stateInput,
-            List<Utxo> accountInputs, IntentEnvelope intent, Proof proof, JulcList<RewardReceipt> receipts,
-            BigInteger coreRewards, BigInteger moduleRewards) throws CborSerializationException, CborDeserializationException {
+                            List<Utxo> accountInputs, IntentEnvelope intent, Proof proof, JulcList<RewardReceipt> receipts,
+                            BigInteger coreRewards, BigInteger moduleRewards) throws CborSerializationException, CborDeserializationException {
         return attachInternal(tx, scripts, state, stateInput, accountInputs, intent, proof, receipts, coreRewards, moduleRewards, null);
     }
 
-    /** Browser-profile transfer; required payment-key signers must be included in the final transaction body. */
+    /**
+     * Browser-profile transfer; required payment-key signers must be included in the final transaction body.
+     */
     public static Tx attach(Tx tx, AccountDeployment.Scripts scripts, AccountState state, Utxo stateInput,
-            List<Utxo> accountInputs, IntentEnvelope intent, Proof proof, JulcList<RewardReceipt> receipts,
-            BigInteger coreRewards, BigInteger moduleRewards, BrowserAuthorization authorization) throws CborSerializationException, CborDeserializationException {
+                            List<Utxo> accountInputs, IntentEnvelope intent, Proof proof, JulcList<RewardReceipt> receipts,
+                            BigInteger coreRewards, BigInteger moduleRewards, BrowserAuthorization authorization) throws CborSerializationException, CborDeserializationException {
         if (authorization == null) throw new IllegalArgumentException("Missing browser profile");
         return attachInternal(tx, scripts, state, stateInput, accountInputs, intent, proof, receipts, coreRewards, moduleRewards, authorization);
     }
 
     private static Tx attachInternal(Tx tx, AccountDeployment.Scripts scripts, AccountState state, Utxo stateInput,
-            List<Utxo> accountInputs, IntentEnvelope intent, Proof proof, JulcList<RewardReceipt> receipts,
-            BigInteger coreRewards, BigInteger moduleRewards, BrowserAuthorization authorization) throws CborSerializationException, CborDeserializationException {
+                                     List<Utxo> accountInputs, IntentEnvelope intent, Proof proof, JulcList<RewardReceipt> receipts,
+                                     BigInteger coreRewards, BigInteger moduleRewards, BrowserAuthorization authorization) throws CborSerializationException, CborDeserializationException {
         WireFormat.validateState(AccountCodec.data(state));
         require(state.mode() instanceof Normal, "Transfers require Normal state");
         var network = authenticateState(scripts, state, stateInput);
         String account = AddressProvider.getEntAddress(scripts.asset(), network).toBech32();
         var resolvedState = AccountCodec.data(state);
         require(!accountInputs.isEmpty() && accountInputs.size() <= 8, "Account input count");
-        var refs = new ArrayList<TxOutRef>(); var unique = new HashSet<TxOutRef>();
+        var refs = new ArrayList<TxOutRef>();
+        var unique = new HashSet<TxOutRef>();
         for (var input : accountInputs) {
             require(account.equals(input.getAddress()), "Wrong full account input address");
             quantities(input.getAmount());
-            var ref = reference(input); require(unique.add(ref), "Duplicate account input"); refs.add(ref);
+            var ref = reference(input);
+            require(unique.add(ref), "Duplicate account input");
+            refs.add(ref);
         }
         PlutusData wholeValue = null;
         if (intent.action() instanceof Spend spend) {
@@ -113,7 +120,9 @@ public final class AccountTransfer {
                 .attachRewardValidator(scripts.module()).withdraw(AddressProvider.getRewardAddress(scripts.module(), network).toBech32(), moduleRewards, PlutusDataAdapter.toClientLib(AccountCodec.data(moduleRedeemer)));
     }
 
-    /** Authenticates exact inline state, full NFT custody and the independently supplied script graph. */
+    /**
+     * Authenticates exact inline state, full NFT custody and the independently supplied script graph.
+     */
     static Network authenticateState(AccountDeployment.Scripts scripts, AccountState state, Utxo stateInput)
             throws CborSerializationException, CborDeserializationException {
         WireFormat.validateState(AccountCodec.data(state));
@@ -134,18 +143,22 @@ public final class AccountTransfer {
         return network;
     }
 
-    /** Checks every signature and threshold against the already validated configuration; ignores no evidence. */
+    /**
+     * Checks every signature and threshold against the already validated configuration; ignores no evidence.
+     */
     private static void verifySpendEvidence(PlutusData configuration, Proof proof, byte[] digest) {
         require(proof.scheme().equals(BigInteger.ZERO) && !proof.signatures().isEmpty() && proof.signatures().size() <= 8, "Unsupported or empty operation proof");
         var fields = ((PlutusData.ConstrData) configuration).fields();
         var registry = new TreeMap<BigInteger, byte[]>();
         for (var entry : ((PlutusData.ListData) fields.get(1)).items()) {
-            var key = ((PlutusData.ConstrData)entry).fields(); registry.put(integer(key.get(0)), ((PlutusData.BytesData)key.get(1)).value());
+            var key = ((PlutusData.ConstrData) entry).fields();
+            registry.put(integer(key.get(0)), ((PlutusData.BytesData) key.get(1)).value());
         }
         var policy = ((PlutusData.ConstrData) fields.get(2)).fields();
         var members = new HashSet<BigInteger>();
-        for (var member : ((PlutusData.ListData)policy.get(1)).items()) members.add(integer(member));
-        int count = 0; BigInteger previous = BigInteger.valueOf(-1);
+        for (var member : ((PlutusData.ListData) policy.get(1)).items()) members.add(integer(member));
+        int count = 0;
+        BigInteger previous = BigInteger.valueOf(-1);
         for (var signature : proof.signatures()) {
             byte[] publicKey = registry.get(signature.credentialId());
             require(signature.credentialId().compareTo(previous) > 0 && publicKey != null && signature.signature().length == 64, "Malformed or unknown signature evidence");
@@ -155,51 +168,79 @@ public final class AccountTransfer {
         }
         require(BigInteger.valueOf(count).compareTo(integer(policy.get(0))) >= 0, "Spend threshold not satisfied");
     }
-    /** Positive balances have exactly one distinct receipt; zero balances have none. */
+
+    /**
+     * Positive balances have exactly one distinct receipt; zero balances have none.
+     */
     private static void checkReceipts(JulcList<RewardReceipt> receipts, Credential core, Credential module, BigInteger coreRewards, BigInteger moduleRewards) {
         require(coreRewards.signum() >= 0 && moduleRewards.signum() >= 0 && coreRewards.bitLength() <= 63 && moduleRewards.bitLength() <= 63, "Reward balance bounds");
         Set<PlutusData> expected = new HashSet<>();
         if (coreRewards.signum() > 0) expected.add(core.toPlutusData());
         if (moduleRewards.signum() > 0) expected.add(module.toPlutusData());
-        var indices = new HashSet<BigInteger>(); byte[] previous = new byte[0];
+        var indices = new HashSet<BigInteger>();
+        byte[] previous = new byte[0];
         for (var receipt : receipts) {
             require(receipt.rewardCredential() instanceof Credential.ScriptCredential, "Script reward credential required");
-            byte[] hash = ((Credential.ScriptCredential)receipt.rewardCredential()).hash().hash();
+            byte[] hash = ((Credential.ScriptCredential) receipt.rewardCredential()).hash().hash();
             require(Arrays.compareUnsigned(previous, hash) < 0 && expected.remove(receipt.rewardCredential().toPlutusData()), "Unexpected or duplicate reward receipt");
             require(receipt.outputIndex().signum() >= 0 && receipt.outputIndex().compareTo(BigInteger.valueOf(16)) < 0 && indices.add(receipt.outputIndex()), "Receipt output index or reuse");
             previous = hash;
         }
         require(expected.isEmpty(), "Missing positive reward receipt");
     }
-    /** Preserves complete Value maps in canonical raw policy/name byte order for whole-input hashing. */
+
+    /**
+     * Preserves complete Value maps in canonical raw policy/name byte order for whole-input hashing.
+     */
     private static PlutusData ledgerValue(List<Amount> amounts) {
         var policies = new TreeMap<String, TreeMap<String, BigInteger>>();
         for (var entry : quantities(amounts).entrySet()) {
-            String unit = entry.getKey(); String policy = unit.equals("lovelace") ? "" : unit.substring(0, 56);
+            String unit = entry.getKey();
+            String policy = unit.equals("lovelace") ? "" : unit.substring(0, 56);
             String name = unit.equals("lovelace") ? "" : unit.substring(56);
             policies.computeIfAbsent(policy, ignored -> new TreeMap<>()).put(name, entry.getValue());
         }
         var entries = new ArrayList<PlutusData.Pair>();
         for (var policy : policies.entrySet()) {
             var tokens = new ArrayList<PlutusData.Pair>();
-            for (var token : policy.getValue().entrySet()) tokens.add(new PlutusData.Pair(PlutusData.bytes(HexUtil.decodeHexString(token.getKey())), PlutusData.integer(token.getValue())));
+            for (var token : policy.getValue().entrySet())
+                tokens.add(new PlutusData.Pair(PlutusData.bytes(HexUtil.decodeHexString(token.getKey())), PlutusData.integer(token.getValue())));
             entries.add(new PlutusData.Pair(PlutusData.bytes(HexUtil.decodeHexString(policy.getKey())), new PlutusData.MapData(tokens)));
         }
         return new PlutusData.MapData(entries);
     }
-    /** Rejects ambiguous duplicate units and malformed backend quantities before any accounting or hashing. */
+
+    /**
+     * Rejects ambiguous duplicate units and malformed backend quantities before any accounting or hashing.
+     */
     static Map<String, BigInteger> quantities(List<Amount> amounts) {
-        require(amounts != null, "Missing resolved Value"); var result = new TreeMap<String, BigInteger>();
+        require(amounts != null, "Missing resolved Value");
+        var result = new TreeMap<String, BigInteger>();
         for (var amount : amounts) {
             String unit = amount.getUnit();
             require(unit != null && (unit.equals("lovelace") || unit.matches("[0-9a-f]{56}([0-9a-f]{2}){0,32}")), "Malformed asset identifier");
             require(amount.getQuantity() != null && amount.getQuantity().signum() > 0, "Nonpositive resolved quantity");
             require(result.put(unit, amount.getQuantity()) == null, "Duplicate resolved asset unit");
         }
-        require(result.containsKey("lovelace"), "Resolved output lacks lovelace"); return result;
+        require(result.containsKey("lovelace"), "Resolved output lacks lovelace");
+        return result;
     }
-    static TxOutRef reference(Utxo input) { return new TxOutRef(new TxId(HexUtil.decodeHexString(input.getTxHash())), BigInteger.valueOf(input.getOutputIndex())); }
-    private static BigInteger integer(PlutusData data) { return ((PlutusData.IntData)data).value(); }
-    private static <T> JulcList<T> toJulcList(List<T> values) { JulcList<T> result = JulcList.empty(); for (int i = values.size() - 1; i >= 0; i--) result = result.prepend(values.get(i)); return result; }
-    private static void require(boolean condition, String reason) { if (!condition) throw new IllegalArgumentException(reason); }
+
+    static TxOutRef reference(Utxo input) {
+        return new TxOutRef(new TxId(HexUtil.decodeHexString(input.getTxHash())), BigInteger.valueOf(input.getOutputIndex()));
+    }
+
+    private static BigInteger integer(PlutusData data) {
+        return ((PlutusData.IntData) data).value();
+    }
+
+    private static <T> JulcList<T> toJulcList(List<T> values) {
+        JulcList<T> result = JulcList.empty();
+        for (int i = values.size() - 1; i >= 0; i--) result = result.prepend(values.get(i));
+        return result;
+    }
+
+    private static void require(boolean condition, String reason) {
+        if (!condition) throw new IllegalArgumentException(reason);
+    }
 }
