@@ -2,6 +2,7 @@
 import "@fontsource-variable/dm-sans";
 import "@fontsource-variable/manrope";
 import "../styles/home.css";
+import ExperimentalNotice from "../components/ExperimentalNotice.astro";
 const base = import.meta.env.BASE_URL.replace(/\/$/, "");
 const url = (path: string) => `${base}/${path}`;
 const features = [
@@ -54,6 +55,7 @@ const features = [
   >
   <body>
     <a class="skip" href="#main">Skip to content</a>
+    <ExperimentalNotice />
     <header class="nav wrap">
       <a class="brand" href={url("")} aria-label="Kavach home"
         ><img

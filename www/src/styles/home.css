@@ -32,6 +32,7 @@ button:focus-visible {
   padding-right: 40px;
 }
 .nav {
+  position: relative;
   height: 104px;
   display: flex;
   align-items: center;

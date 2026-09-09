@@ -1,18 +1,6 @@
 ---
 import Banner from '@astrojs/starlight/components/Banner.astro';
+import ExperimentalNotice from './ExperimentalNotice.astro';
 ---
-<aside class="experimental-notice" aria-label="Project status" data-pagefind-ignore>
-  <strong>Experimental</strong> · Not audited or production-ready. Use test assets only.
-</aside>
+<ExperimentalNotice />
 <Banner />
-<style>
-  .experimental-notice {
-    padding: 0.8rem 1.5rem;
-    background: var(--sl-color-accent-low);
-    color: var(--sl-color-accent-high);
-    border-bottom: 1px solid var(--sl-color-hairline-light);
-    font-size: 0.875rem;
-    text-align: center;
-    text-wrap: balance;
-  }
-</style>

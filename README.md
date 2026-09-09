@@ -1,6 +1,9 @@
-# Kavach
+# Kavach — EXPERIMENTAL
 
-> **Experimental** — Kavach is under active development, has not been independently audited, and is not production-ready. Use test assets only.
+> [!WARNING]
+> **EXPERIMENTAL SOFTWARE — USE TEST ASSETS ONLY.**
+>
+> Kavach is under active development, has not been independently audited, and is **not production-ready**.
 
 A proposed programmable, recoverable smart-account protocol for Cardano. JuLC is the initial contract implementation language; the protocol is intended to support independent implementations.
 
