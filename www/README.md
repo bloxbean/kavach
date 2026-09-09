@@ -40,7 +40,7 @@ No backend storage, wallet state or companion secrets are copied.
 
 ## GitHub Pages
 
-Expected URL: https://bloxbean.github.io/kavach/ . The `/kavach` base is required for this
+Expected URL: https://pages.bloxbean.com/kavach/ . The `/kavach` base is required for this
 project site. If the repository is renamed or a custom domain is introduced, update the
 Astro configuration, authored links, synchronization script and link checker together.
 
@@ -62,7 +62,7 @@ serves that branch. The branch contains generated files only; edit source on `ma
    allow the **gh-pages branch**. The Pages deployment runs from that branch; previous
    tag-based environment rules are no longer relevant.
 5. Wait for GitHub's **pages build and deployment** run to finish, then visit
-   https://bloxbean.github.io/kavach/ .
+   https://pages.bloxbean.com/kavach/ .
 
 The publisher adds `.nojekyll` so GitHub serves Astro's generated assets directly.
 See [GitHub's publishing-source instructions](https://docs.github.com/en/pages/getting-started-with-github-pages/configuring-a-publishing-source-for-your-github-pages-site)
@@ -84,5 +84,5 @@ The build uses that commit's source, including the committed white-paper PDF and
 
 This publishes one current site, not separate versioned sites. Publishing jobs share a
 concurrency lock. Tags may still mark milestones, but do not publish documentation or
-change the white paper's document version or protocol schema versions. No custom domain
-is configured.
+change the white paper's document version or protocol schema versions. The site inherits the organization’s `pages.bloxbean.com` domain; no repository-specific
+CNAME is required.

@@ -1,7 +1,7 @@
 import { defineConfig } from "astro/config";
 import starlight from "@astrojs/starlight";
 export default defineConfig({
-  site: "https://bloxbean.github.io",
+  site: "https://pages.bloxbean.com",
   base: "/kavach",
   trailingSlash: "always",
   output: "static",
