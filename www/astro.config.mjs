@@ -8,6 +8,7 @@ export default defineConfig({
   integrations: [
     starlight({
       title: "kavach.",
+      components: { Banner: "./src/components/ExperimentalBanner.astro" },
       description:
         "Programmable accounts for Cardano. Learn the concepts, build locally, and explore the protocol.",
       favicon: "/favicon.svg",

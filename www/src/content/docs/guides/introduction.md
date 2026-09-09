@@ -19,6 +19,6 @@ Kavach gives those rules an on-chain home. A dashboard prepares the action, your
 
 ## Where the project stands
 
-Kavach is a development preview with a working local Yaci DevKit stack, Java SDK, dashboard and iPhone companion. It is not audited or production-qualified. Use test assets.
+Kavach is **experimental**, with a working local Yaci DevKit stack, Java SDK, dashboard and iPhone companion. It is not audited or production-qualified. Use test assets.
 
 [Create an account](/kavach/guides/create-account/) or explore the [living white paper](/kavach/whitepaper/).
