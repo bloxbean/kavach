@@ -1,0 +1,47 @@
+WARNING: A restricted method in java.lang.System has been called
+WARNING: java.lang.System::load has been called by net.rubygrapefruit.platform.internal.NativeLibraryLoader in an unnamed module (file:/Users/satya/.gradle/wrapper/dists/gradle-9.2.0-bin/11i5gvueggl8a5cioxuftxrik/gradle-9.2.0/lib/native-platform-0.22-milestone-29.jar)
+WARNING: Use --enable-native-access=ALL-UNNAMED to avoid a warning for callers in this module
+WARNING: Restricted methods will be blocked in a future release unless native access is enabled
+
+> Task :verifyJulcToolchain
+> Task :compileJava UP-TO-DATE
+> Task :processResources NO-SOURCE
+> Task :classes UP-TO-DATE
+> Task :jar UP-TO-DATE
+> Task :demo:backend:compileJava UP-TO-DATE
+> Task :demo:backend:processResources NO-SOURCE
+> Task :demo:backend:classes UP-TO-DATE
+
+> Task :demo:backend:compileTestJava
+Note: /Users/satya/work/bloxbean/kavach/demo/backend/src/test/java/com/bloxbean/cardano/kavach/demo/DemoServiceDevkitTest.java uses unchecked or unsafe operations.
+Note: Recompile with -Xlint:unchecked for details.
+
+> Task :demo:backend:processTestResources NO-SOURCE
+> Task :demo:backend:testClasses
+
+> Task :demo:backend:demoIntegrationTest
+
+DemoServiceDevkitTest STANDARD_ERROR
+    SLF4J(W): No SLF4J providers were found.
+    SLF4J(W): Defaulting to no-operation (NOP) logger implementation
+    SLF4J(W): See https://www.slf4j.org/codes.html#noProviders for further details.
+
+DemoServiceDevkitTest > eightSignerCreationAndRestartResume() STANDARD_OUT
+    Create account · publish script 1 of 5 confirmed candidate 7d5a69e5fe73ec512a46aa1e4eb8dcdc301b2a8eb192b71ec0acf79cc534e5fd
+    Create account · publish script 2 of 5 confirmed candidate 73c72b6d4fac24aa9b6a42eea1c7d39e8da9bb763e25a994bf0bd90d0e804a86
+    Create account · publish script 3 of 5 confirmed candidate c3419f91642f8c3ab3c30c2356cf3aa7f8c546e3ec3d026b2187b5167df1551f
+    Create account · publish script 4 of 5 confirmed candidate 7d305a68283919cf2d35ea1b28442baf90557cacb7fa3a37199fb7fbf9b2d8b8
+    Create account · publish script 5 of 5 confirmed candidate c2c4fd6e6f861f10dec7629b91817d85ca383be0ee5ea130d3e199e163d0b0fa
+    Register authorization checkpoints confirmed candidate 006f6ef271d8668f20d15202e1dcdda7d96145be8704401a11d76eeb7b8ade3b
+    Create account · approve genesis confirmed candidate 29b14246c723444bf40650d42c0dcfa42baabed9067a100c9d48c9891a5b482c
+    Create account · publish final signing module confirmed candidate 728880b0fdb439fe421a19e0f8d8ddf6d6a63bedec55c197ce2c8929014df83a
+    Register authorization checkpoints confirmed candidate 554d9bad6cbcb9e095c49b5369b01dbbb2fbc8043c5c388c561ad268cedb2608
+    Create account · activate selected signing methods confirmed candidate ba598d190fb33f74cdf454390ef9d2c875b8c1617ec3a4f2fe7f7cb0ba11abc8
+    Send assets confirmed candidate 7a5270e80da4d3ba53b4be2faab064bcf1e3950acbb4dee21459852855b550d5
+    Send assets confirmed candidate b68aad391485797ffb39d353b4d0069111bcf5400f5cc5ae260cec83f0362991
+
+[Incubating] Problems report is available at: file:///Users/satya/work/bloxbean/kavach/build/reports/problems/problems-report.html
+
+BUILD SUCCESSFUL in 51s
+6 actionable tasks: 3 executed, 3 up-to-date
+Consider enabling configuration cache to speed up this build: https://docs.gradle.org/9.2.0/userguide/configuration_cache_enabling.html

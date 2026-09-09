@@ -7,6 +7,10 @@ import com.bloxbean.cardano.kavach.contracts.AccountTypes.*;
 import com.bloxbean.cardano.kavach.auth.ed25519.Ed25519Lib.*;
 import com.bloxbean.cardano.kavach.protocol.WireFormat;
 import java.math.BigInteger;
+import com.bloxbean.cardano.kavach.auth.policy.PolicyLib.PolicyConfig;
+import com.bloxbean.cardano.kavach.contracts.PeriodicBudgetLib.Configuration;
+import com.bloxbean.cardano.kavach.contracts.PeriodicBudgetLib.Budget;
+import com.bloxbean.cardano.kavach.contracts.PeriodicBudgetLib.Usage;
 import java.util.ArrayList;
 import java.util.Optional;
 
@@ -68,6 +72,10 @@ public final class AccountCodec {
             case KeyEntry k -> record(0, k.credentialId(), k.publicKey());
             case ThresholdPolicy p -> record(0, p.threshold(), list(p.credentialIds()));
             case Ed25519Config c -> record(0, c.schemaVersion(), list(c.keys()), c.spend(), c.admin(), c.freeze(), c.unfreeze(), c.recovery(), c.cancel());
+            case PolicyConfig c -> record(0, c.schemaVersion(), c.roles(), list(c.coseIds()), c.smallPaymentLimit(), c.smallSpend());
+            case Configuration c -> record(0, c.schemaVersion(), c.budget(), c.authorization());
+            case Budget b -> record(0, b.counter(), b.period(), b.limit());
+            case Usage u -> record(0, u.schemaVersion(), u.period(), u.windowStart(), u.spent());
             default -> throw new IllegalArgumentException("Unsupported protocol value: " + value.getClass().getName());
         };
     }

@@ -10,7 +10,7 @@ export function parsePhoneApproval(text: string, target: ApprovalTarget) {
   if (response.credentialID !== target.id || response.publicKey !== target.publicKey || response.digest !== target.payload)
     throw new Error("This approval belongs to a different key or request. Show the approval for the selected phone credential.");
   if (typeof response.requestID !== "string" || !/^[0-9a-f-]{36}$/i.test(response.requestID)
-      || !["kavach-cose-genesis-v1", "kavach-cose-spend-v1"].includes(String(response.profile))
+      || !["kavach-cose-genesis-v1", "kavach-cose-spend-v1", "kavach-cose-policy-v1"].includes(String(response.profile))
       || typeof response.signature !== "string" || !/^(?:[0-9a-f]{2})+$/i.test(response.signature)
       || typeof response.key !== "string" || !/^(?:[0-9a-f]{2})+$/i.test(response.key))
     throw new Error("Unsupported or incomplete phone approval.");

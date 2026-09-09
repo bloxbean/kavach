@@ -1,5 +1,8 @@
+import { ApprovalWizard } from "./ApprovalWizard";
+import { policiesAfterSignerRemoval } from "./signerPolicies";
+import { CreationSigners, emptyCreationSigners } from "./CreationSigners";
 import { walletProof } from "./walletProof";
-import { CompanionPanel, CompanionPairing } from "./CompanionPanel";
+import { CompanionPairing } from "./CompanionPanel";
 import { useEffect, useRef, useState } from "react";
 import { savedAccounts, rememberAccount, forgetAccount, legacyCandidates } from "./accounts";
 import { useCardano } from "@cardano-foundation/cardano-connect-with-wallet";
@@ -44,6 +47,7 @@ import {
 type Page = "Overview" | "Activity" | "Security" | "Recovery";
 type Action =
   | "Create account"
+  | "Finish account setup"
   | "Restore account"
   | "Send assets"
   | "Receive"
@@ -74,7 +78,9 @@ const defaultPolicies: Policy[] = [
 function PolicyEditor({
   policies,
   onChange,
+  signerCount = 3,
 }: {
+  signerCount?: number;
   policies: Policy[];
   onChange: (policies: Policy[]) => void;
 }) {
@@ -82,18 +88,19 @@ function PolicyEditor({
     <details className="policy-editor">
       <summary>Customize the six authority policies</summary>
       <p className="field-note">
-        Keys 0, 1 and 2 correspond to your three public-key lines. Recovery and
+        Key numbers correspond to the registered signers above. Select up to eight per policy. Recovery and
         defensive policies must remain independent.
       </p>
       {policies.map((policy, index) => (
         <fieldset key={policy.role}>
           <legend>{policy.role}</legend>
           <div className="policy-members">
-            {[0, 1, 2].map((id) => (
+            {Array.from({ length: signerCount }, (_, id) => id).map((id) => (
               <label key={id}>
                 <input
                   type="checkbox"
                   checked={policy.members.includes(id)}
+                  disabled={!policy.members.includes(id) && policy.members.length >= 8}
                   onChange={(e) =>
                     onChange(
                       policies.map((p, i) =>
@@ -101,7 +108,7 @@ function PolicyEditor({
                           ? {
                               ...p,
                               members: e.target.checked
-                                ? [...p.members, id].sort()
+                                ? [...p.members, id].sort((a, b) => a - b)
                                 : p.members.filter((m) => m !== id),
                             }
                           : p,
@@ -140,6 +147,7 @@ function PolicyEditor({
 export default function App() {
   // CF Connect defaults to Mainnet unless the network restriction is explicit.
   const connector = useCardano({ limitNetwork: NetworkType.TESTNET });
+  const [creationSigners, setCreationSigners] = useState(emptyCreationSigners);
   const [policies, setPolicies] = useState<Policy[]>(defaultPolicies);
   const [now, setNow] = useState(Date.now());
   useEffect(() => {
@@ -174,7 +182,6 @@ export default function App() {
   } | null>(null);
   const [plans, setPlans] = useState<Plan[]>([]);
   const [plan, setPlan] = useState<Plan | null>(null);
-  const [walletAuthority, setWalletAuthority] = useState("");
   const [form, setForm] = useState({
     locator: savedLocator,
     recipient: "",
@@ -189,6 +196,14 @@ export default function App() {
     target: "",
     planId: "",
     approvers: "",
+    smallPaymentAda: "10",
+    smallThreshold: "1",
+    smallMembers: "0",
+    coseIds: "1",
+    budgetCore: false,
+    budgetEnabled: false,
+    budgetPeriod: "daily",
+    budgetAda: "100",
   });
   const dialog = useRef<HTMLDialogElement>(null);
   useEffect(() => {
@@ -335,28 +350,18 @@ export default function App() {
     !p.confirmed && (p.title.startsWith("Create account") ||
       p.title === "Register authorization checkpoints"),
   );
-  const publication = plan?.title.match(/publish script (\d) of 5/);
-  const setupStage = publication
-    ? `Setup ${publication[1]} of 7 · Publish reference script`
-    : plan?.title === "Register authorization checkpoints"
-      ? "Setup 6 of 7 · Register checkpoints"
-      : plan?.title === "Create account · approve genesis"
-        ? "Setup 7 of 7 · Create your account"
-        : null;
-  const feeOnlySetup = !!publication || plan?.title === "Register authorization checkpoints";
-  const collected = plan?.transaction
-    ? plan.requiredSigners.filter((key) => plan.approvals.includes(key)).length
-    : plan?.approvals.length || 0;
-  const required = plan?.transaction
-    ? plan.requiredSigners.length
-    : collected + (plan?.payloads?.length || 0);
   const run = async (work: () => Promise<void>) => {
     setBusy(true);
     setNotice("");
     try {
       await work();
     } catch (e) {
-      setNotice(e instanceof Error ? e.message : String(e));
+      const walletError = e && typeof e === "object" ? e as { info?: unknown; message?: unknown } : null;
+      setNotice(e instanceof Error ? e.message
+        : typeof walletError?.info === "string" ? walletError.info
+        : typeof walletError?.message === "string" ? walletError.message
+        : walletError ? "The wallet could not approve this request. Check that the selected authority belongs to this wallet account; use the companion panel for an iPhone key."
+        : String(e));
     } finally {
       setBusy(false);
     }
@@ -406,6 +411,7 @@ export default function App() {
     setNotice("Account forgotten in this browser. Its on-chain account and funds are unchanged; restore its locator to add it again.");
   };
   const savePlan = (value: Plan) => {
+    setNotice("");
     if (value.locator && value.title.startsWith("Create account") &&
         !localStorage.getItem("kavach.name." + value.locator))
       localStorage.setItem(
@@ -427,10 +433,24 @@ export default function App() {
     setModal(null);
   };
   const prepare = async () => {
+    if (modal === "Create account") {
+      const unsupported = creationSigners.flatMap((key, id) => {
+        const roles = policies.filter(p => ["Freeze", "Unfreeze", "Recovery", "Cancel"].includes(p.role) && p.members.includes(id)).map(p => p.role);
+        return key.source === "companion" && roles.length ? [`iPhone Key ${id}: ${roles.join(", ")}`] : [];
+      });
+      if (unsupported.length) throw new Error(`Change these authority policies before continuing: ${unsupported.join("; ")}. Uncheck the iPhone key in those policies and select a wallet key instead. Companion currently supports spending, enrollment and admin policy changes.`);
+    }
     const connected = await wallet();
     const sponsor = await connected.getChangeAddress();
     const value = await api<Plan>("/plans", {
       ...form,
+      smallMembers: form.smallMembers.split(",").map(v => v.trim()).filter(Boolean).map(Number),
+      coseIds: form.coseIds.split(",").map(v => v.trim()).filter(Boolean).map(Number),
+      ...(modal === "Create account" ? {
+        mode: "3",
+        keys: creationSigners.map(k => k.publicKey).join("\n"),
+        coseIds: creationSigners.flatMap((k, id) => k.method === "2" ? [id] : []),
+      } : {}),
       policies,
       action: modal,
       locator: account?.locator || form.locator,
@@ -438,7 +458,7 @@ export default function App() {
     });
     savePlan(value);
   };
-  const approve = async () => {
+  const approve = async (authority = "", submitWhenReady = false) => {
     if (!plan) return;
     const connected = await wallet();
     if (plan.transaction) {
@@ -448,15 +468,16 @@ export default function App() {
       if (plan.status === "Ready")
         throw new Error("All required signatures are collected. Submit the transaction next.");
       const witnesses = await connected.signTx(plan.transaction, true);
-      savePlan(await api<Plan>(`/plans/${plan.id}/witnesses`, { witnesses }));
+      const updated = await api<Plan>(`/plans/${plan.id}/witnesses`, { witnesses });
+      savePlan(updated);
+      if (submitWhenReady && updated.status === "Ready") await submit(updated);
     } else {
       const addresses = [
         ...(await connected.getUsedAddresses()),
         await connected.getChangeAddress(),
       ];
-      const { proof: payload, address } = walletProof(plan, addresses, walletAuthority);
+      const { proof: payload, address } = walletProof(plan, addresses, authority);
       const signed = await connected.signData(address, payload.payload);
-      setWalletAuthority("");
       savePlan(
         await api<Plan>(`/plans/${plan.id}/proofs`, {
           ...signed,
@@ -492,13 +513,13 @@ export default function App() {
     setVerifiedKey({ publicKey: result.publicKey, walletName });
     setNotice("Public key verified. Copy it below when you return from your wallet.");
   };
-  const submit = async () => {
-    if (plan) {
-      if (plan.title === "Create account · approve genesis" && plan.locator) {
-        localStorage.setItem("kavach.pendingCreation", plan.locator);
-        setPendingCreation(plan.locator);
+  const submit = async (submission = plan) => {
+    if (submission) {
+      if (submission.title === "Create account · approve genesis" && submission.locator) {
+        localStorage.setItem("kavach.pendingCreation", submission.locator);
+        setPendingCreation(submission.locator);
       }
-      const result = await api<Plan>(`/plans/${plan.id}/submit`, {});
+      const result = await api<Plan>(`/plans/${submission.id}/submit`, {});
       savePlan(result);
     }
   };
@@ -521,7 +542,7 @@ export default function App() {
     const policy = account?.policies.find((p) => p.role === role);
     setForm((f) => ({
       ...f,
-      approvers: policy
+      approvers: action === "Send assets" && (account?.signingMode ?? 0) >= 3 ? "" : policy
         ? policy.members.slice(0, policy.threshold).join(", ")
         : "",
     }));
@@ -531,6 +552,15 @@ export default function App() {
       setForm((f) => ({
         ...f,
         target: account.keys.map((k) => k.publicKey).join("\n"),
+        mode: String(account.signingMode),
+        budgetCore: !!account.budgetCore,
+        budgetEnabled: !!account.budget?.enabled,
+        budgetPeriod: account.budget?.period ?? "daily",
+        budgetAda: account.budget?.limit && account.budget.limit !== "0" ? `${BigInt(account.budget.limit) / 1000000n}.${(BigInt(account.budget.limit) % 1000000n).toString().padStart(6, "0")}` : "100",
+        smallPaymentAda: account.smallPaymentLimit ? `${BigInt(account.smallPaymentLimit) / 1000000n}.${(BigInt(account.smallPaymentLimit) % 1000000n).toString().padStart(6, "0")}` : "10",
+        smallThreshold: String(account.smallSpend?.threshold ?? 1),
+        smallMembers: (account.smallSpend?.members ?? [0]).join(", "),
+        coseIds: account.keys.filter(k => (k.method ?? account.signingMode) === 2).map(k => k.id).join(", "),
       }));
     }
     setPlan(null);
@@ -539,7 +569,7 @@ export default function App() {
   };
   const update = (key: keyof typeof form, value: string) =>
     setForm((previous) => ({ ...previous, [key]: value }));
-  const isNormal = account?.mode === "Normal";
+  const isNormal = account?.mode === "Normal" && !account.setupPending;
 
   return (
     <div className="app-shell">
@@ -661,6 +691,7 @@ export default function App() {
           </div>
         </header>
         <main>
+          {account?.setupPending && <section className="creation-summary" role="status"><h2>Finish setting up this account</h2><p>Your keys are enrolled, but spending is blocked until the selected signing policy is activated. Resume the remaining setup steps.</p><button className="button primary" onClick={() => open("Finish account setup")}>Finish account setup</button></section>}
           <div className="page-heading">
             <div className="eyebrow">YOUR ACCOUNT. YOUR RULES.</div>
             <div className="heading-row">
@@ -715,7 +746,7 @@ export default function App() {
                       <span className="dot pale" />
                       {account
                         ? account.mode === "Normal"
-                          ? "Account active"
+                          ? account.setupPending ? "Activation pending" : "Account active"
                           : account.mode
                         : savedLocator ? accountError ? "Saved account unavailable" : "Reopening saved account" : "Your smart account"}
                     </span>
@@ -826,7 +857,7 @@ export default function App() {
                       {account
                         ? account.signingMode === 1
                           ? "Wallet transaction"
-                          : account.signingMode === 2
+                          : account.signingMode >= 3 ? "Mixed signatures + amount tiers" : account.signingMode === 2
                             ? "CIP-8 / COSE"
                             : "Raw Ed25519"
                         : "Your choice"}
@@ -1021,12 +1052,24 @@ export default function App() {
                   </section>
                 ))}
               </div>
+              {(account?.signingMode ?? 0) >= 3 && account?.smallSpend && (
+                <section className="action-panel"><div>
+                  <h2>Amount-based mixed approval</h2>
+                  <p>Up to {ada(account.smallPaymentLimit || "0")} ADA including the maximum account fee: {account.smallSpend.threshold} of keys {account.smallSpend.members.join(", ")}. Larger payments, native tokens and whole transfers use Spend above.</p>
+                  <p>{account.keys.map(k => `Key ${k.id}: ${k.method === 2 ? "COSE" : "transaction witness"}`).join(" · ")}</p>
+                </div></section>
+              )}
+              {account && !account.budgetCore && <p className="field-note">Mixed approval can be installed on this account. Shared daily/weekly budgets require a new account created with budget support.</p>}
+              {account?.budgetCore && <section className="action-panel"><div>
+                <h2>Shared periodic ADA budget</h2>
+                {account.budget?.enabled ? <><p>{ada(account.budget.remaining || "0")} ADA remaining of {ada(account.budget.limit || "0")} ADA {account.budget.period}.</p><p>Resets {new Date(Number(account.budget.resetsAt)).toISOString().replace("T", " ").replace(".000Z", " UTC")}. Budgeted spends share one counter.</p></> : <p>Disabled. Enable it through the budget-aware module; ordinary spending remains concurrent.</p>}
+              </div><button className="button" disabled={!isNormal} onClick={() => { open(account.signingMode === 4 ? "Rotate keys" : "Replace module"); update("mode", "4"); }}>Configure budget</button></section>}
               <section className="action-panel">
                 <div>
                   <h2>Change your keys. Keep your account.</h2>
                   <p>
                     Configuration changes require your existing administration
-                    policy and new-key possession.
+                    policy and {account && account.signingMode >= 3 ? "possession proofs from every destination key." : "new-key possession."}
                   </p>
                 </div>
                 <button
@@ -1247,6 +1290,7 @@ export default function App() {
       </div>
       <dialog
         ref={dialog}
+        className={modal === "Create account" || plan ? "creation-dialog" : undefined}
         onCancel={() => {
           setModal(null);
           setPlan(null);
@@ -1268,8 +1312,8 @@ export default function App() {
             <X size={20} />
           </button>
         </div>
-        <h2>{plan?.title || modal}</h2>
-        {notice && (
+        <h2>{plan?.title || (modal === "Rotate keys" && ["3", "4"].includes(form.mode) ? "Update keys and policies" : modal)}</h2>
+        {notice && (modal === "Connect wallet" || modal === "Receive") && (
           <div className="notice" role="alert">
             {notice}
           </div>
@@ -1377,151 +1421,15 @@ export default function App() {
             </div>
           </>
         ) : plan ? (
-          <>
-            <section className="approval-guide" aria-label="Approval instructions">
-              <strong>{setupStage || "Request progress"}</strong>
-              <p>
-                {plan.status === "Submitted"
-                  ? plan.confirmed
-                    ? plan.canAdvance ? "Confirmed. Continue setup to prepare the next step." : "Confirmed on the ledger. This request is complete."
-                    : "Submitted. Wait for ledger confirmation; no further signatures are needed."
-                  : plan.status === "Ready"
-                    ? "All required signatures are collected. Submit the transaction next."
-                    : feeOnlySetup
-                      ? "Only the original fee-paying wallet signs this step. Keep that wallet account selected for steps 1–6. All three authorities sign at step 7."
-                      : plan.transaction
-                        ? "Collect the pending transaction signatures below. Switch accounts inside your wallet and approve this same request for each signer."
-                        : "Collect the COSE intent proofs below, one authority at a time. Then switch back to the fee-paying wallet to sign the final transaction."}
-              </p>
-              <span>Current approval: {plan.transaction ? "Wallet transaction signature" : "COSE intent proof"}</span>
-            </section>
-            <p>
-              Review the exact request before approving. Transaction changes
-              require new signatures.
-            </p>
-            <pre className="review-text">{plan.review}</pre>
-            <button
-              className="text-button"
-              disabled={busy}
-              onClick={() =>
-                run(async () => savePlan(await api<Plan>(`/plans/${plan.id}`)))
-              }
-            >
-              <RefreshCw size={14} />
-              Refresh request
-            </button>
-            <CompanionPanel key={plan.id} plan={plan} onPlan={savePlan} disabled={busy} />
-            {plan.payloads?.map((proof) => (
-              <div
-                className="proof-request"
-                key={`${proof.purpose}:${proof.id}`}
-              >
-                <strong>
-                  {proof.purpose} · Key {proof.id}
-                </strong>
-                <code>{proof.payload}</code>
-              </div>
-            ))}
-            <div className="review-meta">
-              <span>Network fee</span>
-              <strong>
-                {plan.fee ? `${ada(plan.fee)} ADA` : "Calculated after proofs"}
-              </strong>
-            </div>
-            <div className="review-meta">
-              <span>Approval status</span>
-              <strong>{collected} of {required} {plan.transaction ? "transaction signatures" : "intent proofs"}</strong>
-            </div>
-            {plan.transaction && (
-              <details className="signer-list">
-                <summary>Required transaction signers · {required - collected} pending</summary>
-                {plan.requiredSigners.map((key) => (
-                  <div className="proof-request" key={key}>
-                    <strong>{plan.approvals.includes(key) ? "Signed" : "Pending"} · Payment key hash</strong>
-                    <code>{key}</code>
-                  </div>
-                ))}
-              </details>
-            )}
-            <button
-              className="text-button"
-              onClick={() => run(() => copy(plan.id))}
-            >
-              <Copy size={14} />
-              Copy request ID for another signer
-            </button>
-            {!plan.transaction && !!plan.payloads?.length && (
-              <label>Wallet authority
-                <select value={walletAuthority} disabled={busy} onChange={e => setWalletAuthority(e.target.value)}>
-                  <option value="">Match a wallet-listed address automatically</option>
-                  {plan.payloads.map(p => <option key={`${p.purpose}:${p.id}`} value={`${p.purpose}:${p.id}`}>{p.purpose} · Key {p.id} · {p.publicKey.slice(0, 12)}…</option>)}
-                </select>
-                <p className="field-note">For an HD address not listed by Yano, select its key here. Yano searches the selected account and asks before signing. Use the companion panel for the iPhone key.</p>
-              </label>
-            )}
-            <div className="dialog-actions">
-              {plan.status !== "Submitted" && (
-                <>
-                  <button
-                    className="button"
-                    disabled={busy || !connector.isConnected || plan.status === "Ready"}
-                    onClick={() => run(approve)}
-                  >
-                    <Fingerprint size={16} />
-                    {plan.status === "Ready" ? "All signatures collected" : plan.transaction ? "Sign transaction with wallet" : "Sign intent with wallet"}
-                  </button>
-                  <button
-                    className="button primary"
-                    disabled={busy || plan.status !== "Ready"}
-                    onClick={() => run(submit)}
-                  >
-                    Submit transaction <ArrowUpRight size={16} />
-                  </button>
-                </>
-              )}
-              {plan.canAdvance && (
-                <button
-                  className="button primary"
-                  disabled={busy || !plan.confirmed}
-                  onClick={() =>
-                    run(async () =>
-                      savePlan(
-                        await api<Plan>(`/plans/${plan.id}/advance`, {}),
-                      ),
-                    )
-                  }
-                >
-                  Continue setup <ArrowRight size={16} />
-                </button>
-              )}
-              {plan.status === "Submitted" &&
-                plan.confirmed &&
-                plan.locator &&
-                !plan.canAdvance && (
-                  <button
-                    className="button primary"
-                    onClick={() =>
-                      run(async () => {
-                        await restore(plan.locator!);
-                        setPlan(null);
-                      })
-                    }
-                  >
-                    Open account <ArrowRight size={16} />
-                  </button>
-                )}
-              {plan.txHash && (
-                <>
-                  <span className="status-pill">
-                    {plan.confirmed
-                      ? "Confirmed on ledger"
-                      : "Submitted · waiting for confirmation"}
-                  </span>
-                  <code className="hash">{plan.txHash}</code>
-                </>
-              )}
-            </div>
-          </>
+          <ApprovalWizard key={plan.id} plan={plan} busy={busy} connected={connector.isConnected} notice={notice}
+            devices={Object.fromEntries(creationSigners.filter(k => k.publicKey).map(k => [k.publicKey, k.source]))}
+            onPlan={savePlan}
+            onWallet={(authority, submitWhenReady) => run(() => approve(authority, submitWhenReady))}
+            onSubmit={() => run(() => submit())}
+            onAdvance={() => run(async () => savePlan(await api<Plan>(`/plans/${plan.id}/advance`, {})))}
+            onRefresh={() => run(async () => savePlan(await api<Plan>(`/plans/${plan.id}`)))}
+            onOpen={() => run(async () => { if (plan.locator) await restore(plan.locator); setPlan(null); })}
+          />
         ) : modal === "Receive" ? (
           <>
             <p>
@@ -1589,48 +1497,29 @@ export default function App() {
               </>
             ) : modal === "Create account" ? (
               <>
-                <p>
-                  Start with three independent authorities: your everyday key, a
-                  guardian, and a defensive backup.
-                </p>
-                <label>
-                  Account name
-                  <input
-                    value={form.name}
-                    onChange={(e) => update("name", e.target.value)}
-                  />
-                </label>
-                <label>
-                  Signing method
-                  <select
-                    value={form.mode}
-                    onChange={(e) => update("mode", e.target.value)}
-                  >
-                    <option value="1">Wallet transaction · CIP-30</option>
-                    <option value="2">Intent signature · CIP-8 / COSE</option>
-                  </select>
-                </label>
-                <CompanionPairing />
-                <label>
-                  Authority public keys
-                  <textarea
-                    required
-                    value={form.keys}
-                    onChange={(e) => update("keys", e.target.value)}
-                    placeholder="One 32-byte public key per line: everyday, guardian, defensive backup"
-                  />
-                </label>
-                <p className="field-note">
-                  All three authorities approve creation. Never paste private
-                  keys or seed phrases.
-                </p>
-                <p className="field-note">
-                  For an iPhone key, choose COSE and paste the Companion public key as one of the three authorities. Its possession proof is collected at step 7.
-                  Selected method: {form.mode === "2" ? "COSE intent signatures" : "Wallet transaction signatures"}.
-                  Setup has seven steps: publish five reference scripts, register
-                  checkpoints, then collect all three authorities’ creation approvals.
-                  The first six steps use only the wallet paying the fees in either mode.
-                </p>
+                <p className="creation-intro">Build your account around the devices you trust. Choose how each key signs; the account is ready when every setup step is confirmed.</p>
+                <div className="creation-section-heading"><span>01</span><h3>Name your account</h3></div>
+                <label>Account name<input value={form.name} onChange={e => update("name", e.target.value)} /></label>
+                <CreationSigners signers={creationSigners} onChange={setCreationSigners}
+                  assigned={policies.flatMap(p => p.members)}
+                  onRemove={id => {
+                    if (creationSigners.length <= 3 || policies.some(p => p.members.includes(id))) return;
+                    setCreationSigners(creationSigners.filter((_, i) => i !== id));
+                    setPolicies(policiesAfterSignerRemoval(policies, id));
+                  }} />
+                {creationSigners.some(k => k.source === "companion") && <>
+                  <CompanionPairing />
+                  <p className="field-note">Use the updated Companion app with mixed-key enrollment support. Keep recovery and emergency roles on wallet keys; the phone does not yet support those actions.</p>
+                </>}
+                <div className="creation-section-heading"><span>03</span><h3>Choose optional protection</h3></div>
+                <label className="checkbox-field"><input type="checkbox" checked={form.budgetCore} onChange={e => setForm(f => ({ ...f, budgetCore: e.target.checked }))} /><span>Support optional daily/weekly budgets</span></label>
+                <p className="field-note">Choose this now to support a shared spending budget. Enable its limit later in Security. Without an enabled budget, spending remains concurrent.</p>
+                <section className="creation-summary" aria-label="Creation summary">
+                  <h3>Your signing setup</h3>
+                  {creationSigners.map((key, id) => <p key={id}>Key {id}: {key.source === "companion" ? "iPhone Companion" : "Cardano wallet"} · {key.method === "2" ? "COSE" : "Transaction signature"}</p>)}
+                  <p>All keys prove possession and your admin signers approve activation. COSE keys authorize intents; a separate fee-paying wallet signs each transaction. Advanced transaction-witness keys also authorize through that transaction.</p>
+                  <p>DevKit setup locks 480 ADA in six reference scripts, plus 12 ADA in account state, registration deposits and fees. Spending remains blocked until activation; an unfinished confirmed account can resume setup after refresh or backend restart.</p>
+                </section>
               </>
             ) : modal === "Send assets" ? (
               <>
@@ -1754,14 +1643,47 @@ export default function App() {
                     >
                       <option value="1">Wallet transaction · CIP-30</option>
                       <option value="2">Intent signature · CIP-8 / COSE</option>
+                      <option value="3">Mixed signatures + amount tiers</option>
+                      {account?.budgetCore && <option value="4">Mixed signatures + optional periodic budget</option>}
                     </select>
                   </label>
                 )}
               </>
             )}
-            {["Create account", "Rotate keys", "Start recovery"].includes(
-              modal || "",
-            ) && <PolicyEditor policies={policies} onChange={setPolicies} />}
+            {["Create account", "Rotate keys", "Start recovery", "Replace module"].includes(modal || "") && (
+              <PolicyEditor policies={policies} onChange={setPolicies} signerCount={modal === "Create account" ? creationSigners.length : form.target.trim() ? form.target.trim().split(/[\s,]+/).length : 3} />
+            )}
+            {["3", "4"].includes(form.mode) && ["Replace module", "Rotate keys", "Start recovery"].includes(modal || "") && (
+              <>
+                <p className="field-note">Spend above is the strong approval policy. Small ADA payments use the policy below; native-token and whole-UTxO transfers always use strong approval. Admin must include authority outside the strong spending keys.</p>
+                <label>Small-payment threshold (ADA, inclusive)
+                  <input type="number" min="0" step="0.000001" required value={form.smallPaymentAda} onChange={e => update("smallPaymentAda", e.target.value)} />
+                </label>
+                <p className="field-note">Includes recipient ADA plus the signed maximum account fee. This selects required approvals; it is not a cumulative spending cap.</p>
+                <label>Small-payment key IDs (comma separated)
+                  <input required value={form.smallMembers} onChange={e => update("smallMembers", e.target.value)} />
+                </label>
+                <label>Small-payment signatures required
+                  <input type="number" min="1" max="8" required value={form.smallThreshold} onChange={e => update("smallThreshold", e.target.value)} />
+                </label>
+                <p className="field-note">Recommended: all account keys sign COSE intents. The fee-paying wallet then signs the transaction separately. Updating this setting requires current-admin approval and possession proofs.</p>
+                <button type="button" className="button" onClick={() => update("coseIds", (form.target.trim() ? form.target.trim().split(/[\s,]+/).map((_, id) => id) : account?.keys.map(k => k.id) || []).join(", "))}>Use COSE for all account keys</button>
+                <label>COSE key IDs (comma separated; blank means all transaction witnesses)
+                  <input value={form.coseIds} onChange={e => update("coseIds", e.target.value)} />
+                </label>
+                <p className="field-note">Other registered keys sign the Cardano transaction. Every destination key must prove possession when this configuration is installed or changed.</p>
+              </>
+            )}
+            {form.mode === "4" && ["Replace module", "Rotate keys", "Start recovery"].includes(modal || "") && (
+              <>
+                <label className="checkbox-field"><input type="checkbox" checked={form.budgetEnabled} onChange={e => setForm(f => ({ ...f, budgetEnabled: e.target.checked }))} /><span>Enable shared periodic ADA budget</span></label>
+                <label>Budget period<select value={form.budgetPeriod} onChange={e => update("budgetPeriod", e.target.value)}><option value="daily">Daily · midnight UTC</option><option value="weekly">Weekly · Monday midnight UTC</option></select></label>
+                {form.budgetEnabled && <label>ADA per period<input type="number" min="0.000001" step="0.000001" required value={form.budgetAda} onChange={e => update("budgetAda", e.target.value)} /></label>}
+                <p className="field-note">This is a hard cumulative ADA cap, including actual account-paid fees. All budgeted spends share one on-chain counter and may conflict. Native tokens have no ADA price assigned.</p>
+                <p className="field-note">Changing the limit preserves usage. Changing daily ↔ weekly starts a fresh period counter on the next spend. Disabling retains the counter; re-enabling the same period preserves that period’s recorded usage. Creating a counter locks a 3 ADA development deposit.</p>
+              </>
+            )}
+            {modal === "Replace module" && account?.budget?.enabled && form.mode !== "4" && <p className="field-note">Installing this module removes the active periodic budget. Your existing admin authority must approve that removal.</p>}
             {account &&
               [
                 "Send assets",
@@ -1780,11 +1702,29 @@ export default function App() {
                     placeholder="For example: 0, 1"
                   />
                   <span className="field-note">
-                    Choose a sufficient subset of the current policy. Each
+                    Leave blank for automatic selection, or choose a sufficient subset of the current policy. Each
                     selected key must approve this request.
                   </span>
                 </label>
               )}
+            {notice && <div className="notice" role="alert">{notice}</div>}
+            {modal !== "Restore account" && !connector.isConnected && (
+              <section className="inline-help" aria-label="Connect fee-paying wallet">
+                <p>Connect a Cardano wallet to enable Review request. Entering signer public keys does not connect a wallet. This wallet pays the transaction fees and setup deposits.</p>
+                <div className="wallet-options">
+                  {connector.installedExtensions.map(name => (
+                    <button type="button" className="button" key={name} disabled={busy}
+                      onClick={() => run(async () => {
+                        setVerifiedKey(null);
+                        await connector.connect(name, () => setNotice("Wallet connected. Your form entries are preserved."), error => setNotice(error.message));
+                      })}>
+                      <Wallet size={19} /> Connect {name}
+                    </button>
+                  ))}
+                </div>
+                {!connector.installedExtensions.length && <p>No Cardano wallet detected in this browser profile. Enable Yano here and configure it for Yaci DevKit.</p>}
+              </section>
+            )}
             <div className="dialog-actions">
               <button
                 type="button"

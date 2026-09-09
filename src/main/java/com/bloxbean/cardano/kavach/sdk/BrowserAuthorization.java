@@ -4,6 +4,8 @@ import com.bloxbean.cardano.julc.core.PlutusData;
 import com.bloxbean.cardano.julc.core.types.JulcList;
 import com.bloxbean.cardano.kavach.contracts.AccountTypes.*;
 import com.bloxbean.cardano.kavach.protocol.ProofDomains;
+import com.bloxbean.cardano.kavach.protocol.PolicyConfigCodec;
+import com.bloxbean.cardano.kavach.protocol.PeriodicBudgetCodec;
 import com.bloxbean.cardano.kavach.protocol.WireFormat;
 import com.bloxbean.cardano.kavach.sdk.browser.BrowserSignatures;
 
@@ -27,14 +29,14 @@ public final class BrowserAuthorization {
 
     /**
      * Selects verified deployment profiles and the exact planned required-signers set. Mode 0 is
-     * raw Ed25519, 1 transaction witnesses, 2 bounded COSE. This object checks preparation, not
+     * raw Ed25519, 1 transaction witnesses, 2 bounded COSE, 3 mixed approval, 4 budget-aware mixed approval. This object checks preparation, not
      * transaction witnesses: the ledger must verify every required signer. Profile selection must
      * come from an independently authenticated deployment manifest.
      */
     public BrowserAuthorization(
             int currentMode, int candidateMode, int network, Set<String> requiredSigners) {
         require(
-                currentMode >= 0 && currentMode <= 2 && candidateMode >= 0 && candidateMode <= 2,
+                currentMode >= 0 && currentMode <= 4 && candidateMode >= 0 && candidateMode <= 4,
                 "Unsupported module profile");
         require(network == 0 || network == 1, "Network ID");
         require(
@@ -61,6 +63,12 @@ public final class BrowserAuthorization {
      * Validates browser spending proofs after the caller authenticates state and intent bindings.
      */
     public void verifySpend(AccountState state, Proof proof, byte[] digest) {
+        require(currentMode < 3, "Mixed policy requires the complete signed action");
+        verifySpend(state, proof, digest, null);
+    }
+
+    /** Verifies the amount-selected policy using the complete signed action. */
+    public void verifySpend(AccountState state, Proof proof, byte[] digest, Action action) {
         WireFormat.validateState(AccountCodec.data(state));
         require(
                 state.deploymentDomain().networkId().intValueExact() == network,
@@ -68,8 +76,8 @@ public final class BrowserAuthorization {
         require(proof.scheme().intValueExact() == currentMode, "Wrong operation proof mode");
         threshold(
                 signatures(
-                        proof.signatures(), registry(state.authConfig()), digest, 8, currentMode),
-                fields(state.authConfig()).get(2));
+                        proof.signatures(), state.authConfig(), digest, 8, currentMode),
+                currentMode >= 3 ? AccountCodec.data(PolicyConfigCodec.spendPolicy(state.authConfig(), action)) : fields(state.authConfig()).get(2));
     }
 
     /**
@@ -83,7 +91,7 @@ public final class BrowserAuthorization {
                 "Profile network mismatch");
         require(current.abiVersion().equals(BigInteger.ONE), "Unsupported current module ABI");
         var request = current.intent();
-        var oldConfig = fields(old.authConfig());
+        var oldConfig = fields(PolicyConfigCodec.roles(old.authConfig()));
         var registry = registry(old.authConfig());
         if (request.action() instanceof CompleteRecovery complete) {
             require(
@@ -118,7 +126,7 @@ public final class BrowserAuthorization {
         var verified =
                 signatures(
                         proof.signatures(),
-                        registry,
+                        old.authConfig(),
                         WireFormat.digest(AccountCodec.data(request)),
                         8,
                         currentMode);
@@ -150,7 +158,7 @@ public final class BrowserAuthorization {
                 var all =
                         signatures(
                                 next.configPossession(),
-                                keys,
+                                change.newConfig(),
                                 WireFormat.digest(
                                         ProofDomains.configuration(
                                                 AccountCodec.data(old),
@@ -173,13 +181,17 @@ public final class BrowserAuthorization {
             boolean recovery) {
         var keys = registry(target);
         Set<BigInteger> proven =
-                evidence.isEmpty() ? Set.of() : signatures(evidence, keys, digest, 16, currentMode);
+                evidence.isEmpty() ? Set.of() : signatures(evidence, target, digest, 16, currentMode);
         var oldBytes = new HashSet<String>();
         for (var key : registry(old).values()) oldBytes.add(HexFormat.of().formatHex(key));
         var added = new HashSet<BigInteger>();
         for (var entry : keys.entrySet())
             if (!oldBytes.contains(HexFormat.of().formatHex(entry.getValue())))
                 added.add(entry.getKey());
+        if (currentMode >= 3) {
+            require(proven.equals(keys.keySet()), "Mixed configuration requires all destination credentials");
+            return;
+        }
         require(proven.containsAll(added), "Missing newly introduced key possession");
         if (recovery) threshold(proven, fields(target).get(2));
         else require(proven.equals(added), "Extraneous configuration possession");
@@ -191,10 +203,14 @@ public final class BrowserAuthorization {
      */
     private Set<BigInteger> signatures(
             JulcList<Signature> proofs,
-            Map<BigInteger, byte[]> keys,
+            PlutusData config,
             byte[] digest,
             int maximum,
             int mode) {
+        WireFormat.validateConfig(config);
+        require((mode == 4) == PeriodicBudgetCodec.isProfile(config), "Budget configuration/profile mismatch");
+        require((mode >= 3) == PolicyConfigCodec.isPolicy(PeriodicBudgetCodec.authorization(config)), "Configuration/profile mismatch");
+        var keys = registry(config);
         require(!proofs.isEmpty() && proofs.size() <= maximum, "Signature count");
         var verified = new HashSet<BigInteger>();
         BigInteger previous = BigInteger.valueOf(-1);
@@ -204,7 +220,7 @@ public final class BrowserAuthorization {
                     key != null && proof.credentialId().compareTo(previous) > 0,
                     "Unsorted, unknown or malformed signature");
             boolean valid =
-                    switch (mode) {
+                    switch (PolicyConfigCodec.method(config, proof.credentialId(), mode)) {
                         case 0 ->
                                 proof.signature().length == 64
                                         && Ed25519.verify(
@@ -245,7 +261,7 @@ public final class BrowserAuthorization {
 
     private static Map<BigInteger, byte[]> registry(PlutusData config) {
         var result = new TreeMap<BigInteger, byte[]>();
-        for (var item : ((PlutusData.ListData) fields(config).get(1)).items()) {
+        for (var item : ((PlutusData.ListData) fields(PolicyConfigCodec.roles(config)).get(1)).items()) {
             var entry = fields(item);
             result.put(integer(entry.get(0)), ((PlutusData.BytesData) entry.get(1)).value());
         }

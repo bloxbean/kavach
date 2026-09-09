@@ -58,11 +58,17 @@ final class CompanionExchange {
 
     Map<String, Object> request(UUID ticket, String profile, String cbor, String stateCbor,
             byte[] publicKey, int credentialId, long expiresAt) throws Exception {
+        return request(ticket, profile, cbor, stateCbor, publicKey, credentialId, expiresAt, null);
+    }
+
+    Map<String, Object> request(UUID ticket, String profile, String cbor, String stateCbor,
+            byte[] publicKey, int credentialId, long expiresAt, String proofPurpose) throws Exception {
         var body = new LinkedHashMap<String, Object>();
         body.put("id", ticket.toString()); body.put("profile", profile);
         body.put("intentCBOR", cbor); body.put("signerPublicKey", hex(publicKey));
         body.put("credentialID", credentialId); body.put("expiresAt", expiresAt);
         if (stateCbor != null) body.put("stateCBOR", stateCbor);
+        if (proofPurpose != null) body.put("proofPurpose", proofPurpose);
         byte[] bytes = JSON.writeValueAsBytes(body);
         if (bytes.length > 4096) throw new IllegalArgumentException("Companion request exceeds its bounded profile");
         byte[] secret = key();

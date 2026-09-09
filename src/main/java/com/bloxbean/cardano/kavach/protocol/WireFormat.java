@@ -296,6 +296,33 @@ public final class WireFormat {
     }
     private void config(PlutusData data, String path) {
         guard(data);
+        if (PeriodicBudgetCodec.isProfile(data)) {
+            var configuration = PeriodicBudgetCodec.decode(data);
+            line(path + ".profile", "periodic-budget-v1");
+            if (configuration.budget().isPresent()) {
+                var budget = configuration.budget().get();
+                line(path + ".budget.counterPolicy", HexFormat.of().formatHex(budget.counter().policy()));
+                line(path + ".budget.period", budget.period().equals(BigInteger.ONE) ? "UTC daily" : "UTC weekly (Monday)");
+                line(path + ".budget.limitLovelace", budget.limit().toString());
+                if (budget.limit().signum() == 0) line(path + ".budget.status", "disabled; counter retained");
+            } else line(path + ".budget", "disabled");
+            config(configuration.authorization(), path + ".authorization");
+            return;
+        }
+        if (PolicyConfigCodec.isPolicy(data)) {
+            PolicyConfigCodec.validate(data);
+            var f = record(data, 0, 5);
+            line(path + ".profile", "tiered-mixed-v1");
+            config(f.get(1), path + ".roles");
+            var ids = list(f.get(2), 0, 16);
+            for (int i=0; i<ids.size(); i++) number(ids.get(i), path + ".coseIds[" + i + "]", BigInteger.valueOf(15));
+            number(f.get(3), path + ".smallPaymentLimitLovelace", MAX);
+            var low = record(f.get(4), 0, 2);
+            number(low.get(0), path + ".smallSpend.threshold", BigInteger.valueOf(8));
+            var members = list(low.get(1), 1, 8);
+            for (int i=0; i<members.size(); i++) number(members.get(i), path + ".smallSpend.keys[" + i + "]", BigInteger.valueOf(15));
+            return;
+        }
         require(Builtins.serialiseData(data).length <= MAX_CONFIG_BYTES, "config size"); var f = record(data, 0, 8); exact(f.get(0), 1); line(path + ".schemaVersion", "1");
         var keys = list(f.get(1), 3, 16); Set<Integer> registry = new HashSet<>(); Set<String> publicKeys = new HashSet<>(); int previous = -1;
         for (int i = 0; i < keys.size(); i++) {

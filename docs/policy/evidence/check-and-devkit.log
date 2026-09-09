@@ -1,0 +1,144 @@
+WARNING: A restricted method in java.lang.System has been called
+WARNING: java.lang.System::load has been called by net.rubygrapefruit.platform.internal.NativeLibraryLoader in an unnamed module (file:/Users/satya/.gradle/wrapper/dists/gradle-9.2.0-bin/11i5gvueggl8a5cioxuftxrik/gradle-9.2.0/lib/native-platform-0.22-milestone-29.jar)
+WARNING: Use --enable-native-access=ALL-UNNAMED to avoid a warning for callers in this module
+WARNING: Restricted methods will be blocked in a future release unless native access is enabled
+
+> Task :verifyJulcToolchain
+> Task :compileJava UP-TO-DATE
+> Task :processResources NO-SOURCE
+> Task :classes UP-TO-DATE
+> Task :javadoc
+> Task :jar
+> Task :compileTestJava UP-TO-DATE
+> Task :processTestResources UP-TO-DATE
+> Task :testClasses UP-TO-DATE
+> Task :test
+> Task :toolchainAcceptance
+> Task :verifyProtocolBaseline
+> Task :check
+> Task :demo:backend:compileJava UP-TO-DATE
+> Task :demo:backend:processResources NO-SOURCE
+> Task :demo:backend:classes UP-TO-DATE
+> Task :demo:backend:javadoc
+> Task :demo:backend:compileTestJava UP-TO-DATE
+> Task :demo:backend:processTestResources NO-SOURCE
+> Task :demo:backend:testClasses UP-TO-DATE
+> Task :demo:backend:test
+> Task :demo:backend:check
+
+> Task :demoWebBuild
+
+> @kavach/demo-web@0.0.1 build
+> tsc -b && vite build
+
+vite v7.3.6 building client environment for production...
+transforming...
+✓ 1726 modules transformed.
+rendering chunks...
+computing gzip size...
+dist/index.html                   0.55 kB │ gzip:   0.34 kB
+dist/assets/index-CiTQ_9uM.css   20.47 kB │ gzip:   5.18 kB
+dist/assets/jsQR-Bbk7xGIw.js    130.72 kB │ gzip:  47.46 kB
+dist/assets/index-BXg3pHue.js   269.51 kB │ gzip:  85.85 kB
+dist/assets/wallet-yreP2Uqq.js  388.46 kB │ gzip: 138.35 kB
+✓ built in 1.45s
+
+> Task :demo:backend:demoIntegrationTest
+
+DemoServiceDevkitTest STANDARD_ERROR
+    SLF4J(W): No SLF4J providers were found.
+    SLF4J(W): Defaulting to no-operation (NOP) logger implementation
+    SLF4J(W): See https://www.slf4j.org/codes.html#noProviders for further details.
+
+DemoServiceDevkitTest > mixedPolicyPublicationUpgradeAndAmountTiers() STANDARD_OUT
+    Create account · publish script 1 of 5 confirmed candidate 4d8762581fdd6761307331fd749808c7692d8fb9b4ab58ae91d91bc2b4c2a4d2
+    Create account · publish script 2 of 5 confirmed candidate 55f959030f9160df1c7384f624cbf17ff7b721ceb1e3fb151c078c5a2639212a
+    Create account · publish script 3 of 5 confirmed candidate 89292637f74764c229f9da8932f053e7de0b9305d3edad8b08740d3b5f2b4919
+    Create account · publish script 4 of 5 confirmed candidate 55e21f55b449929c311d799cf3c2ed85232459981af3959c99054380dccb62af
+    Create account · publish script 5 of 5 confirmed candidate b5807c82aa168b716db648cff1bdf526da6cb6333972148429c8fd4f6962ab46
+    Register authorization checkpoints confirmed candidate 2b590edbc0ab005f3bbcd3bf61208e8446eb80861c3edd7d5af4ca1e0e6dbcb4
+    Create account · approve genesis confirmed candidate 903f25641d4ef8e4d1e45cb0c25591072db63cfe3e69568fb94e7c505dff32b6
+    Publish candidate module confirmed candidate 2d90379e7583b3d5d582136ce49b781e7fe46cad02bb7d9bdf23cc749909f95e
+    Register authorization checkpoints confirmed candidate 6d49d42de0031bd4880c04f676949c18b72982cdf83475d897aaa883cd6b93d5
+    Replace module confirmed candidate bd88d850c33695c5b87a9d1236da1352dd140f9d832749bc08fb4c14eedf0df4
+    Send assets confirmed candidate d2080fd5dacf91fc21ae308b13269a85a7a36dfd4cbcacbc8b8e2757ea5b842d
+    Send assets confirmed candidate c8c52493ba3b24a930d0b1ef3067decf07e263b2d7b2729ff52f2ae1100c6e30
+    Rotate keys confirmed candidate a89ba0767ed0a7b273b0c2b6b8f98abde94916b5c54d2c6e37541cc6be21c5dd
+
+DemoServiceDevkitTest > periodicBudgetFullFlow() STANDARD_OUT
+    Create account · publish script 1 of 5 confirmed candidate b4308118ef9f1c8785406e2157dd4975117519c440cd459ee7d321ad045760a6
+    Create account · publish script 2 of 5 confirmed candidate a7c8ba5e1c572af814b0723fb2ad82118bd432134dc21fc10d34893ea624ad75
+    Create account · publish script 3 of 5 confirmed candidate 885306be0577e504e7bfbec613a2ff96b916ee47d5f5ef30f9b116e4cc15c028
+    Create account · publish script 4 of 5 confirmed candidate 260d118ff9edcbaedf56e4c8c38d590ae955d9630b37c66776f525264b534e20
+    Create account · publish script 5 of 5 confirmed candidate 5841ff854c79a04452e44e628b711e914a00d7eb007f2fe3086aff223334dc90
+    Register authorization checkpoints confirmed candidate b3de1cce420a2765d21f5d27d112d1f7fef824aad9d8edff336e12bbf1341032
+    Create account · approve genesis confirmed candidate 8b2b601d04c962b0b67fdd923387f2826a220fd64517f9fdb2d67a4994ea74cf
+    Create periodic budget counter confirmed candidate 7cda0aa5df488b5ddcbc1685197639f9479e6f68620a6ca4b5c30c63a45768b6
+    Publish candidate module confirmed candidate 5ea4c6d2fb956aebc3e6fe2796538abf557590f83d7767c7d7b783e99d3135ce
+    Register authorization checkpoints confirmed candidate 228b51512bef8dec6ba211738bd409714819de675ccfac143aabad7e1a1a3fc7
+    Replace module confirmed candidate 26bfbe2d4cee3126ed3835e998c1dcb3cc5ba445538d5ee3d46ceb187b3d8c44
+    Send assets confirmed candidate 43d3454f7d83d00e0651b6bbd13d0b19c905c211b52c835c496ed6e7565ae3fa
+    Send assets confirmed candidate 199bc2be9ba227b3bc66419ca5074258938414e80bb7ff61d0fe0a4e448bb80f
+    Rotate keys confirmed candidate bfd06a765c483009c148b1224113eea53c0bde9c6985f231770ec25e2f9d1993
+    Rotate keys confirmed candidate 488ce3081f34d8da9dcdec8d152e38e05e6567f5d647851ce2dc5bd8b50869e6
+    Send assets confirmed candidate 7110a40b2f8a093e29a5bf2c575833724d2e7748dd845f308e6a202c935fff54
+    Rotate keys confirmed candidate 4daec19b824a2c83ba99ca0340d9ea3853d520b8f815541b72df70c0a9a030c7
+    Send assets confirmed candidate b4f9342760aaca4e29251e3089e2a2203c59f6cfe5341d944e0838dfd09722a5
+    Rotate keys confirmed candidate 6adde1cf7292f70c692367039ee69ccbeecb307dbf3f770b2cbdf75218992ee8
+    Send assets confirmed candidate 0288f8b26db25cdb1fad329543bd08a190b42b03b9038a438f4319d056786c0f
+    Send assets confirmed candidate 3446848d919bc732d1c9cbbc0553220405c03f317efb2aa4113c03a52c28321f
+    Send assets confirmed candidate e69edf2a1bbaf6f507d5a2ea82d4a589a4c57c8dea8d95b0919dfd73feafd813
+
+DemoServiceDevkitTest > createTransferRotateReplaceAndRecoverThroughDemoApi(int) > [1] 1 STANDARD_OUT
+    Create account · publish script 1 of 5 confirmed candidate 0350f1f9234f3400ebf0efd16db5092073b0537d24391cc46ef29929bf0742bc
+    Create account · publish script 2 of 5 confirmed candidate cb77b457c1d4ea1c823e2e933853be25cd65b372d602145a627c826e3b1d947e
+    Create account · publish script 3 of 5 confirmed candidate 98e242f8e845ed3e7b3cc0f962fe0e2be3fcf9e71c6764d98d78886fd54d081a
+    Create account · publish script 4 of 5 confirmed candidate 7918f101180d62fab0ab9e28873fa9d5bd57ba9b2d792d7f44d017bc8a9ad58f
+    Create account · publish script 5 of 5 confirmed candidate dbaa901af85eda74f7ab0bd7f3291cd117d70316290a4d4a98401e95e06b343f
+    Register authorization checkpoints confirmed candidate 154464af5a6eae0c4dff3620ad70666254212d1d10774adcba50c8471b269cb3
+    Create account · approve genesis confirmed candidate f21be2076776174784b4914728cbbcc87cf013a9da393c4d00c6493f02c2daf3
+    Send assets confirmed candidate 8e91afb74e044f4d561e5d5789da5ff60853dbc1a16ea71b5aa4275d19504da0
+    Send assets confirmed candidate 12e70ffc5da4b768d47b81ecf7eac8625879ddf1f8e9784b26bcbe5689fddaa8
+    Send assets confirmed candidate 7783080dc789270a2ec2478af6905bb19a255077983a3be9e37a9382c5626ab9
+    Consolidate assets confirmed candidate dbc8bfd0bace1b3748516fd4fa25579d95f404d1a41a6fdd587efef6a5b17563
+    Freeze account confirmed candidate 00bd36e126ee1736c167829eca09cb31757c5aae5f80e786a85ec53fb60cead4
+    Unfreeze account confirmed candidate 15179310851cb140a2089aa3a843d208ae64e4dffdc7707a4283ccd383df2ca3
+    Rotate keys confirmed candidate d8e4d7d8891a8c41898f34dd01d24a4e632437a45bb182dbd1562a640f601c7a
+    Publish candidate module confirmed candidate 966a6c0ee77da9eba70269270a8f7fbbada2486db09f15b15dcf2f29555e73ae
+    Register authorization checkpoints confirmed candidate d9366074063d3fd67d4e1aa75dd1455f57c127bcb1ac766af906048c18eacac2
+    Replace module confirmed candidate 3abd8deb553cd81c308ee442486f8c544794bcda5559ed405b7962d370007e1b
+    Send assets confirmed candidate 3216e692c266cdaa65ab0018d677d3ae1295c44b5e7b435c5cc0318cba2b8f82
+    Start recovery confirmed candidate 2d3637627772ff2ce877439c758ad20d50ef3d3e9ea2b76e08b76c1fcd6f4721
+    Cancel recovery confirmed candidate 56c8fb784301135b5eac70a3773977f102778908b63aa0bb84dd0c6a8fddc43d
+    Unfreeze account confirmed candidate 3469bae6b29d66dec0e15aeb2e27268a1512db28727af0dea48a499c6d96c729
+    Send assets confirmed candidate 9faf5a8618f8b5f25a54f053cb515bb3f077f98900a67cacac67e94bf4c3e1a4
+    Demo API mode 1 creation, transfers, key rotation, cross-mode replacement and recovery cancellation passed
+
+DemoServiceDevkitTest > createTransferRotateReplaceAndRecoverThroughDemoApi(int) > [2] 2 STANDARD_OUT
+    Create account · publish script 1 of 5 confirmed candidate 69004ad68dd88956f1efe06fb53dde0e14780636a42a0a6865b01c828758b9b5
+    Create account · publish script 2 of 5 confirmed candidate 28c3eec92572f47fa088e98bfde80d6e615b415218bb5dedafcba9f3a9a93950
+    Create account · publish script 3 of 5 confirmed candidate cc8c0f5acfaaf92e0e71d7ff00a2370dc5bd2d446e02d8c2d72de64444025009
+    Create account · publish script 4 of 5 confirmed candidate 6988202a6d50057906f44512f7a6bf29a80160f39c340e206be2afee23b47dc1
+    Create account · publish script 5 of 5 confirmed candidate 57c99ab3bbad233e34455b9eaf648d78731444be04d1224bdab875e6ab294ff3
+    Register authorization checkpoints confirmed candidate 169088d059a0a64ca96813762b4ebc0b92a6eaa19491ca201a9f7d0c7dbfa536
+    Create account · approve genesis confirmed candidate dc75d5bea10a793761e90874fa3ac2fb330ffffca6390bd53fc819fe4a6a5794
+    Send assets confirmed candidate e91c5ca388352f5c17b53399b8e18d3ab649a11992b1a5ac78f3d39343ce85da
+    Send assets confirmed candidate b8ec81f6e55081d813c6f9f0dca98964684a6311c0ec82e271459b9ea35c54da
+    Send assets confirmed candidate f0084c63f567b71204105c5003db9e7109d5123808c29cf7bdf824359e90072f
+    Consolidate assets confirmed candidate 792003b277f1d8791a20fb4fec628e3f4afc144871078341557ee6b694587bcb
+    Freeze account confirmed candidate 4c495b1b274a33b6e4ac60c51596deda5a8f942c261945f8f642de12621da8e9
+    Unfreeze account confirmed candidate 4026566d6da6a2e1e0c4a8ea48f9280e0834bbe9c6b938b6bb447fd761ca7814
+    Rotate keys confirmed candidate aec3812520d2d6c3b25586b2bbbd479a44957fbabbcffdfaeecd267bdc159eb1
+    Publish candidate module confirmed candidate c7035fb21fee466bd8f7866516bd2266c2fce49eb77d96366a10fce704281de3
+    Register authorization checkpoints confirmed candidate 68ebe05eba3ec80527b3557bd5668fe145a706fdb970b383f3b72a5ff7989449
+    Replace module confirmed candidate 957e12ce00a8930516da7fef5609046ed0095adb73ce73425cf9e14def15adc2
+    Send assets confirmed candidate 6a83e402e627e19569bcce7b9782d2c473c7c933539314d6472193eb8862ea90
+    Start recovery confirmed candidate 5f5374111d86af943884b0712f7c5baeade9b52cc37e952fc5e56564516bac99
+    Cancel recovery confirmed candidate 7d3528cc0b0ba559d58725fbce3628987fc3399b23c08b9690fbb4f513291c2b
+    Unfreeze account confirmed candidate d21b578f63c3cb0970b0c172db4cddf13dc49401f56ad9987c1b1b1dfa9ad5b8
+    Send assets confirmed candidate e4026c50ff09f3858f97dc80333682062f629810572ccf3daf2b87c8b8b80256
+    Demo API mode 2 creation, transfers, key rotation, cross-mode replacement and recovery cancellation passed
+
+BUILD SUCCESSFUL in 5m 45s
+15 actionable tasks: 10 executed, 5 up-to-date
+Consider enabling configuration cache to speed up this build: https://docs.gradle.org/9.2.0/userguide/configuration_cache_enabling.html

@@ -1,0 +1,69 @@
+WARNING: A restricted method in java.lang.System has been called
+WARNING: java.lang.System::load has been called by net.rubygrapefruit.platform.internal.NativeLibraryLoader in an unnamed module (file:/Users/satya/.gradle/wrapper/dists/gradle-9.2.0-bin/11i5gvueggl8a5cioxuftxrik/gradle-9.2.0/lib/native-platform-0.22-milestone-29.jar)
+WARNING: Use --enable-native-access=ALL-UNNAMED to avoid a warning for callers in this module
+WARNING: Restricted methods will be blocked in a future release unless native access is enabled
+
+> Task :verifyJulcToolchain
+> Task :compileJava UP-TO-DATE
+> Task :processResources NO-SOURCE
+> Task :classes UP-TO-DATE
+> Task :jar UP-TO-DATE
+> Task :demo:backend:compileJava
+> Task :demo:backend:processResources NO-SOURCE
+> Task :demo:backend:classes
+> Task :demo:backend:compileTestJava UP-TO-DATE
+> Task :demo:backend:processTestResources NO-SOURCE
+> Task :demo:backend:testClasses UP-TO-DATE
+
+> Task :demo:backend:demoIntegrationTest
+
+DemoServiceDevkitTest > perKeyCreationAndRestartResume(int) STANDARD_ERROR
+    SLF4J(W): No SLF4J providers were found.
+    SLF4J(W): Defaulting to no-operation (NOP) logger implementation
+    SLF4J(W): See https://www.slf4j.org/codes.html#noProviders for further details.
+
+DemoServiceDevkitTest > perKeyCreationAndRestartResume(int) > [1] 0 STANDARD_OUT
+    Create account · publish script 1 of 5 confirmed candidate ce6237edd374cff1fc5d70a01f03b8249c101cc4661f39738dce9fd50f588cad
+    Create account · publish script 2 of 5 confirmed candidate 1abb86c476e5e14e95e50392d0cd7da14f288b9e2bc86236f0f5472fb634f8ce
+    Create account · publish script 3 of 5 confirmed candidate 798f259ea7adf6e1b7e3612e1d24854f07e29a06a3a728a88950966a70fddefe
+    Create account · publish script 4 of 5 confirmed candidate 1e55bf136ec0c9a9f9f7f7e2cbbc8c00b955ffa968d8d43c0d75ead472d2e25e
+    Create account · publish script 5 of 5 confirmed candidate 122d25d18a1b1d2b38b16873102cdc89d01db9ae4b2d9889813404ab5b0a73ba
+    Register authorization checkpoints confirmed candidate 5b2aa5050d83a59df541dca121fc1889a8b48e00adcecd7d5697a2e59206f5f8
+    Create account · approve genesis confirmed candidate 99c21e855b8f41723d510d954d491d3ffd280d487dadaa2d2c7bf6f99171dc1d
+    Create account · publish final signing module confirmed candidate e597b5bb08ad2b7285705ccbd380659e9934d785eaa02ec9e48eb04ba9a94eaa
+    Register authorization checkpoints confirmed candidate 8b1ed9cb41f14ff754fd9270774d121d4f62100df2054e4b6d49a97300eb6f16
+    Create account · activate selected signing methods confirmed candidate 570a3efb45ea221f9aea0d3765caa6d3429e9f525fb85e891f91c5d4d48a11cf
+    Send assets confirmed candidate 6086414178545efad0babdbee05b833820b3f2727a376d9dbe3d4923d0ad9251
+    Send assets confirmed candidate a565d5fa073dc81992c9620e19279c07393aa6d3e7ea96abe7e5a0dd1ed00405
+
+DemoServiceDevkitTest > perKeyCreationAndRestartResume(int) > [2] 1 STANDARD_OUT
+    Create account · publish script 1 of 5 confirmed candidate bf9b947b9261f0603c84364b662e5787860e467704232c3d8f49b04ba1b0d599
+    Create account · publish script 2 of 5 confirmed candidate aff0ad7bb63f1675a231d46b2c53eb022e30715a5d3badfff97fac16192f8a10
+    Create account · publish script 3 of 5 confirmed candidate 8bdc96bc680b73dc087d643e1369ba1ab3b9a83442b6d2b6caa70e3f1a889e10
+    Create account · publish script 4 of 5 confirmed candidate d605e7b895c7f26a88816fb3e734cbe4d34d448ff27df99e6082b0c53d2017ee
+    Create account · publish script 5 of 5 confirmed candidate 70b8d4ec3abd7d8096e9fe15f6ae5c2000098cfb7269477d7336fdbae8ee5d81
+    Register authorization checkpoints confirmed candidate 58132a0a7aff096b1ec2c379164e13f4ddceb0ebe03bf7bd54cb27704dee5c9e
+    Create account · approve genesis confirmed candidate a47d732fd8af4a0fa680fe557636001bcb863d71e25c31184008ce1d964b1389
+    Create account · publish final signing module confirmed candidate c9f9b707796aa31d3fee057e3c7fb0ecc91ffd5e3d4792fb2ec7a71c08937fcb
+    Register authorization checkpoints confirmed candidate 522b576532867affea2b565a2ce9dbfb20bfc206b97a9a05adcb16ec5abd739a
+    Create account · activate selected signing methods confirmed candidate 987ce2f7770c6f569d338fb1a414ba41d6e73399c694b99c670c4429e7e72f75
+    Send assets confirmed candidate 3859f2997f6f936a486a7a1c0dc9fb81340b71e904b9d1cd046a1890622a7a98
+    Send assets confirmed candidate bbe3c8319f6bcc50caa412cb0fcebc0d98a84a5e070a2332ce89ced4f2775d54
+
+DemoServiceDevkitTest > perKeyCreationAndRestartResume(int) > [3] 3 STANDARD_OUT
+    Create account · publish script 1 of 5 confirmed candidate d8a20989e328748a6c8a0c01ed94440d9d2ea6a759cc3dd2a445ad2e6371e875
+    Create account · publish script 2 of 5 confirmed candidate 4e510d7588f3754aab738b2028cc1bee29c1b23a2c6621a5c950bb8f30cee7fc
+    Create account · publish script 3 of 5 confirmed candidate 04d06893904ae17ec6d38b64dfe4d9e31b2c307f7ae94b74148dc9f7c9be010d
+    Create account · publish script 4 of 5 confirmed candidate be6e1bbea6b0a348ba5fd494a62a6fe147c453b31c496b888941b84804211bee
+    Create account · publish script 5 of 5 confirmed candidate 8d5c381d9b83294640c9b57337aba78f6d337337828c66354ff236ba1e349b47
+    Register authorization checkpoints confirmed candidate 27ed46002ae3bbeb2d6d48aa141a2d435dd7352f49d86e74d90d1979173b0690
+    Create account · approve genesis confirmed candidate 4b6834a42d0eb99b63c99a98b9881dcd352d0097591ab0f59495311a3cc0e4e1
+    Create account · publish final signing module confirmed candidate 1164b063d83a90f4a9c3f6ab79659d01c563347ffad6daabb19fe27569c6f107
+    Register authorization checkpoints confirmed candidate 786e968867f6513140137b43d4d2006404d7da4c061ebb15a99eba581cd124d7
+    Create account · activate selected signing methods confirmed candidate b5711b6ac3e5815d587241631885bb577198302f2d9a2de6a82ecf51bf1bb790
+    Send assets confirmed candidate a4c84b864589c93a2f31299931a4ffffbb30568b155d9c8a3210f8172802f66a
+    Send assets confirmed candidate 3942fa5350cbe9a1f760e76b710cb9a222476b451e67494ff898f2feb59fe6f6
+
+BUILD SUCCESSFUL in 2m 21s
+6 actionable tasks: 3 executed, 3 up-to-date
+Consider enabling configuration cache to speed up this build: https://docs.gradle.org/9.2.0/userguide/configuration_cache_enabling.html

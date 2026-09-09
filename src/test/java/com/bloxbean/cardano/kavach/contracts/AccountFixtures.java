@@ -11,6 +11,12 @@ import com.bloxbean.cardano.julc.testkit.ScriptContextTestBuilder;
 import com.bloxbean.cardano.julc.vm.*;
 import com.bloxbean.cardano.kavach.auth.ed25519.Ed25519Module;
 import com.bloxbean.cardano.kavach.auth.browser.BrowserModule;
+import com.bloxbean.cardano.kavach.auth.policy.PolicyModule;
+import com.bloxbean.cardano.kavach.auth.policy.MixedSetupModule;
+import com.bloxbean.cardano.kavach.auth.policy.BudgetPolicyModule;
+import com.bloxbean.cardano.kavach.contracts.PeriodicBudgetLib.Configuration;
+import com.bloxbean.cardano.kavach.contracts.PeriodicBudgetLib.Budget;
+import com.bloxbean.cardano.kavach.auth.policy.PolicyLib.PolicyConfig;
 import com.bloxbean.cardano.kavach.auth.ed25519.Ed25519Lib.*;
 import com.bloxbean.cardano.kavach.contracts.AccountTypes.*;
 import com.bloxbean.cardano.kavach.protocol.WireFormat;
@@ -37,27 +43,38 @@ final class AccountFixtures {
     final PlutusV3Script moduleScript;
     final PlutusV3Script nftScript;
     final PlutusV3Script assetScript;
+    final PlutusV3Script budgetScript;
+    final AccountId budgetId = new AccountId(new byte[28], new byte[0]);
     final AccountState state;
     final Ed25519Config config;
     final Credential core;
     final Credential module;
+    final PlutusV3Script finalModuleScript;
     final Address accountAddress;
 
     AccountFixtures() throws Exception { this(false); }
     /** Maximum registry and broad policies, retaining independent cancellation and unfreeze. */
     AccountFixtures(boolean maximum) throws Exception { this(maximum, 0); }
     /** Uses a separately applied browser module without changing any immutable validator. */
-    AccountFixtures(boolean maximum, int browserMode) throws Exception {
+    AccountFixtures(boolean maximum, int browserMode) throws Exception { this(maximum, browserMode, BigInteger.ONE); }
+    AccountFixtures(boolean maximum, int browserMode, BigInteger budgetPeriod) throws Exception { this(maximum, browserMode, budgetPeriod, false); }
+    AccountFixtures(boolean maximum, int browserMode, BigInteger budgetPeriod, boolean mixedSetup) throws Exception {
         var lateHash = new byte[32]; lateHash[31] = (byte) 255;
         stateRef = maximum ? new TxOutRef(new TxId(lateHash), BigInteger.ZERO) : ref(20);
         for (int i = 0; i < (maximum ? 16 : 3); i++) keys.add(KeyPairGenerator.getInstance("Ed25519").generateKeyPair());
         stateScript = load(AccountStateValidator.class, BigInteger.ONE, deployment);
         coreScript = load(CoreCheckpoint.class, BigInteger.ONE, deployment, stateScript.getScriptHash(), sink);
-        moduleScript = browserMode == 0 ? load(Ed25519Module.class, BigInteger.ONE, BigInteger.ONE, deployment, stateScript.getScriptHash(), coreScript.getScriptHash(), sink)
+        finalModuleScript = browserMode == 0 ? load(Ed25519Module.class, BigInteger.ONE, BigInteger.ONE, deployment, stateScript.getScriptHash(), coreScript.getScriptHash(), sink)
+                : browserMode >= 3 ? load(browserMode == 4 ? BudgetPolicyModule.class : PolicyModule.class, BigInteger.ONE, BigInteger.ONE, deployment, stateScript.getScriptHash(), coreScript.getScriptHash(), sink)
                 : load(BrowserModule.class, BigInteger.ONE, BigInteger.ONE, deployment, stateScript.getScriptHash(), coreScript.getScriptHash(), sink, BigInteger.valueOf(browserMode));
+        moduleScript = mixedSetup ? load(MixedSetupModule.class, BigInteger.ONE, BigInteger.ONE, deployment,
+                stateScript.getScriptHash(), coreScript.getScriptHash(), sink, finalModuleScript.getScriptHash()) : finalModuleScript;
         nftScript = load(StateNftPolicy.class, BigInteger.ONE, deployment, seed, new byte[28], stateScript.getScriptHash());
         var id = new AccountId(nftScript.getScriptHash(), new byte[]{});
-        assetScript = load(AccountAssetValidator.class, BigInteger.ONE, deployment, id, stateScript.getScriptHash(), coreScript.getScriptHash());
+        budgetScript = load(PeriodicBudgetValidator.class, BigInteger.ONE, deployment, id, stateScript.getScriptHash(), coreScript.getScriptHash());
+        assetScript = browserMode == 4 ? load(BudgetAccountAssetValidator.class, BigInteger.ONE, deployment, id,
+                stateScript.getScriptHash(), coreScript.getScriptHash(), budgetScript.getScriptHash())
+                : load(AccountAssetValidator.class, BigInteger.ONE, deployment, id, stateScript.getScriptHash(), coreScript.getScriptHash());
         var registry = new ArrayList<KeyEntry>();
         for (int keyId = 0; keyId < keys.size(); keyId++) registry.add(new KeyEntry(BigInteger.valueOf(keyId), publicKey(keys.get(keyId))));
         config = maximum ? new Ed25519Config(BigInteger.ONE, list(registry.toArray(KeyEntry[]::new)),
@@ -65,9 +82,16 @@ final class AccountFixtures {
                 policy(8, 8,9,10,11,12,13,14,15), policy(8, 0,1,2,3,4,5,6,7), policy(8, 8,9,10,11,12,13,14,15))
                 : new Ed25519Config(BigInteger.ONE, list(new KeyEntry(BigInteger.ZERO, publicKey(keys.get(0))),
                 new KeyEntry(BigInteger.ONE, publicKey(keys.get(1))), new KeyEntry(BigInteger.TWO, publicKey(keys.get(2)))),
-                policy(1, 0), policy(2, 0, 1), policy(1, 1), policy(1, 2), policy(1, 1), policy(1, 2));
+                browserMode >= 3 ? policy(2, 0, 1) : policy(1, 0),
+                browserMode >= 3 ? policy(2, 0, 2) : policy(2, 0, 1),
+                policy(1, 1), policy(1, 2), policy(1, 1), policy(1, 2));
+        var authorization = AccountCodec.data(browserMode >= 3 ? new PolicyConfig(BigInteger.ONE, config,
+                list(BigInteger.ONE), BigInteger.valueOf(2000000), maximum ? config.spend() : policy(1, 0)) : config);
+        var configuration = browserMode == 4 ? AccountCodec.data(new Configuration(BigInteger.ONE,
+                Optional.of(new Budget(budgetId, budgetPeriod, BigInteger.valueOf(5000000))), authorization)) : authorization;
         state = new AccountState(BigInteger.ONE, id, deployment, new CoreBinding(stateScript.getScriptHash(), assetScript.getScriptHash(), coreScript.getScriptHash()),
-                BigInteger.ZERO, new AuthModuleRef(moduleScript.getScriptHash(), BigInteger.ONE), AccountCodec.data(config), BigInteger.ZERO,
+                BigInteger.ZERO, new AuthModuleRef(moduleScript.getScriptHash(), BigInteger.ONE),
+                configuration, BigInteger.ZERO,
                 BigInteger.valueOf(86400000), BigInteger.valueOf(3600000), BigInteger.ZERO, new Normal());
         WireFormat.validateState(AccountCodec.data(state));
         core = new Credential.ScriptCredential(new ScriptHash(coreScript.getScriptHash()));
@@ -133,7 +157,7 @@ final class AccountFixtures {
         return evaluate(role, context.buildPlutusData());
     }
     EvalResult evaluate(String role, PlutusData context) {
-        var script = role.equals("core") ? coreScript : role.equals("asset") ? assetScript : role.equals("nft") ? nftScript : role.equals("state") ? stateScript : moduleScript;
+        var script = role.equals("budget") ? budgetScript : role.equals("core") ? coreScript : role.equals("asset") ? assetScript : role.equals("nft") ? nftScript : role.equals("state") ? stateScript : moduleScript;
         return JulcVm.create("Java").evaluateWithArgs(JulcScriptAdapter.toProgram(script.getCborHex()), LedgerEvaluationTarget.pv11(PlutusLanguage.PLUTUS_V3),
                 List.of(context), new ExBudget(10000000000L, 16500000), EvalOptions.DEFAULT);
     }

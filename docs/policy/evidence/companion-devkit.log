@@ -1,0 +1,58 @@
+WARNING: A restricted method in java.lang.System has been called
+WARNING: java.lang.System::load has been called by net.rubygrapefruit.platform.internal.NativeLibraryLoader in an unnamed module (file:/Users/satya/.gradle/wrapper/dists/gradle-9.2.0-bin/11i5gvueggl8a5cioxuftxrik/gradle-9.2.0/lib/native-platform-0.22-milestone-29.jar)
+WARNING: Use --enable-native-access=ALL-UNNAMED to avoid a warning for callers in this module
+WARNING: Restricted methods will be blocked in a future release unless native access is enabled
+
+> Task :verifyJulcToolchain
+> Task :compileJava UP-TO-DATE
+> Task :processResources NO-SOURCE
+> Task :classes UP-TO-DATE
+> Task :jar UP-TO-DATE
+> Task :demo:backend:compileJava
+> Task :demo:backend:processResources NO-SOURCE
+> Task :demo:backend:classes
+
+> Task :demo:backend:compileTestJava
+Note: /Users/satya/work/bloxbean/kavach/demo/backend/src/test/java/com/bloxbean/cardano/kavach/demo/DemoServiceDevkitTest.java uses unchecked or unsafe operations.
+Note: Recompile with -Xlint:unchecked for details.
+
+> Task :demo:backend:processTestResources NO-SOURCE
+> Task :demo:backend:testClasses
+> Task :demo:backend:test
+
+> Task :demo:backend:demoIntegrationTest
+
+DemoServiceDevkitTest STANDARD_ERROR
+    SLF4J(W): No SLF4J providers were found.
+    SLF4J(W): Defaulting to no-operation (NOP) logger implementation
+    SLF4J(W): See https://www.slf4j.org/codes.html#noProviders for further details.
+
+DemoServiceDevkitTest > periodicBudgetFullFlow() STANDARD_OUT
+    Create account · publish script 1 of 5 confirmed candidate 00c78197b043bfc9a3f945e2be1f3793f1c258bf460f2ffd3210cebad2145c69
+    Create account · publish script 2 of 5 confirmed candidate c126c3be8f6f2e506cb7a8ed82eb78ad73ddbb71ae7be8e7e7662fe40c6f345d
+    Create account · publish script 3 of 5 confirmed candidate aef4eb9f93f21ad3735ad02b645b0493b8cc9a22627ec9c1df37686a49acf3c6
+    Create account · publish script 4 of 5 confirmed candidate 8c8c6e08773a6c1945c82e86b13665788a8ca962b03e7b6e4aae8cf56d43224d
+    Create account · publish script 5 of 5 confirmed candidate 5c1ff6c30dac5cba6f40006602d8d5c0c3c73f33944604f39d51a386d5075917
+    Register authorization checkpoints confirmed candidate 461271fab51771529e8734659ddcede2bcfaa4af1249baadc1a299d57c9015b4
+    Create account · approve genesis confirmed candidate 0a6defe794acc9a71988572426a7aa83d2f1ed6eafd0341e329c6fa4e15efa3d
+    Create periodic budget counter confirmed candidate 26a1a318e206f43b7d6edca4135e4b6cc2d6c2c235121cf9e6c9d22ed0b240f7
+    Publish candidate module confirmed candidate 30c2204fb2ebaf581a78ef0b15cb2e5b5907df6170bbb4d6197b3b270a5901c3
+    Register authorization checkpoints confirmed candidate 1fd3d63b0526b239c9011365a50684e203291250fa013f02d4e96d72bf0c897b
+    Replace module confirmed candidate 9bd519d49e17a71a884607ff4329df1c62225fa1a961c8c4d12c265bcb56a9ee
+    Send assets confirmed candidate c65a4a3feff72d7dd261dbc25ea8f799ef0ff87ac7881a1205739ee27a35fbc1
+    Send assets confirmed candidate 8e2873f2bf6fd28f997902ef38832d9319fe97db8777fedd1ac6092ee417d270
+    Rotate keys confirmed candidate 45108ae286a1fe0cafd2cafa6830a452fe708726392ce6b8fed4ddbca8933c32
+    Rotate keys confirmed candidate d95da501d78822c2d76b9926725949ad91bfeca721f77a4e1189038d6b2692fd
+    Send assets confirmed candidate 1f4445c490f1409d79315c1deed0eab3eda7fd70722aebcfd55b203bfb4701bc
+    Rotate keys confirmed candidate 1a9f59ca86c7b7f05c08e26e5e6de504d2c07bc83b8dc31e6fb8ba0363a88357
+    Send assets confirmed candidate 488e65c1f9c7df9d0ff9e8219ab969e2967d4ddab0a50d216a2f5257da847225
+    Rotate keys confirmed candidate 06851957e728be595bd0f04fbf9f7d006c425fa72b4934c41964870674e1ec8d
+    Send assets confirmed candidate b428efcfc2e6c7c7b20f4220f66e685c04eecc5f2ace2841d79248ca8cf6caea
+    Send assets confirmed candidate 6bcf97fdb4a2f9b2d92285c65f46c3ed0b4c8afed3aaef48ce278cead5953c2d
+    Send assets confirmed candidate 688ddd3828978c3d68004c49a808ace52db8ac08b4aa00b12a778f134edb7625
+
+[Incubating] Problems report is available at: file:///Users/satya/work/bloxbean/kavach/build/reports/problems/problems-report.html
+
+BUILD SUCCESSFUL in 1m 57s
+7 actionable tasks: 5 executed, 2 up-to-date
+Consider enabling configuration cache to speed up this build: https://docs.gradle.org/9.2.0/userguide/configuration_cache_enabling.html

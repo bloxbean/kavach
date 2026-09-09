@@ -41,11 +41,12 @@ operational design, independently verified deployment manifests and wallet quali
 3. Fund the connected wallet's **change address** on DevKit. The setup needs separate outputs
    for the identity seed, fees and collateral. The automated test uses faucet outputs of
    1,000 + 20 + 20 test ADA. These amounts are test funding, not transfer fees.
-4. Create an account and select transaction signing or bounded COSE intent signing. The
+4. Create an account and choose a device, signing method and public key for each signer.
+   Wallet keys support transaction signing or COSE; Companion keys require COSE. The
    initial role profile is editable; invalid defensive-role overlaps and unsafe admin
-   thresholds reject. All three keys prove possession at creation.
-5. Review and approve each setup transaction. This development flow publishes five reference
-   scripts with **80 ADA each permanently locked**, creates a **12 ADA state output**, and
+   thresholds reject. All registered keys prove possession at creation. Use Add signer for up to 8 keys; each policy allows up to eight members. Remove signer requires clearing its policy assignments first and keeps at least three keys.
+5. Review and approve each setup transaction, including final policy activation. The default
+   per-key flow publishes six reference scripts with **80 ADA each permanently locked**, creates a **12 ADA state output**, and
    pays stake-registration deposits and network fees. Reference publication is deliberately
    conservative and is not an optimized production onboarding cost. Continue only after
    ledger confirmation. Save the public account locator before proceeding.
@@ -56,7 +57,9 @@ operational design, independently verified deployment manifests and wallet quali
 Submitting the final genesis request saves a pending public locator before contacting the
 backend. The dashboard checks the ledger every 15 seconds and automatically saves and opens
 the account once authenticated restoration succeeds, including after a reload or backend
-restart. Unfinished setup remains a request, with a **Resume account setup** shortcut;
+restart. A confirmed mixed account awaiting activation is labeled unfinished and offers
+**Finish account setup**. It cannot spend until activation. Pre-genesis setup remains a request,
+with a **Resume account setup** shortcut;
 reference publication alone does not create an account.
 
 Opening or restoring an account also saves its public locator in this browser profile for this
@@ -69,7 +72,7 @@ with the last selected account reopened after refresh. Click an entry to switch 
 use **Locator** to copy its backup or **Forget** to remove only that browser entry.
 Forgetting the selected account selects another saved entry, if available. It never changes
 on-chain state or funds. Earlier locally named accounts are recovered into the list only
-after authenticated ledger restoration; unfinished creations are excluded. Forgotten entries
+after authenticated ledger restoration; unconfirmed genesis candidates are excluded. Forgotten entries
 are excluded from this automatic migration but may be explicitly restored again.
 This is a local account list, not wallet-wide discovery;
 another browser profile or origin needs the exported locator. Keep a separate locator backup
@@ -78,13 +81,17 @@ In particular, `localhost` and `127.0.0.1` use different storage, as do ports 51
 Restore once on the new origin after a port/hostname change; the account remains on-chain.
 Local registry regression tests run with `npm test` in `demo/web` (Node 22.12+).
 
-The approval dialog labels setup steps 1–7 and distinguishes current transaction signatures
-from COSE intent proofs. Reference publication and checkpoint registration (steps 1–6) need
-only the original fee-paying wallet. Genesis (step 7) needs every enrolled authority; COSE
-then also needs the fee wallet's transaction signature. Approval counts and the transaction
-signer checklist show what remains. Once all signatures are collected, signing is disabled
-and **Submit transaction** is the next action. Switch the active account inside the wallet
-when collecting another authority's approval on the same request.
+The approval dialog labels ten steps for default per-key creation (legacy API creation
+still has seven). Initial reference publication and checkpoint registration need the fee
+wallet. Genesis requires every enrolled key in its own method. Final publication and
+registration follow, then activation requires old-admin approval and every destination key's
+possession. The final module and configuration are precommitted; activation cannot substitute
+other keys or rules. After genesis, resume can skip confirmed publication/registration even
+following a backend restart. Every transaction still needs its fee payer's signature.
+
+Approval counts and the transaction signer checklist show what remains. Once all signatures
+are collected, Submit transaction is the next action. Switch active wallet accounts as needed.
+See [ADR-009](../adr/adr-009-per-key-account-creation.md) for the restricted setup checkpoint.
 
 ## Available flows
 
@@ -102,7 +109,7 @@ when collecting another authority's approval on the same request.
 ## Scope and limitations
 
 This is a development preview, not an audited wallet or a general dApp connector. The UI
-uses a three-key reference setup and supports up to 16 ordinary account inputs per transfer,
+starts with a three-key reference setup, allows up to 8 keys, and supports up to 16 ordinary account inputs per transfer,
 with one recipient. The protocol/SDK expose broader shapes that need separate UI work and
 budget qualification. Recipient support is currently key-payment enterprise/base addresses.
 CIP-113 transfers, staking, governance and session keys are not implemented here.
@@ -225,3 +232,22 @@ allocation. The final candidate is re-evaluated and fee/collateral accounting is
 to stability before wallet transaction signatures are requested. If the sponsor lacks
 a suitable UTxO or at least 2 ADA would not remain in its change, preparation fails
 with an actionable message. Split/fund the fee wallet accordingly before retrying.
+
+## Amount tiers, mixed signatures and optional budgets
+
+The dashboard supports separately versioned mixed authorization modules and an optional
+shared daily/weekly ADA counter on a new immutable core profile. See the
+[step-by-step policy testing guide](../docs/policy/testing.md) and
+[qualification ledger](../docs/policy/completion-checklist.md). Existing accounts can install
+mixed signing but require a new account/address for budget support. Counter deposits remain
+locked in this development candidate.
+
+The dashboard currently caps setup at eight signers. The protocol registry allows sixteen,
+but a sixteen-COSE-key activation exceeded the companion transport request bound in live testing.
+
+Account creation defaults to COSE intent approval for every key. Transaction-witness
+methods remain under Advanced signing method. Existing accounts can select **Use COSE for
+all account keys** in their key/policy update form; the change needs the current admin
+approvals and confirmation. The approval wizard separates account approvals from fee-payer
+transaction signing and explains both beside the request details. An independent funded
+wallet may pay fees; this demo does not operate a hosted sponsorship service.

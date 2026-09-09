@@ -1,0 +1,44 @@
+WARNING: A restricted method in java.lang.System has been called
+WARNING: java.lang.System::load has been called by net.rubygrapefruit.platform.internal.NativeLibraryLoader in an unnamed module (file:/Users/satya/.gradle/wrapper/dists/gradle-9.2.0-bin/11i5gvueggl8a5cioxuftxrik/gradle-9.2.0/lib/native-platform-0.22-milestone-29.jar)
+WARNING: Use --enable-native-access=ALL-UNNAMED to avoid a warning for callers in this module
+WARNING: Restricted methods will be blocked in a future release unless native access is enabled
+
+> Task :verifyJulcToolchain
+> Task :compileJava UP-TO-DATE
+> Task :processResources NO-SOURCE
+> Task :classes UP-TO-DATE
+> Task :jar UP-TO-DATE
+> Task :demo:backend:compileJava
+> Task :demo:backend:processResources NO-SOURCE
+> Task :demo:backend:classes
+> Task :demo:backend:compileTestJava UP-TO-DATE
+> Task :demo:backend:processTestResources NO-SOURCE
+> Task :demo:backend:testClasses UP-TO-DATE
+
+> Task :demo:backend:demoIntegrationTest
+
+DemoServiceDevkitTest STANDARD_ERROR
+    SLF4J(W): No SLF4J providers were found.
+    SLF4J(W): Defaulting to no-operation (NOP) logger implementation
+    SLF4J(W): See https://www.slf4j.org/codes.html#noProviders for further details.
+
+DemoServiceDevkitTest > allCoseMigrationWithIndependentFeePayer() STANDARD_OUT
+    Create account · publish script 1 of 5 confirmed candidate 751db25381be04e2567c20ef639f7a248a89318f7aa68c75772273711e41267f
+    Create account · publish script 2 of 5 confirmed candidate bfb37063af10256d30c2b28dccbb9acc067005f5fc1a77f5af83447d4c6872f2
+    Create account · publish script 3 of 5 confirmed candidate 46bce8c910046c3e7012c610bccf6c29bd6deddfb2ea9eedb66689ac82acb9ef
+    Create account · publish script 4 of 5 confirmed candidate 2f5d32c09af1c1029761a4ab770ae42abea4e69b53d7e2e714661a63c0adbbdc
+    Create account · publish script 5 of 5 confirmed candidate e38c1d90bb34a60472808353db26f31186f749ccd645600781f768f4b84e13b8
+    Register authorization checkpoints confirmed candidate 70ee99d55e16921952684e9e4f2e90430acccc7836e4e44e094cbf43770e6b36
+    Create account · approve genesis confirmed candidate 9b2de1dfe0cc617e24f289700193b2473bf6c5aa3361369f0df3ae599576de48
+    Create account · publish final signing module confirmed candidate 9779d0ce6ff72615dd61f77056a02bb5d2ea9035028cd9835994cbec06f021df
+    Register authorization checkpoints confirmed candidate 4263f4340c8656da048a6f62687fd455a2a95d8b23723e75219f03285765c3a7
+    Create account · activate selected signing methods confirmed candidate 85ddcfff13a75332818bd8a03f31f802fb557bb12e146b8016b814ecd754279e
+    Send assets confirmed candidate ebcc79a3319d7eb8a03ce6f5f9d9d3a59bba9528eb8d1af409b3d00fb561f8ea
+    Send assets confirmed candidate 9c444aadfeb51568125c5497a5955b6742beba289310abd2872612ca43b30486
+    Rotate keys confirmed candidate bad5cbc6c8b891cf34cb7515e5ab0985481a058fbbcdcd378f03b22a08eb6153
+    Send assets confirmed candidate fb83e76f8deaf562ecca3f1c59c50f43a74b0815b193a57cecd8751d033b4926
+    Send assets confirmed candidate 0dbdf4b942299265210d31045b1daeed97984981e7c56260485579ad6ccafc50
+
+BUILD SUCCESSFUL in 1m 10s
+6 actionable tasks: 3 executed, 3 up-to-date
+Consider enabling configuration cache to speed up this build: https://docs.gradle.org/9.2.0/userguide/configuration_cache_enabling.html

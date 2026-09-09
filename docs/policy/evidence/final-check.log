@@ -1,0 +1,118 @@
+WARNING: A restricted method in java.lang.System has been called
+WARNING: java.lang.System::load has been called by net.rubygrapefruit.platform.internal.NativeLibraryLoader in an unnamed module (file:/Users/satya/.gradle/wrapper/dists/gradle-9.2.0-bin/11i5gvueggl8a5cioxuftxrik/gradle-9.2.0/lib/native-platform-0.22-milestone-29.jar)
+WARNING: Use --enable-native-access=ALL-UNNAMED to avoid a warning for callers in this module
+WARNING: Restricted methods will be blocked in a future release unless native access is enabled
+
+> Task :verifyJulcToolchain
+
+> Task :compileJava
+warning: Supported source version 'RELEASE_24' from annotation processor 'org.gradle.api.internal.tasks.compile.processing.TimeTrackingProcessor' less than -source '25'
+/Users/satya/work/bloxbean/kavach/src/main/java/com/bloxbean/cardano/kavach/contracts/PeriodicBudgetValidator.java:25: Note: Compiled Plutus validator: PeriodicBudgetValidator (target: plutus-v3-pv11-uplc-1.1.0, optimization: pv11-safe, hash: , size: 7.0 KB) (with 5 library file(s))
+public class PeriodicBudgetValidator {
+       ^
+/Users/satya/work/bloxbean/kavach/src/main/java/com/bloxbean/cardano/kavach/contracts/AccountStateValidator.java:24: Note: Compiled Plutus validator: AccountStateValidator (target: plutus-v3-pv11-uplc-1.1.0, optimization: pv11-safe, hash: , size: 7.7 KB) (with 6 library file(s))
+public class AccountStateValidator {
+       ^
+/Users/satya/work/bloxbean/kavach/src/main/java/com/bloxbean/cardano/kavach/contracts/BudgetAccountAssetValidator.java:27: Note: Compiled Plutus validator: BudgetAccountAssetValidator (target: plutus-v3-pv11-uplc-1.1.0, optimization: pv11-safe, hash: , size: 14 KB) (with 11 library file(s))
+public class BudgetAccountAssetValidator {
+       ^
+/Users/satya/work/bloxbean/kavach/src/main/java/com/bloxbean/cardano/kavach/contracts/AccountAssetValidator.java:25: Note: Compiled Plutus validator: AccountAssetValidator (target: plutus-v3-pv11-uplc-1.1.0, optimization: pv11-safe, hash: , size: 10 KB) (with 8 library file(s))
+public class AccountAssetValidator {
+       ^
+/Users/satya/work/bloxbean/kavach/src/main/java/com/bloxbean/cardano/kavach/phase0/OwnedAssetFixture.java:16: Note: Compiled Plutus validator: OwnedAssetFixture (target: plutus-v3-pv11-uplc-1.1.0, optimization: pv11-safe, hash: , size: 232 B)
+public class OwnedAssetFixture {
+       ^
+/Users/satya/work/bloxbean/kavach/src/main/java/com/bloxbean/cardano/kavach/phase0/SealedStateProbe.java:10: Note: Compiled Plutus validator: SealedStateProbe (target: plutus-v3-pv11-uplc-1.1.0, optimization: pv11-safe, hash: d7872284d77a2d6b2f719c939547e8042b04da8cebd781c9f65a3d30, size: 56 B)
+public class SealedStateProbe {
+       ^
+/Users/satya/work/bloxbean/kavach/src/main/java/com/bloxbean/cardano/kavach/phase0/ConfigurationPossessionProbe.java:18: Note: Compiled Plutus validator: ConfigurationPossessionProbe (target: plutus-v3-pv11-uplc-1.1.0, optimization: pv11-safe, hash: , size: 1.9 KB)
+public class ConfigurationPossessionProbe {
+       ^
+/Users/satya/work/bloxbean/kavach/src/main/java/com/bloxbean/cardano/kavach/phase0/BindingCheckpointProbe.java:24: Note: Compiled Plutus validator: BindingCheckpointProbe (target: plutus-v3-pv11-uplc-1.1.0, optimization: pv11-safe, hash: , size: 4.4 KB) (with 2 library file(s))
+public class BindingCheckpointProbe {
+       ^
+/Users/satya/work/bloxbean/kavach/src/main/java/com/bloxbean/cardano/kavach/phase0/ValidityWindowProbe.java:18: Note: Compiled Plutus validator: ValidityWindowProbe (target: plutus-v3-pv11-uplc-1.1.0, optimization: pv11-safe, hash: , size: 971 B)
+public class ValidityWindowProbe {
+       ^
+/Users/satya/work/bloxbean/kavach/src/main/java/com/bloxbean/cardano/kavach/phase0/ThresholdWitnessProbe.java:18: Note: Compiled Plutus validator: ThresholdWitnessProbe (target: plutus-v3-pv11-uplc-1.1.0, optimization: pv11-safe, hash: , size: 1.9 KB)
+public class ThresholdWitnessProbe {
+       ^
+/Users/satya/work/bloxbean/kavach/src/main/java/com/bloxbean/cardano/kavach/phase0/ValueAccountingProbe.java:21: Note: Compiled Plutus validator: ValueAccountingProbe (target: plutus-v3-pv11-uplc-1.1.0, optimization: pv11-safe, hash: , size: 5.8 KB) (with 2 library file(s))
+public class ValueAccountingProbe {
+       ^
+/Users/satya/work/bloxbean/kavach/src/main/java/com/bloxbean/cardano/kavach/phase0/StateReferenceProbe.java:23: Note: Compiled Plutus validator: StateReferenceProbe (target: plutus-v3-pv11-uplc-1.1.0, optimization: pv11-safe, hash: , size: 2.3 KB) (with 2 library file(s))
+public class StateReferenceProbe {
+       ^
+/Users/satya/work/bloxbean/kavach/src/main/java/com/bloxbean/cardano/kavach/phase0/WholeUtxoTransferProbe.java:23: Note: Compiled Plutus validator: WholeUtxoTransferProbe (target: plutus-v3-pv11-uplc-1.1.0, optimization: pv11-safe, hash: , size: 3.4 KB) (with 2 library file(s))
+public class WholeUtxoTransferProbe {
+       ^
+/Users/satya/work/bloxbean/kavach/src/main/java/com/bloxbean/cardano/kavach/phase0/WithdrawalProbe.java:20: Note: Compiled Plutus validator: WithdrawalProbe (target: plutus-v3-pv11-uplc-1.1.0, optimization: pv11-safe, hash: , size: 694 B)
+public class WithdrawalProbe {
+       ^
+/Users/satya/work/bloxbean/kavach/src/main/java/com/bloxbean/cardano/kavach/phase0/WireDigestProbe.java:12: Note: Compiled Plutus validator: WireDigestProbe (target: plutus-v3-pv11-uplc-1.1.0, optimization: pv11-safe, hash: 87a738621dfbb99c00805a71d690b6db05885a2cb072933f94573136, size: 366 B)
+public class WireDigestProbe {
+       ^
+/Users/satya/work/bloxbean/kavach/src/main/java/com/bloxbean/cardano/kavach/contracts/PeriodicBudgetNftPolicy.java:24: Note: Compiled Plutus validator: PeriodicBudgetNftPolicy (target: plutus-v3-pv11-uplc-1.1.0, optimization: pv11-safe, hash: , size: 2.4 KB) (with 5 library file(s))
+public class PeriodicBudgetNftPolicy {
+       ^
+/Users/satya/work/bloxbean/kavach/src/main/java/com/bloxbean/cardano/kavach/contracts/StateNftPolicy.java:27: Note: Compiled Plutus validator: StateNftPolicy (target: plutus-v3-pv11-uplc-1.1.0, optimization: pv11-safe, hash: , size: 5.6 KB) (with 4 library file(s))
+public class StateNftPolicy {
+       ^
+/Users/satya/work/bloxbean/kavach/src/main/java/com/bloxbean/cardano/kavach/phase0/StateNftMintProbe.java:23: Note: Compiled Plutus validator: StateNftMintProbe (target: plutus-v3-pv11-uplc-1.1.0, optimization: pv11-safe, hash: , size: 2.1 KB) (with 2 library file(s))
+public class StateNftMintProbe {
+       ^
+/Users/satya/work/bloxbean/kavach/src/main/java/com/bloxbean/cardano/kavach/auth/browser/BrowserModule.java:34: Note: Compiled Plutus validator: BrowserModule (target: plutus-v3-pv11-uplc-1.1.0, optimization: pv11-safe, hash: , size: 15 KB) (with 9 library file(s))
+public class BrowserModule {
+       ^
+/Users/satya/work/bloxbean/kavach/src/main/java/com/bloxbean/cardano/kavach/auth/ed25519/Ed25519Module.java:32: Note: Compiled Plutus validator: Ed25519Module (target: plutus-v3-pv11-uplc-1.1.0, optimization: pv11-safe, hash: , size: 14 KB) (with 8 library file(s))
+public class Ed25519Module {
+       ^
+/Users/satya/work/bloxbean/kavach/src/main/java/com/bloxbean/cardano/kavach/auth/policy/BudgetPolicyModule.java:34: Note: Compiled Plutus validator: BudgetPolicyModule (target: plutus-v3-pv11-uplc-1.1.0, optimization: pv11-safe, hash: , size: 15 KB) (with 12 library file(s))
+public class BudgetPolicyModule {
+       ^
+/Users/satya/work/bloxbean/kavach/src/main/java/com/bloxbean/cardano/kavach/auth/policy/PolicyModule.java:34: Note: Compiled Plutus validator: PolicyModule (target: plutus-v3-pv11-uplc-1.1.0, optimization: pv11-safe, hash: , size: 15 KB) (with 10 library file(s))
+public class PolicyModule {
+       ^
+/Users/satya/work/bloxbean/kavach/src/main/java/com/bloxbean/cardano/kavach/contracts/CoreCheckpoint.java:28: Note: Compiled Plutus validator: CoreCheckpoint (target: plutus-v3-pv11-uplc-1.1.0, optimization: pv11-safe, hash: , size: 10 KB) (with 6 library file(s))
+public class CoreCheckpoint {
+       ^
+/Users/satya/work/bloxbean/kavach/src/main/java/com/bloxbean/cardano/kavach/phase0/RewardLifecycleProbe.java:23: Note: Compiled Plutus validator: RewardLifecycleProbe (target: plutus-v3-pv11-uplc-1.1.0, optimization: pv11-safe, hash: , size: 3.9 KB) (with 2 library file(s))
+public class RewardLifecycleProbe {
+       ^
+/Users/satya/work/bloxbean/kavach/src/main/java/com/bloxbean/cardano/kavach/phase0/DeregistrationFixture.java:17: Note: Compiled Plutus validator: DeregistrationFixture (target: plutus-v3-pv11-uplc-1.1.0, optimization: pv11-safe, hash: , size: 348 B)
+public class DeregistrationFixture {
+       ^
+SLF4J(W): No SLF4J providers were found.
+SLF4J(W): Defaulting to no-operation (NOP) logger implementation
+SLF4J(W): See https://www.slf4j.org/codes.html#noProviders for further details.
+Note: Generated CIP-57 blueprint: META-INF/plutus/plutus.json (25 validator(s))
+Note: Some input files use unchecked or unsafe operations.
+Note: Recompile with -Xlint:unchecked for details.
+1 warning
+
+> Task :processResources NO-SOURCE
+> Task :classes
+> Task :javadoc
+> Task :jar
+> Task :compileTestJava UP-TO-DATE
+> Task :processTestResources UP-TO-DATE
+> Task :testClasses UP-TO-DATE
+> Task :test
+> Task :toolchainAcceptance
+> Task :verifyProtocolBaseline
+> Task :check
+> Task :demo:backend:compileJava UP-TO-DATE
+> Task :demo:backend:processResources NO-SOURCE
+> Task :demo:backend:classes UP-TO-DATE
+> Task :demo:backend:javadoc
+> Task :demo:backend:compileTestJava UP-TO-DATE
+> Task :demo:backend:processTestResources NO-SOURCE
+> Task :demo:backend:testClasses UP-TO-DATE
+> Task :demo:backend:test
+> Task :demo:backend:check
+
+[Incubating] Problems report is available at: file:///Users/satya/work/bloxbean/kavach/build/reports/problems/problems-report.html
+
+BUILD SUCCESSFUL in 12s
+13 actionable tasks: 9 executed, 4 up-to-date
+Consider enabling configuration cache to speed up this build: https://docs.gradle.org/9.2.0/userguide/configuration_cache_enabling.html

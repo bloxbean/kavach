@@ -6,7 +6,12 @@ export type AccountView = {
   version: string;
   balance: string;
   signingMode: number;
-  keys: { id: number; publicKey: string }[];
+  budgetCore?: boolean;
+  setupPending?: boolean;
+  budget?: { enabled: boolean; period?: "daily" | "weekly"; limit?: string; spent?: string; remaining?: string; resetsAt?: string; counter?: string };
+  keys: { id: number; publicKey: string; method?: number }[];
+  smallPaymentLimit?: string;
+  smallSpend?: { threshold: number; members: number[] };
   policies: { role: string; threshold: number; members: number[] }[];
   recovery?: {
     executeAfter: string;
@@ -22,6 +27,10 @@ export type Plan = {
   transaction?: string;
   fee?: string;
   requiredSigners: string[];
+  feePayer?: { address: string; paymentKeyHash: string };
+  transactionAuthoritySigners?: string[];
+  authorityApprovals?: { id: number; purpose: string; publicKey: string; paymentKeyHash: string; method: number; approved: boolean }[];
+  signerKeys?: { id: number; publicKey: string; paymentKeyHash: string }[];
   approvals: string[];
   payloads?: {
     id: number;
@@ -35,6 +44,8 @@ export type Plan = {
   txHash?: string;
   confirmed?: boolean;
   canAdvance?: boolean;
+  setupStep?: number;
+  setupTotal?: number;
   locator?: string;
 };
 export async function api<T>(path: string, body?: unknown): Promise<T> {
@@ -43,9 +54,16 @@ export async function api<T>(path: string, body?: unknown): Promise<T> {
     headers: { "Content-Type": "application/json" },
     ...(body === undefined ? {} : { body: JSON.stringify(body) }),
   });
-  const data = await response.json();
+  const text = await response.text();
+  let data;
+  try { data = JSON.parse(text); }
+  catch {
+    throw new Error(response.status >= 500
+      ? "The Kavach backend is unavailable. Your form entries are preserved. Check the backend and try again."
+      : "The backend returned an unreadable response. Refresh request status before retrying a submission.");
+  }
   if (!response.ok)
-    throw new Error(data.error || `Request failed (${response.status})`);
+    throw new Error(data?.error || `Request failed (${response.status})`);
   return data;
 }
 export interface WalletApi {

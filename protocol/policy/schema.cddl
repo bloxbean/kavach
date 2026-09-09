@@ -1,0 +1,39 @@
+; Separate development profiles. Imports the unchanged protocol/v1 role and account types.
+; Constructor fields and their order are normative; Java declaration order is not the schema.
+; Canonical CBOR follows serialiseData and the fixtures in conformance/policy/v1.json.
+
+mixed-configuration = #6.121([
+  1,                         ; schema version
+  ed25519-configuration,     ; existing eight-field registry and six role policies
+  [* uint],                 ; sorted unique registered IDs requiring COSE
+  uint,                     ; small-payment threshold in lovelace, inclusive
+  threshold-policy          ; small-payment approval policy
+])
+
+periodic-configuration = #6.121([
+  1,
+  budget-option,
+  mixed-configuration
+])
+
+budget-option = #6.122([]) / #6.121([periodic-budget])
+periodic-budget = #6.121([
+  counter-id,
+  1 / 2,                    ; 1 UTC daily; 2 UTC weekly, Monday aligned
+  uint                      ; zero disables while retaining counter identity; otherwise hard ADA cap
+])
+counter-id = #6.121([bytes .size 28, bytes .size 0])
+counter-usage = #6.121([
+  1,
+  0 / 1 / 2,                ; 0 only for unused counter
+  uint,                     ; POSIX milliseconds at window start; zero when unused
+  uint                      ; actual cumulative account ADA debit; zero when unused
+])
+
+; Imported definitions are restated to make this candidate independently readable.
+ed25519-configuration = #6.121([1, [3*16 key-entry], threshold-policy, threshold-policy,
+  threshold-policy, threshold-policy, threshold-policy, threshold-policy])
+key-entry = #6.121([uint, bytes .size 32])
+threshold-policy = #6.121([uint, [1*8 uint]])
+; Semantic constraints (uint63, key/role separation, exact optional constructors, size limits,
+; low/strong implication and account/counter authentication) are in specification.md.

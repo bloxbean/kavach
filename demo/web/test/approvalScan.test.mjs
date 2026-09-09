@@ -33,3 +33,12 @@ test('camera is released once, including when permission arrives after close', (
   lease.close(); lease.close(); assert.equal(stops, 2);
   const late = cameraLease(); late.close(); assert.equal(late.accept(stream), false); assert.equal(stops, 4);
 });
+
+test('accepts policy activation approvals and keeps their digest binding', () => {
+  const operation = { ...response, profile: 'kavach-cose-policy-v1' };
+  const candidate = { ...operation, digest: 'ef'.repeat(32) };
+  assert.deepEqual(parsePhoneApproval(JSON.stringify(operation), target), operation);
+  assert.deepEqual(parsePhoneApproval(JSON.stringify(candidate), { ...target, payload: candidate.digest }), candidate);
+  assert.throws(() => parsePhoneApproval(JSON.stringify(candidate), target), /different key or request/);
+  assert.throws(() => parsePhoneApproval(JSON.stringify({ ...operation, profile: 'unknown-policy-v2' }), target), /Unsupported/);
+});

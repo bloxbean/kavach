@@ -1,0 +1,63 @@
+(node:25998) ExperimentalWarning: Type Stripping is an experimental feature and might change at any time
+(Use `node --trace-warnings ...` to show where the warning was created)
+TAP version 13
+# (node:26002) ExperimentalWarning: Type Stripping is an experimental feature and might change at any time
+# (Use `node --trace-warnings ...` to show where the warning was created)
+# Subtest: migrates the old active locator and retains both accounts across reload
+ok 1 - migrates the old active locator and retains both accounts across reload
+  ---
+  duration_ms: 1.132917
+  ...
+# Subtest: forgetting inactive entries preserves selection and excludes legacy rediscovery
+ok 2 - forgetting inactive entries preserves selection and excludes legacy rediscovery
+  ---
+  duration_ms: 0.2645
+  ...
+# Subtest: forgetting selected and last accounts selects a remaining entry then clears selection
+ok 3 - forgetting selected and last accounts selects a remaining entry then clears selection
+  ---
+  duration_ms: 0.12375
+  ...
+# Subtest: legacy candidates exclude known accounts and tolerate malformed registry storage
+ok 4 - legacy candidates exclude known accounts and tolerate malformed registry storage
+  ---
+  duration_ms: 0.141125
+  ...
+# (node:26003) ExperimentalWarning: Type Stripping is an experimental feature and might change at any time
+# (Use `node --trace-warnings ...` to show where the warning was created)
+# Subtest: decodes a phone-sized QR and preserves exact approval JSON
+ok 5 - decodes a phone-sized QR and preserves exact approval JSON
+  ---
+  duration_ms: 44.186541
+  ...
+# Subtest: rejects unrelated, wrong-key, malformed and oversized QR payloads before import
+ok 6 - rejects unrelated, wrong-key, malformed and oversized QR payloads before import
+  ---
+  duration_ms: 0.268416
+  ...
+# Subtest: camera is released once, including when permission arrives after close
+ok 7 - camera is released once, including when permission arrives after close
+  ---
+  duration_ms: 0.092417
+  ...
+# (node:26004) ExperimentalWarning: Type Stripping is an experimental feature and might change at any time
+# (Use `node --trace-warnings ...` to show where the warning was created)
+# Subtest: unlisted HD key requires explicit choice and exact enterprise credential
+ok 8 - unlisted HD key requires explicit choice and exact enterprise credential
+  ---
+  duration_ms: 1.245209
+  ...
+# Subtest: listed addresses remain usable and selected keys cannot silently fall back
+ok 9 - listed addresses remain usable and selected keys cannot silently fall back
+  ---
+  duration_ms: 0.150291
+  ...
+1..9
+# tests 9
+# suites 0
+# pass 9
+# fail 0
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 159.964292

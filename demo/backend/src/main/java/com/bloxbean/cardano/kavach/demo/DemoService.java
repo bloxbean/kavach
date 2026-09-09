@@ -52,6 +52,17 @@ import java.net.http.HttpClient;
 import java.net.http.HttpRequest;
 import java.net.http.HttpResponse;
 import java.nio.charset.StandardCharsets;
+import com.bloxbean.cardano.kavach.protocol.PolicyConfigCodec;
+import com.bloxbean.cardano.kavach.auth.policy.PolicyModule;
+import com.bloxbean.cardano.kavach.auth.policy.MixedSetupModule;
+import com.bloxbean.cardano.kavach.auth.policy.BudgetPolicyModule;
+import com.bloxbean.cardano.kavach.protocol.PeriodicBudgetCodec;
+import com.bloxbean.cardano.kavach.contracts.PeriodicBudgetLib;
+import com.bloxbean.cardano.kavach.contracts.PeriodicBudgetLib.Configuration;
+import com.bloxbean.cardano.kavach.contracts.PeriodicBudgetLib.Budget;
+import com.bloxbean.cardano.kavach.sdk.PeriodicBudgetDeployment;
+import com.bloxbean.cardano.kavach.sdk.PeriodicBudgetTransfer;
+import com.bloxbean.cardano.kavach.auth.policy.PolicyLib.PolicyConfig;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.security.MessageDigest;
@@ -61,6 +72,7 @@ import java.time.Instant;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Comparator;
+import java.util.HashSet;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
@@ -103,9 +115,11 @@ final class DemoService {
         final byte[] key;
         final byte[] payload;
         byte[] evidence;
+        int signingMethod;
         final UUID companionTicket = UUID.randomUUID();
         String companionProfile;
         PlutusData companionData;
+        PlutusData companionState;
         long companionExpiresAt;
 
         Request(int id, String purpose, byte[] key, byte[] payload) {
@@ -122,10 +136,15 @@ final class DemoService {
         String review;
         final List<Request> requests = new ArrayList<>();
         final Set<String> required = ConcurrentHashMap.newKeySet();
+        String feePayerAddress;
+        String feePayerKeyHash;
+        final Set<String> transactionAuthoritySigners = new TreeSet<>();
         Transaction transaction;
         Build build;
         Next next;
         Plan advanced;
+        int setupStep;
+        int setupTotal;
         String txHash;
         String locator;
         final Map<String, VkeyWitness> witnesses = new LinkedHashMap<>();
@@ -143,6 +162,7 @@ final class DemoService {
         String sponsor;
         String holder;
         int mode;
+        PlutusV3Script finalModule;
     }
 
     /**
@@ -187,7 +207,7 @@ final class DemoService {
                 "network",
                 "Yaci DevKit · magic 42",
                 "signing",
-                List.of("CIP-30 transaction", "Bounded CIP-8 / COSE"));
+                List.of("CIP-30 transaction", "Bounded CIP-8 / COSE", "Mixed amount-tiered approval", "Optional daily/weekly budget"));
     }
 
     Object restore(String locator) throws Exception {
@@ -211,6 +231,9 @@ final class DemoService {
         value.put("mode", state.mode().getClass().getSimpleName());
         value.put("version", state.stateVersion().toString());
         value.put("signingMode", mode);
+        value.put("setupPending", Files.exists(PROFILES.resolve(hex(state.authModule().scriptHash()) + ".setup")));
+        value.put("budgetCore", PeriodicBudgetDeployment.supports(state));
+        if (PeriodicBudgetCodec.isProfile(state.authConfig())) value.put("budget", budgetView(state));
         value.put("balance", amounts.getOrDefault("lovelace", BigInteger.ZERO).toString());
         value.put(
                 "assets",
@@ -219,6 +242,11 @@ final class DemoService {
                         .map(e -> Map.of("unit", e.getKey(), "quantity", e.getValue().toString()))
                         .toList());
         var config = config(state.authConfig());
+        if (mode >= 3) {
+            var policy = PolicyConfigCodec.decode(PeriodicBudgetCodec.authorization(state.authConfig()));
+            value.put("smallPaymentLimit", policy.smallPaymentLimit().toString());
+            value.put("smallSpend", Map.of("threshold", policy.smallSpend().threshold(), "members", PolicyConfigCodec.ids(policy.smallSpend())));
+        }
         value.put(
                 "keys",
                 keys(config).stream()
@@ -228,7 +256,8 @@ final class DemoService {
                                                 "id",
                                                 k.credentialId().intValueExact(),
                                                 "publicKey",
-                                                hex(k.publicKey())))
+                                                hex(k.publicKey()),
+                                                "method", PolicyConfigCodec.method(state.authConfig(), k.credentialId(), mode)))
                         .toList());
         String[] names = {"Spend", "Admin", "Freeze", "Unfreeze", "Recovery", "Cancel"};
         var policies =
@@ -301,6 +330,18 @@ final class DemoService {
         if (action.equals("Create account")) {
             var config = parseKeys(DemoServer.string(body, "keys"), body.get("policies"));
             int mode = mode(body);
+            require(mode <= 3, "Create with per-key signing, then enable the optional budget from Security");
+            var configuration = mode == 3 ? policyConfiguration(body, config, mode, null) : AccountCodec.data(config);
+            // Genesis needs every transaction-method key plus the fee payer. Reject before
+            // publishing references if that union exceeds the existing signer bound.
+            var genesisSigners = new HashSet<String>();
+            genesisSigners.add(hex(payment(sponsor)));
+            for (var key : keys(config)) {
+                if (PolicyConfigCodec.method(configuration, key.credentialId(), mode) == 1)
+                    genesisSigners.add(hex(BrowserSignatures.keyHash(key.publicKey())));
+            }
+            require(genesisSigners.size() <= 16,
+                    "Creation supports at most 16 transaction signers including the fee wallet. Use COSE for a key or fund setup with a registered transaction signer.");
             var coins =
                     utxos(sponsor).stream()
                             .filter(DemoService::plain)
@@ -321,13 +362,19 @@ final class DemoService {
             var sink = ledgerAddress(sponsor);
             var scripts =
                     AccountDeployment.derive(domain, ref(setup.seed), payment(sponsor), sink, sink);
+            if (Boolean.TRUE.equals(body.get("budgetCore"))) scripts = PeriodicBudgetDeployment.derive(scripts, domain);
             var module = browser(scripts, domain, sink, mode);
+            if (mode == 3) {
+                setup.finalModule = module;
+                module = mixedSetup(scripts, domain, sink, module);
+                Files.writeString(PROFILES.resolve(hex(module.getScriptHash()) + ".setup"), setup.sponsor);
+            }
             setup.scripts = withModule(scripts, module);
             setup.state =
                     AccountDeployment.genesis(
                             setup.scripts,
                             domain,
-                            AccountCodec.data(config),
+                            configuration,
                             BigInteger.valueOf(86400000),
                             BigInteger.valueOf(3600000));
             setup.holder = AddressProvider.getEntAddress(scripts.state(), NETWORK).toBech32();
@@ -338,28 +385,32 @@ final class DemoService {
         var state = restored.state();
         var scripts = AccountDeployment.restore(state, backend);
         int mode = profile(state.authModule().scriptHash());
+        if (action.equals("Finish account setup")) return view(finishMixedSetup(locator, sponsor));
+        require(!Files.exists(PROFILES.resolve(hex(state.authModule().scriptHash()) + ".setup")),
+                "Finish account setup before changing policies or spending");
         require(
                 state.deploymentDomain().networkMagic().equals(BigInteger.valueOf(42)),
                 "Locator is not for this DevKit deployment");
         if (action.equals("Send assets"))
             return view(transfer(body, sponsor, state, restored.input(), scripts, mode, locator));
+        int destinationMode = action.equals("Replace module") ? mode(body) : mode;
+        if (destinationMode == 4 && List.of("Replace module", "Rotate keys", "Start recovery").contains(action)) {
+            require(PeriodicBudgetDeployment.supports(state), "Periodic budgets require a new budget-capable account address");
+            var previousBudget = PeriodicBudgetCodec.isProfile(state.authConfig()) ? PeriodicBudgetCodec.decode(state.authConfig()).budget() : Optional.<Budget>empty();
+            if (Boolean.TRUE.equals(body.get("budgetEnabled")) && previousBudget.isEmpty() && !body.containsKey("budgetCounter"))
+                return view(createBudgetCounter(body, sponsor, state));
+        }
         Action mutation =
                 switch (action) {
                     case "Freeze account" -> new Freeze();
                     case "Unfreeze account" -> new Unfreeze();
                     case "Rotate keys" ->
                             new ReplaceConfig(
-                                    AccountCodec.data(
-                                            parseKeys(
-                                                    DemoServer.string(body, "target"),
-                                                    body.get("policies"))));
+                                    policyConfiguration(body, parseKeys(DemoServer.string(body, "target"), body.get("policies")), mode, state));
                     case "Start recovery" ->
                             new StartRecovery(
                                     state.recoverySequence().add(BigInteger.ONE),
-                                    AccountCodec.data(
-                                            parseKeys(
-                                                    DemoServer.string(body, "target"),
-                                                    body.get("policies"))));
+                                    policyConfiguration(body, parseKeys(DemoServer.string(body, "target"), body.get("policies")), mode, state));
                     case "Cancel recovery" -> {
                         require(
                                 state.mode() instanceof RecoveryPending,
@@ -387,7 +438,7 @@ final class DemoService {
                                         nextMode);
                         yield new ReplaceModule(
                                 new AuthModuleRef(candidate.getScriptHash(), BigInteger.ONE),
-                                state.authConfig());
+                                policyConfiguration(body, config(state.authConfig()), nextMode, state));
                     }
                     default -> throw new IllegalArgumentException("Unsupported account action");
                 };
@@ -438,6 +489,57 @@ final class DemoService {
                         body.get("approvers")));
     }
 
+    /** Creates an unused one-shot counter; installing it still requires the old account admin. */
+    private Plan createBudgetCounter(Map<String, Object> body, String sponsor, AccountState state) throws Exception {
+        var seed = feeInput(sponsor, null, BigInteger.valueOf(6_000_000));
+        var policy = PeriodicBudgetDeployment.mintPolicy(state, ref(seed), payment(sponsor));
+        var validator = PeriodicBudgetDeployment.validator(state);
+        String unit = hex(policy.getScriptHash());
+        String address = AddressProvider.getEntAddress(validator, NETWORK).toBech32();
+        var p = new Plan("Create periodic budget counter", "Create a 3 ADA counter deposit for this account. It remains locked under the development contract. The budget is enabled only after a separate admin-approved configuration change.");
+        feePayer(p, sponsor);
+        p.build = () -> {
+            var block = backend.getBlockService().getLatestBlock().getValue();
+            var tx = new Tx().collectFrom(List.of(seed))
+                    .mintAsset(policy, new com.bloxbean.cardano.client.transaction.spec.Asset("", BigInteger.ONE), BigIntPlutusData.of(0))
+                    .payToContract(address, List.of(Amount.ada(3), Amount.asset(unit, "", 1)),
+                            PlutusDataAdapter.toClientLib(AccountCodec.data(PeriodicBudgetLib.initial())));
+            return build(tx, p, sponsor, address, List.of(), block.getSlot(), block.getSlot() + 300);
+        };
+        var resumed = new LinkedHashMap<>(body);
+        resumed.put("budgetCounter", unit);
+        p.next = () -> {
+            Files.createDirectories(PROFILES);
+            Files.writeString(PROFILES.resolve(unit + ".counter"), hex(state.accountId().policy()));
+            return get((String)((Map<?, ?>)prepare(resumed)).get("id"));
+        };
+        return finish(p);
+    }
+
+    private Utxo budgetCounter(AccountState state, Budget budget) throws Exception {
+        String address = AddressProvider.getEntAddress(PeriodicBudgetDeployment.validator(state), NETWORK).toBech32();
+        String unit = hex(budget.counter().policy()) + hex(budget.counter().name());
+        var candidates = utxos(address).stream().filter(u -> u.getAmount().stream()
+                .anyMatch(a -> a.getUnit().equals(unit) && a.getQuantity().equals(BigInteger.ONE))).toList();
+        require(candidates.size() == 1, "Current budget counter unavailable or ambiguous; refresh confirmed chain state");
+        return candidates.getFirst();
+    }
+
+    private Object budgetView(AccountState state) throws Exception {
+        var configured = PeriodicBudgetCodec.decode(state.authConfig()).budget();
+        if (configured.isEmpty()) return Map.of("enabled", false);
+        var budget = configured.get();
+        var input = budgetCounter(state, budget);
+        var usage = PeriodicBudgetCodec.usage(PlutusDataAdapter.fromClientLib(
+                com.bloxbean.cardano.client.plutus.spec.PlutusData.deserialize(HexUtil.decodeHexString(input.getInlineDatum()))));
+        var block = backend.getBlockService().getLatestBlock().getValue();
+        var start = PeriodicBudgetCodec.window(BigInteger.valueOf(block.getTime()).multiply(BigInteger.valueOf(1000)), budget.period());
+        var spent = usage.period().equals(budget.period()) && usage.windowStart().equals(start) ? usage.spent() : BigInteger.ZERO;
+        return Map.of("enabled", budget.limit().signum() > 0, "period", budget.period().equals(BigInteger.TWO) ? "weekly" : "daily",
+                "limit", budget.limit().toString(), "spent", spent.toString(), "remaining", budget.limit().subtract(spent).max(BigInteger.ZERO).toString(),
+                "resetsAt", start.add(PeriodicBudgetCodec.duration(budget.period())).toString(), "counter", hex(budget.counter().policy()));
+    }
+
     private Plan publishSetup(Setup setup, int index) throws Exception {
         var scripts =
                 List.of(
@@ -458,11 +560,11 @@ final class DemoService {
             if (index == 0)
                 p.review +=
                         "\n"
-                            + "Full development setup: five 80 ADA references (400 ADA permanently"
+                            + (setup.mode == 3 ? "Full development setup: six 80 ADA references (480 ADA permanently" : "Full development setup: five 80 ADA references (400 ADA permanently")
                             + " locked), 12 ADA account state, registration deposits and"
                             + " transaction fees. Use disposable DevKit assets only.";
             p.next = () -> publishSetup(setup, index + 1);
-            return p;
+            return setupProgress(p, index + 1, setup.mode == 3 ? 10 : 7);
         }
         if (index == 5) {
             var p =
@@ -471,7 +573,7 @@ final class DemoService {
                             List.of(setup.scripts.checkpoint(), setup.scripts.module()),
                             setup.seed);
             p.next = () -> publishSetup(setup, 6);
-            return p;
+            return setupProgress(p, 6, setup.mode == 3 ? 10 : 7);
         }
         var p =
                 new Plan(
@@ -481,16 +583,17 @@ final class DemoService {
         var digest = WireFormat.digest(ProofDomains.genesis(AccountCodec.data(setup.state)));
         requests(
                 p,
-                config(setup.state.authConfig()),
+                setup.state.authConfig(),
                 allIds(config(setup.state.authConfig())),
                 digest,
                 "genesis",
                 setup.mode);
-        if (setup.mode == 2) for (var request : p.requests) {
+        if (setup.mode >= 2) for (var request : p.requests) {
+            if (request.evidence != null) continue;
             request.companionProfile = "kavach-cose-genesis-v1";
             request.companionData = AccountCodec.data(setup.state);
         }
-        p.required.add(hex(payment(setup.sponsor)));
+        feePayer(p, setup.sponsor);
         p.build =
                 () -> {
                     var genesis =
@@ -538,7 +641,81 @@ final class DemoService {
                             0,
                             0);
                 };
-        return finish(p);
+        if (setup.mode == 3) {
+            p.review += "\nMixed account setup is not complete at genesis. Spending stays blocked until the selected per-key policy is activated. Finish setup uses old-admin approval plus every key's destination possession, with unchanged keys, methods and rules.";
+            p.next = () -> finishMixedSetup(p.locator, setup.sponsor);
+        }
+        return setupProgress(finish(p), 7, setup.mode == 3 ? 10 : 7);
+    }
+
+    private static Plan setupProgress(Plan plan, int step, int total) {
+        plan.setupStep = step; plan.setupTotal = total; return plan;
+    }
+
+    /** Resumes confirmed mixed genesis using public verified deployment records, not pending-plan memory. */
+    private Plan finishMixedSetup(String locator, String sponsor) throws Exception {
+        var restored = AccountLocator.parse(locator).restore(AccountLocator.provider(backend));
+        var state = restored.state();
+        var scripts = AccountDeployment.restore(state, backend);
+        var record = PROFILES.resolve(hex(state.authModule().scriptHash()) + ".setup");
+        require(Files.exists(record), "This account has no unfinished mixed setup");
+        var sink = ledgerAddress(address(Files.readString(record)));
+        var candidate = browser(scripts, state.deploymentDomain(), sink, 3);
+        var expected = mixedSetup(scripts, state.deploymentDomain(), sink, candidate);
+        require(Arrays.equals(expected.getScriptHash(), state.authModule().scriptHash()), "Setup deployment record does not match its immutable checkpoint");
+        String holder = AddressProvider.getEntAddress(scripts.state(), NETWORK).toBech32();
+        if (utxos(holder).stream().noneMatch(u -> hexUnchecked(candidate).equals(u.getReferenceScriptHash()))) {
+            var publication = plainPlan("Create account · publish final signing module", sponsor, state.coreBinding().stateValidator(), candidate, null);
+            publication.locator = locator;
+            publication.next = () -> finishMixedSetup(locator, sponsor);
+            return setupProgress(publication, 8, 10);
+        }
+        if (!setupModuleRegistered(candidate)) {
+            var plan = registration(sponsor, List.of(candidate), null);
+            // Plan titles are immutable; the purpose is explicit in its review and locator.
+            plan.review += "\nFinish mixed account setup: register its final signing module.";
+            plan.locator = locator;
+            plan.next = () -> finishMixedSetup(locator, sponsor);
+            return setupProgress(plan, 9, 10);
+        }
+        return setupProgress(mutation("Create account · activate selected signing methods", sponsor, state, restored.input(),
+                scripts, 3, locator, new ReplaceModule(new AuthModuleRef(candidate.getScriptHash(), BigInteger.ONE),
+                        state.authConfig()), candidate, 3, null), 10, 10);
+    }
+
+    /**
+     * Yaci Store omits Blockfrost's active flag. Query its confirmed stake certificates instead.
+     * The precommitted PolicyModule rejects deregistration, so a confirmed registration persists.
+     * Bound the scan and fail closed if this development index exceeds the supported history.
+     */
+    private boolean setupModuleRegistered(PlutusV3Script candidate) throws Exception {
+        String expected = reward(candidate);
+        var client = HttpClient.newHttpClient();
+        for (int page = 1; page <= 100; page++) {
+            var request = HttpRequest.newBuilder(URI.create("http://localhost:8080/api/v1/stake/registrations?count=100&page=" + page))
+                    .timeout(Duration.ofSeconds(10)).GET().build();
+            var response = client.send(request, HttpResponse.BodyHandlers.ofString());
+            require(response.statusCode() == 200, "Cannot read confirmed stake registrations; retry when DevKit is available");
+            var entries = new ObjectMapper().readTree(response.body());
+            require(entries.isArray() && entries.size() <= 100, "Invalid stake-registration response");
+            for (var entry : entries) if (expected.equals(entry.path("address").asText())
+                    && "SCRIPTHASH".equals(entry.path("credential_type").asText())
+                    && hex(candidate.getScriptHash()).equals(entry.path("credential").asText())) return true;
+            if (entries.size() < 100) return false;
+        }
+        throw new IllegalArgumentException("Stake-registration history exceeds this demo's bounded resume scan");
+    }
+
+    private static PlutusV3Script mixedSetup(AccountDeployment.Scripts scripts, DeploymentDomain domain,
+            Address sink, PlutusV3Script finalModule) throws Exception {
+        var args = List.of(AccountCodec.data(BigInteger.ONE), AccountCodec.data(BigInteger.ONE), AccountCodec.data(domain),
+                PlutusData.bytes(scripts.state().getScriptHash()), PlutusData.bytes(scripts.checkpoint().getScriptHash()),
+                AccountCodec.data(sink), PlutusData.bytes(finalModule.getScriptHash()));
+        var result = JulcScriptLoader.load(MixedSetupModule.class, args.stream().map(PlutusDataAdapter::toClientLib)
+                .toArray(com.bloxbean.cardano.client.plutus.spec.PlutusData[]::new));
+        Files.createDirectories(PROFILES);
+        Files.writeString(PROFILES.resolve(hex(result.getScriptHash()) + ".mode"), "3");
+        return result;
     }
 
     private Plan plainPlan(
@@ -553,7 +730,7 @@ final class DemoService {
                                 + "Reference deposit: 80 ADA\n"
                                 + "Network: DevKit 42\n"
                                 + "This development reference deposit cannot be reclaimed.");
-        p.required.add(hex(payment(sponsor)));
+        feePayer(p, sponsor);
         var tx =
                 new Tx()
                         .collectFrom(
@@ -578,7 +755,7 @@ final class DemoService {
                         "Register the required script reward accounts on DevKit.\n"
                                 + "Ledger stake-registration deposits are included in this"
                                 + " transaction.");
-        p.required.add(hex(payment(sponsor)));
+        feePayer(p, sponsor);
         var tx =
                 new Tx()
                         .collectFrom(
@@ -660,7 +837,7 @@ final class DemoService {
                     };
             requests(
                     p,
-                    config,
+                    old.authConfig(),
                     selectApprovers(policy, requestedApprovers),
                     AccountCodec.intentDigest(intent, null),
                     "operation",
@@ -670,8 +847,8 @@ final class DemoService {
             var target = config(replacement.newConfig());
             requests(
                     p,
-                    target,
-                    introduced(config, target),
+                    replacement.newConfig(),
+                    mode >= 3 ? allIds(target) : introduced(config, target),
                     WireFormat.digest(
                             ProofDomains.configuration(
                                     AccountCodec.data(old), AccountCodec.data(intent))),
@@ -681,7 +858,7 @@ final class DemoService {
         if (action instanceof ReplaceModule replacement)
             requests(
                     p,
-                    config(replacement.newConfig()),
+                    replacement.newConfig(),
                     allIds(config(replacement.newConfig())),
                     WireFormat.digest(
                             ProofDomains.configuration(
@@ -694,14 +871,21 @@ final class DemoService {
             ids.addAll(selectApprovers(target.spend(), null));
             requests(
                     p,
-                    target,
-                    List.copyOf(ids),
+                    replacement.replacementConfig(),
+                    mode >= 3 ? allIds(target) : List.copyOf(ids),
                     WireFormat.digest(
                             ProofDomains.target(AccountCodec.data(old), AccountCodec.data(intent))),
                     "possession",
                     mode);
         }
-        p.required.add(hex(payment(sponsor)));
+        if (action instanceof ReplaceConfig || action instanceof ReplaceModule)
+            for (var request : p.requests) {
+                if (request.evidence != null) continue;
+                request.companionProfile = "kavach-cose-policy-v1";
+                request.companionData = AccountCodec.data(intent);
+                request.companionState = AccountCodec.data(old);
+            }
+        feePayer(p, sponsor);
         p.build =
                 () -> {
                     var current =
@@ -785,14 +969,26 @@ final class DemoService {
         require(!(consolidate && whole), "Choose consolidation or whole-account transfer");
         String recipient = consolidate ? null : address(DemoServer.string(body, "recipient"));
         String account = AddressProvider.getEntAddress(scripts.asset(), NETWORK).toBech32();
-        var selected =
+        var availableInputs =
                 utxos(account).stream()
                         .filter(
                                 u ->
                                         u.getInlineDatum() == null
                                                 && u.getDataHash() == null
                                                 && u.getReferenceScriptHash() == null)
+                        // Resolve in the same canonical order used by the signed Spend intent.
+                        .sorted(Comparator.comparing(Utxo::getTxHash).thenComparingInt(Utxo::getOutputIndex))
                         .toList();
+        var requestedInputs = body.get("inputRefs");
+        List<Utxo> selected;
+        if (requestedInputs == null) selected = availableInputs;
+        else {
+            require(requestedInputs instanceof List<?>, "inputRefs must be an array of confirmed account references");
+            var references = ((List<?>) requestedInputs).stream().map(Object::toString).toList();
+            require(!references.isEmpty() && references.stream().distinct().count() == references.size(), "Duplicate or empty account input selection");
+            selected = availableInputs.stream().filter(u -> references.contains(u.getTxHash() + "#" + u.getOutputIndex())).toList();
+            require(selected.size() == references.size(), "Selected account inputs are stale or belong to another address");
+        }
         require(
                 !selected.isEmpty() && selected.size() <= 16,
                 "This demo supports 1–16 ordinary account inputs per transfer");
@@ -847,11 +1043,20 @@ final class DemoService {
                     "Leave at least 2 ADA for account change, or choose the whole-account"
                             + " transfer");
         var block = backend.getBlockService().getLatestBlock().getValue();
-        long lower = block.getSlot(), upper = lower + 300;
+        var configuredBudget = PeriodicBudgetCodec.isProfile(state.authConfig()) ? PeriodicBudgetCodec.decode(state.authConfig()).budget()
+                .filter(budget -> budget.limit().signum() > 0) : Optional.<Budget>empty();
+        long lower = block.getSlot();
+        // This service is explicitly DevKit-only, whose qualified slot length is one second.
+        // The reusable SDK accepts actual chain-derived interval bounds instead of making this assumption.
+        long seconds = configuredBudget.isEmpty() ? 300 : Math.min(300,
+                PeriodicBudgetCodec.window(BigInteger.valueOf(block.getTime() * 1000), configuredBudget.get().period())
+                        .add(PeriodicBudgetCodec.duration(configuredBudget.get().period())).longValueExact() / 1000 - block.getTime());
+        require(seconds > 0, "Budget window ended; refresh chain state before preparing another intent");
+        long upper = lower + seconds;
         var window =
                 new AccountMutation.Window(
                         BigInteger.valueOf(block.getTime() * 1000),
-                        BigInteger.valueOf((block.getTime() + 300) * 1000),
+                        BigInteger.valueOf((block.getTime() + seconds) * 1000),
                         false);
         var recipients =
                 consolidate
@@ -878,6 +1083,9 @@ final class DemoService {
                         recipients,
                         BigInteger.ZERO);
         var intent = intent(state, stateInput, action, window);
+        var counter = configuredBudget.isEmpty() ? null : PeriodicBudgetTransfer.prepare(state,
+                budgetCounter(state, configuredBudget.get()), total.getOrDefault("lovelace", BigInteger.ZERO)
+                        .subtract(change.getOrDefault("lovelace", BigInteger.ZERO)), window.lower(), window.upper());
         var p =
                 new Plan(
                         consolidate ? "Consolidate assets" : "Send assets",
@@ -887,25 +1095,29 @@ final class DemoService {
                                 ref(stateInput).toPlutusData(),
                                 null));
         p.locator = locator;
+        if (counter != null) p.review += "\nPeriodic budget: " + (configuredBudget.get().period().equals(BigInteger.TWO) ? "weekly" : "daily")
+                + "; post-transaction usage " + counter.next().spent() + " / " + configuredBudget.get().limit() + " lovelace. This consumes the shared counter; competing spends may need a fresh transaction.";
         requests(
                 p,
-                config(state.authConfig()),
-                selectApprovers(config(state.authConfig()).spend(), body.get("approvers")),
+                state.authConfig(),
+                selectApprovers(PolicyConfigCodec.spendPolicy(state.authConfig(), action), body.get("approvers")),
                 AccountCodec.intentDigest(intent, null),
                 "operation",
                 mode);
-        if (mode == 2 && !consolidate && allocation.size() == 1 && allocation.containsKey("lovelace"))
+        if (mode >= 2 && !consolidate && allocation.size() == 1 && allocation.containsKey("lovelace"))
             for (var request : p.requests) {
+                if (request.evidence != null) continue;
                 request.companionProfile = "kavach-cose-spend-v1";
                 request.companionData = AccountCodec.data(intent);
             }
-        p.required.add(hex(payment(sponsor)));
+        feePayer(p, sponsor);
         p.build =
                 () -> {
                     var proof = new Proof(BigInteger.valueOf(mode), evidence(p, "operation"));
                     var tx = new Tx();
                     if (!allocation.isEmpty()) tx.payToAddress(recipient, amounts(allocation));
                     if (!change.isEmpty()) tx.payToAddress(account, amounts(change));
+                    if (counter != null) PeriodicBudgetTransfer.attach(tx, counter, AccountCodec.intentDigest(intent, null));
                     SponsorFeeProtection protection = null;
                     if (!allocation.isEmpty() && recipient.equals(sponsor)) {
                         var feeInput = utxos(sponsor).stream()
@@ -915,7 +1127,7 @@ final class DemoService {
                                 .findFirst().orElseThrow(() -> new IllegalArgumentException("Fee wallet needs a separate ADA-only UTxO of at least 5 ADA"));
                         tx.collectFrom(List.of(feeInput));
                         tx.payToAddress(sponsor, feeInput.getAmount());
-                        protection = new SponsorFeeProtection(change.isEmpty() ? 1 : 2, p.required.size() + 1);
+                        protection = new SponsorFeeProtection((change.isEmpty() ? 1 : 2) + (counter == null ? 0 : 1), p.required.size() + 1);
                     }
                     AccountTransfer.attach(
                             tx,
@@ -1020,10 +1232,10 @@ final class DemoService {
                                         (cbor, inputs) ->
                                                 backend.getTransactionService().evaluateTx(cbor),
                                         parameters.getValue()))
-                        .withReferenceScripts(scripts.toArray(PlutusV3Script[]::new))
                         .preBalanceTx(
                                 DuplicateScriptWitnessChecker.removeDuplicateScriptWitnesses())
                         .removeDuplicateScriptWitnesses(true);
+        if (!scripts.isEmpty()) context.withReferenceScripts(scripts.toArray(PlutusV3Script[]::new));
         if (protection != null) {
             context.mergeOutputs(false)
                     .preBalanceTx((ctx, built) -> {
@@ -1055,11 +1267,12 @@ final class DemoService {
                             var validity = ((PlutusData.ConstrData) envelope.get(2)).fields();
                             expires = Math.min(expires, ((PlutusData.IntData) validity.get(1)).value().longValueExact());
                         }
-                        require(expires > Instant.now().toEpochMilli(), "Plan expired; prepare a fresh payment");
+                        require(expires > Instant.now().toEpochMilli(), "Plan expired; prepare a fresh request");
                         request.companionExpiresAt = expires;
                         String cbor = hex(Builtins.serialiseData(request.companionData));
                         return companion.request(request.companionTicket, request.companionProfile,
-                                genesis ? "" : cbor, genesis ? cbor : null, request.key, request.id, expires);
+                                genesis ? "" : cbor, genesis ? cbor : request.companionState == null ? null : hex(Builtins.serialiseData(request.companionState)),
+                                request.key, request.id, expires, request.companionState == null ? null : request.purpose);
                     }
                     Object response = body.get("response");
                     require(response instanceof Map<?, ?>, "Phone approval JSON required");
@@ -1173,6 +1386,13 @@ final class DemoService {
         }
     }
 
+    /** Keep funding identity separate from authorization, even when their keys coincide. */
+    private static void feePayer(Plan plan, String address) {
+        plan.feePayerAddress = address;
+        plan.feePayerKeyHash = hex(payment(address));
+        plan.required.add(plan.feePayerKeyHash);
+    }
+
     private Plan finish(Plan p) throws Exception {
         require(
                 plans.size() < 200,
@@ -1191,6 +1411,18 @@ final class DemoService {
             out.put("title", p.title);
             out.put("review", p.review);
             out.put("requiredSigners", List.copyOf(p.required));
+            if (p.feePayerKeyHash != null) out.put("feePayer", Map.of(
+                    "address", p.feePayerAddress, "paymentKeyHash", p.feePayerKeyHash));
+            out.put("transactionAuthoritySigners", List.copyOf(p.transactionAuthoritySigners));
+            out.put("authorityApprovals", p.requests.stream().map(r -> Map.of(
+                    "id", r.id, "purpose", r.purpose, "publicKey", hex(r.key),
+                    "paymentKeyHash", hex(BrowserSignatures.keyHash(r.key)),
+                    "method", r.signingMethod,
+                    "approved", r.signingMethod == 2 ? r.evidence != null
+                            : p.witnesses.containsKey(hex(BrowserSignatures.keyHash(r.key))))).toList());
+            out.put("signerKeys", p.requests.stream().map(r -> Map.of(
+                    "id", r.id, "publicKey", hex(r.key),
+                    "paymentKeyHash", hex(BrowserSignatures.keyHash(r.key)))).distinct().toList());
             out.put(
                     "approvals",
                     p.transaction == null
@@ -1240,6 +1472,7 @@ final class DemoService {
                                     .isSuccessful());
             out.put("canAdvance", p.next != null && p.txHash != null);
             if (p.locator != null) out.put("locator", p.locator);
+            if (p.setupTotal > 0) { out.put("setupStep", p.setupStep); out.put("setupTotal", p.setupTotal); }
             return out;
         }
     }
@@ -1252,21 +1485,23 @@ final class DemoService {
 
     private void requests(
             Plan p,
-            Ed25519Config config,
+            PlutusData configuration,
             List<BigInteger> ids,
             byte[] digest,
             String purpose,
             int mode) {
         for (var id : ids) {
             var key =
-                    keys(config).stream()
+                    keys(config(configuration)).stream()
                             .filter(k -> k.credentialId().equals(id))
                             .findFirst()
                             .orElseThrow();
             var r = new Request(id.intValueExact(), purpose, key.publicKey(), digest);
-            if (mode == 1) {
+            r.signingMethod = PolicyConfigCodec.method(configuration, id, mode);
+            if (r.signingMethod == 1) {
                 r.evidence = new byte[0];
                 p.required.add(hex(BrowserSignatures.keyHash(key.publicKey())));
+                p.transactionAuthoritySigners.add(hex(BrowserSignatures.keyHash(key.publicKey())));
             }
             p.requests.add(r);
         }
@@ -1390,7 +1625,7 @@ final class DemoService {
 
     private static int mode(Map<String, Object> body) {
         int mode = Integer.parseInt(DemoServer.string(body, "mode"));
-        require(mode == 1 || mode == 2, "Unsupported browser signing mode");
+        require(mode >= 1 && mode <= 4, "Unsupported browser signing mode");
         return mode;
     }
 
@@ -1408,8 +1643,8 @@ final class DemoService {
                         PlutusData.integer(mode));
         var script =
                 JulcScriptLoader.load(
-                        BrowserModule.class,
-                        args.stream()
+                        mode == 4 ? BudgetPolicyModule.class : mode == 3 ? PolicyModule.class : BrowserModule.class,
+                        (mode >= 3 ? args.subList(0, 6) : args).stream()
                                 .map(PlutusDataAdapter::toClientLib)
                                 .toArray(
                                         com.bloxbean.cardano.client.plutus.spec.PlutusData[]::new));
@@ -1426,7 +1661,7 @@ final class DemoService {
                 "Unknown module deployment profile; import an independently verified demo"
                         + " deployment before signing");
         int mode = Integer.parseInt(Files.readString(file));
-        require(mode == 1 || mode == 2, "Invalid deployment profile");
+        require(mode >= 1 && mode <= 4, "Invalid deployment profile");
         return mode;
     }
 
@@ -1445,9 +1680,9 @@ final class DemoService {
 
     private static Ed25519Config parseKeys(String text, Object requestedPolicies) {
         var lines = text.trim().split("[\\s,]+");
-        require(lines.length == 3, "This setup flow requires three distinct public keys");
+        require(lines.length >= 3 && lines.length <= 8, "This setup flow requires 3 to 8 distinct public keys");
         var entries = new ArrayList<KeyEntry>();
-        for (int i = 0; i < 3; i++) {
+        for (int i = 0; i < lines.length; i++) {
             require(
                     lines[i].matches("[0-9a-fA-F]{64}"),
                     "Expected a 32-byte public key, never a private key");
@@ -1507,36 +1742,49 @@ final class DemoService {
     }
 
     private static Ed25519Config config(PlutusData data) {
-        var f = ((PlutusData.ConstrData) data).fields();
-        var entries = new ArrayList<KeyEntry>();
-        for (var item : ((PlutusData.ListData) f.get(1)).items()) {
-            var e = ((PlutusData.ConstrData) item).fields();
-            entries.add(
-                    new KeyEntry(
-                            ((PlutusData.IntData) e.get(0)).value(),
-                            ((PlutusData.BytesData) e.get(1)).value()));
+        return PolicyConfigCodec.decodeRoles(data);
+    }
+
+    /** Builds a complete signed destination configuration; never an unsigned UI-only policy. */
+    private static PlutusData policyConfiguration(Map<String, Object> body, Ed25519Config current, int mode, AccountState state) throws Exception {
+        String publicKeys = keys(current).stream().map(k -> hex(k.publicKey())).collect(Collectors.joining("\n"));
+        var roles = body.get("policies") == null ? current : parseKeys(publicKeys, body.get("policies"));
+        if (mode < 3) return AccountCodec.data(roles);
+        if ("Create account".equals(body.get("action")) && !Boolean.TRUE.equals(body.get("amountTiers"))) {
+            body = new LinkedHashMap<>(body);
+            body.put("smallMembers", javaList(roles.spend().credentialIds()));
+            body.put("smallThreshold", roles.spend().threshold().toString());
+            body.put("smallPaymentAda", "0");
         }
-        var policies = new ArrayList<ThresholdPolicy>();
-        for (int i = 2; i < 8; i++) {
-            var p = ((PlutusData.ConstrData) f.get(i)).fields();
-            policies.add(
-                    new ThresholdPolicy(
-                            ((PlutusData.IntData) p.get(0)).value(),
-                            list(
-                                    ((PlutusData.ListData) p.get(1))
-                                            .items().stream()
-                                                    .map(x -> ((PlutusData.IntData) x).value())
-                                                    .toArray(BigInteger[]::new))));
+        require(body.get("smallMembers") instanceof List<?>, "Small-payment members required");
+        require(body.get("coseIds") instanceof List<?>, "COSE credential IDs required");
+        var low = new ThresholdPolicy(new BigInteger(body.get("smallThreshold").toString()),
+                list(((List<?>) body.get("smallMembers")).stream().map(v -> new BigInteger(v.toString())).sorted().toArray(BigInteger[]::new)));
+        var methods = list(((List<?>) body.get("coseIds")).stream().map(v -> new BigInteger(v.toString())).sorted().toArray(BigInteger[]::new));
+        var configuration = AccountCodec.data(new PolicyConfig(BigInteger.ONE, roles, methods,
+                new BigDecimal(body.get("smallPaymentAda").toString()).movePointRight(6).toBigIntegerExact(), low));
+        PolicyConfigCodec.validate(configuration);
+        if (mode != 4) return configuration;
+        var previous = PeriodicBudgetCodec.isProfile(state.authConfig()) ? PeriodicBudgetCodec.decode(state.authConfig()).budget() : Optional.<Budget>empty();
+        String counter = body.get("budgetCounter") instanceof String c ? c : previous.map(b -> hex(b.counter().policy())).orElse("");
+        boolean enabled = Boolean.TRUE.equals(body.get("budgetEnabled"));
+        require(!enabled || !counter.isEmpty(), "Budget counter must be created first");
+        Optional<Budget> budget = Optional.empty();
+        if (!counter.isEmpty()) {
+            require(counter.matches("[0-9a-f]{56}"), "Budget counter identifier");
+            var manifest = PROFILES.resolve(counter + ".counter");
+            require(Files.exists(manifest) && Files.readString(manifest).equals(hex(state.accountId().policy())),
+                    "Counter initialization is not verified for this account; import its verified deployment record");
+            String periodName = body.get("budgetPeriod") instanceof String p ? p : previous.map(b -> b.period().equals(BigInteger.TWO) ? "weekly" : "daily").orElse("daily");
+            require(periodName.equals("daily") || periodName.equals("weekly"), "Choose a daily or weekly budget");
+            var limit = enabled ? new BigDecimal(body.get("budgetAda").toString()).movePointRight(6).toBigIntegerExact() : BigInteger.ZERO;
+            require(!enabled || limit.signum() > 0, "Enabled budget must have a positive ADA limit");
+            budget = Optional.of(new Budget(new AccountId(HexUtil.decodeHexString(counter), new byte[0]),
+                    periodName.equals("weekly") ? BigInteger.TWO : BigInteger.ONE, limit));
         }
-        return new Ed25519Config(
-                BigInteger.ONE,
-                list(entries.toArray(KeyEntry[]::new)),
-                policies.get(0),
-                policies.get(1),
-                policies.get(2),
-                policies.get(3),
-                policies.get(4),
-                policies.get(5));
+        var envelope = AccountCodec.data(new Configuration(BigInteger.ONE, budget, configuration));
+        PeriodicBudgetCodec.decode(envelope);
+        return envelope;
     }
 
     /** A coordinator chooses a sufficient subset; it cannot change the authenticated threshold. */

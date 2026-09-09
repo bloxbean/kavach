@@ -1,0 +1,49 @@
+WARNING: A restricted method in java.lang.System has been called
+WARNING: java.lang.System::load has been called by net.rubygrapefruit.platform.internal.NativeLibraryLoader in an unnamed module (file:/Users/satya/.gradle/wrapper/dists/gradle-9.2.0-bin/11i5gvueggl8a5cioxuftxrik/gradle-9.2.0/lib/native-platform-0.22-milestone-29.jar)
+WARNING: Use --enable-native-access=ALL-UNNAMED to avoid a warning for callers in this module
+WARNING: Restricted methods will be blocked in a future release unless native access is enabled
+
+Starting a Gradle Daemon, 2 busy and 4 stopped Daemons could not be reused, use --status for details
+> Task :verifyJulcToolchain
+> Task :compileJava UP-TO-DATE
+> Task :processResources NO-SOURCE
+> Task :classes UP-TO-DATE
+> Task :javadoc UP-TO-DATE
+> Task :jar UP-TO-DATE
+> Task :compileTestJava UP-TO-DATE
+> Task :processTestResources UP-TO-DATE
+> Task :testClasses UP-TO-DATE
+> Task :test UP-TO-DATE
+> Task :toolchainAcceptance UP-TO-DATE
+> Task :verifyProtocolBaseline
+> Task :check
+> Task :demo:backend:compileJava UP-TO-DATE
+> Task :demo:backend:processResources NO-SOURCE
+> Task :demo:backend:classes UP-TO-DATE
+> Task :demo:backend:javadoc
+> Task :demo:backend:compileTestJava UP-TO-DATE
+> Task :demo:backend:processTestResources NO-SOURCE
+> Task :demo:backend:testClasses UP-TO-DATE
+> Task :demo:backend:test
+> Task :demo:backend:check
+
+> Task :demoWebBuild
+
+> @kavach/demo-web@0.0.1 build
+> tsc -b && vite build
+
+vite v7.3.6 building client environment for production...
+transforming...
+✓ 1728 modules transformed.
+rendering chunks...
+computing gzip size...
+dist/index.html                   0.55 kB │ gzip:   0.34 kB
+dist/assets/index-BwCfLRFg.css   21.79 kB │ gzip:   5.45 kB
+dist/assets/jsQR-Bbk7xGIw.js    130.72 kB │ gzip:  47.46 kB
+dist/assets/index-DDzyRSV_.js   274.78 kB │ gzip:  87.72 kB
+dist/assets/wallet-yreP2Uqq.js  388.46 kB │ gzip: 138.35 kB
+✓ built in 2.33s
+
+BUILD SUCCESSFUL in 25s
+14 actionable tasks: 5 executed, 9 up-to-date
+Consider enabling configuration cache to speed up this build: https://docs.gradle.org/9.2.0/userguide/configuration_cache_enabling.html

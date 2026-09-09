@@ -19,10 +19,10 @@ function QR({ text }: { text: string }) {
 }
 
 type Exported = { qr: string; expiresAt: number };
-export function CompanionPanel({ plan, onPlan, disabled }: { plan: Plan; onPlan: (plan: Plan) => void; disabled: boolean }) {
+export function CompanionPanel({ plan, onPlan, disabled, focusedKey }: { plan: Plan; onPlan: (plan: Plan) => void; disabled: boolean; focusedKey?: string }) {
   const proofs = plan.payloads?.filter(p => p.companionSupported) || [];
   const [pairing, setPairing] = useState<{ qr: string; fingerprint: string }>();
-  const [selected, setSelected] = useState("");
+  const [selected, setSelected] = useState(focusedKey || "");
   const [request, setRequest] = useState<Exported>();
   const [approval, setApproval] = useState("");
   const [scanning, setScanning] = useState(false);
@@ -30,6 +30,16 @@ export function CompanionPanel({ plan, onPlan, disabled }: { plan: Plan; onPlan:
   const [busy, setBusy] = useState(false);
   const proof = proofs.find(p => `${p.purpose}:${p.id}` === selected);
   useEffect(() => { setScanning(false); }, [proof?.id, proof?.purpose, disabled]);
+  useEffect(() => {
+    if (!focusedKey || !proof) return;
+    let active = true;
+    setBusy(true);
+    api<Exported>(`/plans/${plan.id}/companion-request`, { credentialId: proof.id, purpose: proof.purpose })
+      .then(result => { if (active) setRequest(result); })
+      .catch(e => { if (active) setError(e instanceof Error ? e.message : String(e)); })
+      .finally(() => { if (active) setBusy(false); });
+    return () => { active = false; };
+  }, [focusedKey, plan.id]);
   async function run(action: () => Promise<void>) {
     setBusy(true); setError("");
     try { await action(); } catch (e) { setError(e instanceof Error ? e.message : String(e)); }
@@ -42,24 +52,24 @@ export function CompanionPanel({ plan, onPlan, disabled }: { plan: Plan; onPlan:
     setRequest(undefined); setApproval(""); setSelected(""); onPlan(updated);
   }
   if (!proofs.length || plan.transaction) return null;
-  return <details className="companion-panel" onToggle={e => { if (!e.currentTarget.open) setScanning(false); }}>
+  return <details open={focusedKey ? true : undefined} className="companion-panel" onToggle={e => { if (!e.currentTarget.open) setScanning(false); }}>
     <summary>Approve with Yano Companion · iPhone</summary>
-    <p>Use the phone whose public key is enrolled below. Pair this dashboard once, then scan a request, review it on your phone and show its approval QR to your computer’s camera. Yano still signs the fee-paying transaction.</p>
-    <button className="button" disabled={busy || disabled || scanning} onClick={() => run(async () => setPairing(await api("/companion/pairing")))}>Show dashboard pairing QR</button>
+    <p>{focusedKey ? "Scan this request in Companion, approve on your phone, then scan its approval QR here." : "Use the phone whose public key is enrolled below. Pair this dashboard once, then scan a request, review it on your phone and show its approval QR to your computer’s camera."}</p>
+    <details><summary>Pair a new phone</summary><button className="button" disabled={busy || disabled || scanning} onClick={() => run(async () => setPairing(await api("/companion/pairing")))}>Show dashboard pairing QR</button>
     {pairing && <section>
       <QR text={pairing.qr} />
       <strong>Compare this full fingerprint on both devices before pairing</strong>
       <code>{pairing.fingerprint}</code>
       <button className="text-button" onClick={() => setPairing(undefined)}>Hide pairing QR</button>
-    </section>}
-    <label>Phone credential
+    </section>}</details>
+    {!focusedKey && <label>Phone credential
       <select value={selected} disabled={busy || disabled || scanning} onChange={e => { setSelected(e.target.value); setRequest(undefined); setApproval(""); setError(""); }}>
         <option value="">Choose the key matching your phone</option>
         {proofs.map(p => <option key={`${p.purpose}:${p.id}`} value={`${p.purpose}:${p.id}`}>{p.purpose} · Key {p.id} · {p.publicKey.slice(0, 12)}…</option>)}
       </select>
-    </label>
+    </label>}
     {proof && <>
-      <code>{proof.publicKey}</code>
+      {!focusedKey && <code>{proof.publicKey}</code>}
       <button className="button" disabled={busy || disabled || scanning} onClick={() => run(async () => {
         const result = await api<Exported>(`/plans/${plan.id}/companion-request`, { credentialId: proof.id, purpose: proof.purpose });
         setRequest(result); setPairing(undefined);
@@ -67,16 +77,16 @@ export function CompanionPanel({ plan, onPlan, disabled }: { plan: Plan; onPlan:
       {request && <section>
         {!scanning && <QR text={request.qr} />}
         <p>Expires {new Date(request.expiresAt).toLocaleTimeString()}. In Companion choose Scan a request. Check the displayed account and policies or payment before approving.</p>
-        <button className="text-button" onClick={() => run(async () => navigator.clipboard.writeText(request.qr))}>Copy request for phone import</button>
-        {!scanning && <button type="button" className="button primary" disabled={busy || disabled} onClick={() => { setError(""); setScanning(true); }}>Scan phone approval QR</button>}
+        <div className="workflow-phone-actions"><button className="text-button" onClick={() => run(async () => navigator.clipboard.writeText(request.qr))}>Copy request for phone import</button>
+        {!scanning && <button type="button" className="button primary" disabled={busy || disabled} onClick={() => { setError(""); setScanning(true); }}>Scan phone approval QR</button>}</div>
         {scanning && <ApprovalScanner onClose={() => setScanning(false)} onRead={text => {
           setScanning(false); void run(() => addApproval(text));
         }} />}
         {busy && <p role="status">Verifying phone approval…</p>}
-        <label>Or paste approval JSON
+        <details><summary>Paste approval JSON instead</summary><label>Approval JSON
           <textarea value={approval} maxLength={8192} onChange={e => setApproval(e.target.value)} placeholder='Paste the phone’s “Copy approval JSON” here' rows={5} spellCheck={false} />
         </label>
-        <button className="button" disabled={busy || disabled || scanning || !approval.trim()} onClick={() => run(() => addApproval(approval))}>Verify and add pasted approval</button>
+        <button className="button" disabled={busy || disabled || scanning || !approval.trim()} onClick={() => run(() => addApproval(approval))}>Verify and add pasted approval</button></details>
         <p>This adds a signature to this request. Submit the transaction after all remaining approvals are collected.</p>
       </section>}
     </>}

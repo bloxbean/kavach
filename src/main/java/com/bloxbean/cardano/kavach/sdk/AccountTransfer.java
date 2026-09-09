@@ -99,7 +99,7 @@ public final class AccountTransfer {
         WireFormat.renderSigningRequest(AccountCodec.data(intent), resolvedState, reference(stateInput).toPlutusData(), wholeValue);
         byte[] digest = AccountCodec.intentDigest(intent, wholeValue);
         if (authorization == null) verifySpendEvidence(state.authConfig(), proof, digest);
-        else authorization.verifySpend(state, proof, digest);
+        else authorization.verifySpend(state, proof, digest, intent.action());
         var core = new Credential.ScriptCredential(new ScriptHash(scripts.checkpoint().getScriptHash()));
         var module = new Credential.ScriptCredential(new ScriptHash(scripts.module().getScriptHash()));
         checkReceipts(receipts, core, module, coreRewards, moduleRewards);
