@@ -80,6 +80,22 @@ at deployment and already the enforced destination for reward receipts; reusing 
 introduces no new caller-chosen payment destination and no new front-running surface. A
 redeemer-supplied destination would let a relayer redirect the refund and is rejected.
 
+The sink is per-creator today, so the refund reaches whoever deployed the account. That is the
+right answer while references stay per-account, and the wrong one under
+[ADR-012](adr-012-shared-deployment-core-scripts.md) Tier B, where a shared checkpoint means a
+shared sink and every refund in the domain would reach the operator's key rather than the account
+owner's. Acceptable for an enterprise tenant, not for a consumer deployment.
+
+### Transaction size
+
+Reclaim must **reference** the state script, not attach it. The reference outputs themselves cost
+no body bytes when spent, since a spent input's `scriptRef` lives in the resolved output rather
+than the transaction body. The witness does not: `AccountMutation` attaches the state validator
+inline today, which is 7,935 bytes before the redeemer, against a 16,384-byte bound that already
+forced `MixedSetupModule` to exist (ADR-009). A reclaim transaction that also burns the state NFT
+and spends up to five reference inputs is unlikely to fit if the state script is attached. This is
+a design constraint on the implementation, not an open question.
+
 ### Adversarial cases the design must reject
 
 - Spending any reference output of an account that is not closed in the same transaction.

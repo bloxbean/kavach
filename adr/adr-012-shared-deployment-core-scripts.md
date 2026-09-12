@@ -107,6 +107,16 @@ None are verified.
 2. Transaction construction and UTxO selection remain correct when the state address holds many
    accounts' states and many reference outputs. Off-chain code that assumes a lightly populated
    state address is in scope.
+
+   A reading of the current singleton assumptions found none that break under sharing, which is
+   the basis for the "no contract change" claim above and must be re-checked rather than trusted:
+   `StateTransitionLib.outputs` counts outputs carrying the account's own NFT policy and requires
+   exactly one, not outputs at the state address; `AccountLib.stateOutput` is a per-output
+   predicate asserting the destination address, this account's NFT and a matching datum;
+   `AccountLib.resolveFrom` and `authenticateFrom` select by exact `stateRef` and singleton NFT;
+   and off-chain, `AccountLocator.restore` resolves through `StateProvider.find(address, unit)`,
+   which queries by address *and* asset unit and requests two entries specifically to reject an
+   ambiguous claim rather than taking the first.
 3. Execution budgets are unchanged. Sharing alters neither script bytes nor validator logic in
    Tier A, but this must be measured rather than assumed.
 4. Reference-script fee behaviour is measured for a shared reference read by many concurrent

@@ -585,6 +585,7 @@ This document is a readable, maintained synthesis. It does not supersede the det
 | Restoration | [Locator specification](../phase2/account-locator.md) |
 | iPhone implementation | [Companion guide](../../companion-apps/ios/README.md), [device security](../../companion-apps/ios/docs/security.md), [ADR-006](../../adr/adr-006-offline-iphone-companion.md) |
 | Sponsored execution proposal | [ADR-010](../../adr/adr-010-intent-execution-and-fee-sponsorship.md); network execution is future work |
+| Reference deposit cost proposals | [ADR-011](../../adr/adr-011-reference-deposit-reclamation.md), [ADR-012](../../adr/adr-012-shared-deployment-core-scripts.md); proposed, not implemented, and mutually constraining |
 | Current qualification | [Policy](../policy/completion-checklist.md), [browser](../browser/completion-checklist.md), [Phase 2](../phase2/completion-checklist.md) |
 | Historical qualification | [Phase 0](../phase0/qualification.md), [Phase 1](../phase1/completion-checklist.md), [fee review](../fee-optimization/review.md) |
 
