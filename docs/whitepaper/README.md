@@ -506,9 +506,9 @@ Current Companion support includes bounded ADA Spend, genesis and supported conf
 | Cost category | Current development behavior |
 | --- | --- |
 | Network fee | Paid per transaction; includes transaction bytes, execution and reference-script charges |
-| Reference publications | Current per-key setup uses six 80 ADA outputs: **480 ADA permanently locked** in this development reference arrangement |
+| Reference publications | Current per-key setup publishes six outputs, each at the ledger minimum for its own script size: **about 220 ADA permanently locked** for the five core references in this development reference arrangement, plus the sixth mixed-setup module |
 | Account state | Current setup creates a 12 ADA state output, retained by state-custody rules |
-| Stake registration | Additional ledger deposits; not included in the 480 ADA figure |
+| Stake registration | Additional ledger deposits; not included in the reference-deposit figure |
 | Optional budget counter | 3 ADA retained by the counter script, still locked after disabling/removing the budget |
 | Sponsor collateral/top-ups | Separate funding requirements; not the same thing as the quoted transaction fee |
 

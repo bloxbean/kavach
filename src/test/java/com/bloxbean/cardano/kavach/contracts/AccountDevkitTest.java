@@ -156,7 +156,7 @@ class AccountDevkitTest {
         // Each individually published script fits under the transaction byte limit.
         var references = new ArrayList<Utxo>();
         for (var script : List.of(scripts.checkpoint(), scripts.module(), scripts.nft(), scripts.asset())) {
-            String id = submit(builder.compose(new Tx().payToAddress(holder, Amount.ada(80), script).from(sponsor.baseAddress()))
+            String id = submit(builder.compose(new Tx().payToAddress(holder, Amount.lovelace(BigInteger.ZERO), script).from(sponsor.baseAddress()))
                     .withSigner(SignerProviders.signerFrom(sponsor)).buildAndSign(), "publication-" + references.size());
             references.add(awaitUtxos(holder, 1).stream().filter(u -> u.getTxHash().equals(id)).findFirst().orElseThrow());
         }

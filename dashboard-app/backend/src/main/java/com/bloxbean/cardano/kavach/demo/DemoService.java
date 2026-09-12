@@ -3,6 +3,7 @@ package com.bloxbean.cardano.kavach.demo;
 import co.nstant.in.cbor.CborDecoder;
 
 import com.bloxbean.cardano.client.address.AddressProvider;
+import com.bloxbean.cardano.client.api.MinAdaCalculator;
 import com.bloxbean.cardano.client.api.common.OrderEnum;
 import com.bloxbean.cardano.client.api.model.Amount;
 import com.bloxbean.cardano.client.api.model.Utxo;
@@ -18,7 +19,9 @@ import com.bloxbean.cardano.client.quicktx.QuickTxBuilder;
 import com.bloxbean.cardano.client.quicktx.Tx;
 import com.bloxbean.cardano.client.transaction.spec.Transaction;
 import com.bloxbean.cardano.client.transaction.spec.TransactionInput;
+import com.bloxbean.cardano.client.transaction.spec.TransactionOutput;
 import com.bloxbean.cardano.client.transaction.spec.TransactionWitnessSet;
+import com.bloxbean.cardano.client.transaction.spec.Value;
 import com.bloxbean.cardano.client.transaction.spec.VkeyWitness;
 import com.bloxbean.cardano.client.transaction.util.TransactionUtil;
 import com.bloxbean.cardano.client.util.HexUtil;
@@ -92,6 +95,8 @@ import java.util.stream.Collectors;
 final class DemoService {
     private static final Network NETWORK = new Network(0, 42);
     private static final Path PROFILES = Path.of("dashboard-app/backend/data/profiles");
+    /** Fee headroom required on top of a reference deposit when selecting its funding input. */
+    private static final BigInteger REFERENCE_FEE_MARGIN = BigInteger.valueOf(2_000_000);
     private final BackendService backend =
             new BFBackendService("http://localhost:8080/api/v1/", "devkit");
     private final QuickTxBuilder builder = new QuickTxBuilder(backend);
@@ -563,12 +568,26 @@ final class DemoService {
                             scripts.get(index),
                             setup.seed);
             p.locator = AccountLocator.fromState(setup.state).backup();
-            if (index == 0)
+            if (index == 0) {
+                String holder =
+                        AddressProvider.getEntAddress(
+                                        com.bloxbean.cardano.client.address.Credential.fromScript(
+                                                setup.state.coreBinding().stateValidator()),
+                                        NETWORK)
+                                .toBech32();
+                var references = BigInteger.ZERO;
+                for (var script : scripts)
+                    references = references.add(referenceMinimum(holder, script));
                 p.review +=
-                        "\n"
-                                + (setup.mode == 3 ? "Full development setup: six 80 ADA references (480 ADA permanently" : "Full development setup: five 80 ADA references (400 ADA permanently")
-                                + " locked), 12 ADA account state, registration deposits and"
+                        "\nFull development setup: five references at their ledger minimum ("
+                                + ada(references)
+                                + " ADA permanently locked)"
+                                + (setup.mode == 3
+                                        ? ", plus a sixth reference at its own minimum"
+                                        : "")
+                                + ", 12 ADA account state, registration deposits and"
                                 + " transaction fees. Use disposable DevKit assets only.";
+            }
             p.next = () -> publishSetup(setup, index + 1);
             return setupProgress(p, index + 1, setup.mode == 3 ? 10 : 7);
         }
@@ -732,30 +751,89 @@ final class DemoService {
     private Plan plainPlan(
             String title, String sponsor, byte[] stateHash, PlutusV3Script script, Utxo reserved)
             throws Exception {
-        var p =
-                new Plan(
-                        title,
-                        "Publish immutable reference script.\nScript: "
-                                + hex(script.getScriptHash())
-                                + "\n"
-                                + "Reference deposit: 80 ADA\n"
-                                + "Network: DevKit 42\n"
-                                + "This development reference deposit cannot be reclaimed.");
+        var p = new Plan(title, "");
         feePayer(p, sponsor);
+        String holder =
+                AddressProvider.getEntAddress(
+                                com.bloxbean.cardano.client.address.Credential.fromScript(
+                                        stateHash),
+                                NETWORK)
+                        .toBech32();
+        var minimum = referenceMinimum(holder, script);
         var tx =
                 new Tx()
                         .collectFrom(
-                                List.of(feeInput(sponsor, reserved, BigInteger.valueOf(82000000))))
-                        .payToAddress(
-                                AddressProvider.getEntAddress(
-                                                com.bloxbean.cardano.client.address.Credential
-                                                        .fromScript(stateHash),
-                                                NETWORK)
-                                        .toBech32(),
-                                Amount.ada(80),
-                                script);
+                                List.of(
+                                        feeInput(
+                                                sponsor,
+                                                reserved,
+                                                minimum.add(REFERENCE_FEE_MARGIN))))
+                        // Requesting zero lets the builder raise the output to the ledger minimum
+                        // for this exact serialized script reference. Never hardcode a deposit.
+                        .payToAddress(holder, Amount.lovelace(BigInteger.ZERO), script);
         p.transaction = setupTransaction(tx, sponsor, reserved);
+        p.review =
+                "Publish immutable reference script.\nScript: "
+                        + hex(script.getScriptHash())
+                        + "\n"
+                        + "Reference deposit: "
+                        + ada(referenceDeposit(p.transaction, script, minimum))
+                        + " ADA (ledger minimum for this script size)\n"
+                        + "Network: DevKit 42\n"
+                        + "This development reference deposit cannot be reclaimed.";
         return finish(p);
+    }
+
+    /**
+     * Independently derived ledger minimum for publishing {@code script} as a reference output.
+     *
+     * <p>This is a cross-check of the transaction builder, not the published amount: the builder
+     * raises the requested zero coin to the minimum it computes from the serialized output, and
+     * {@link #referenceDeposit} rejects any built output below the value computed here. Deriving
+     * the figure twice keeps an under-funded reference publication from reaching a signer.
+     *
+     * @param holder ent address of the sealed state validator that receives the reference output
+     * @param script compiled reference script, whose serialized size sets the minimum
+     * @return minimum lovelace the ledger requires for that output
+     */
+    private BigInteger referenceMinimum(String holder, PlutusV3Script script) throws Exception {
+        var parameters = backend.getEpochService().getProtocolParameters();
+        require(parameters.isSuccessful(), "DevKit protocol parameters unavailable");
+        var output =
+                new TransactionOutput(holder, Value.builder().coin(BigInteger.ZERO).build());
+        output.setScriptRef(script.scriptRefBytes());
+        return new MinAdaCalculator(parameters.getValue()).calculateMinAda(output);
+    }
+
+    /**
+     * Reads the deposit the builder actually assigned, failing closed on an under-funded output.
+     *
+     * @param transaction built publication transaction
+     * @param script      compiled reference script the output must carry
+     * @param minimum     independently computed ledger minimum for that output
+     * @return lovelace locked by the reference output
+     */
+    private static BigInteger referenceDeposit(
+            Transaction transaction, PlutusV3Script script, BigInteger minimum) throws Exception {
+        byte[] expected = script.scriptRefBytes();
+        var outputs =
+                transaction.getBody().getOutputs().stream()
+                        .filter(o -> Arrays.equals(expected, o.getScriptRef()))
+                        .toList();
+        require(outputs.size() == 1, "Publication must carry exactly one reference script output");
+        var deposit = outputs.getFirst().getValue().getCoin();
+        require(
+                deposit.compareTo(minimum) >= 0,
+                "Publication reserves less than the ledger minimum for this reference script");
+        return deposit;
+    }
+
+    /** Renders lovelace as ADA for review text, without trailing zeros. */
+    private static String ada(BigInteger lovelace) {
+        return new BigDecimal(lovelace)
+                .movePointLeft(6)
+                .stripTrailingZeros()
+                .toPlainString();
     }
 
     private Plan registration(String sponsor, List<PlutusV3Script> scripts, Utxo reserved)
