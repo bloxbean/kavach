@@ -506,9 +506,9 @@ Current Companion support includes bounded ADA Spend, genesis and supported conf
 | Cost category | Current development behavior |
 | --- | --- |
 | Network fee | Paid per transaction; includes transaction bytes, execution and reference-script charges |
-| Reference publications | Current per-key setup uses six 80 ADA outputs: **480 ADA permanently locked** in this development reference arrangement |
+| Reference publications | Current per-key setup publishes six outputs, each at the ledger minimum for its own script size: **about 220 ADA permanently locked** for the five core references in this development reference arrangement, plus the sixth mixed-setup module |
 | Account state | Current setup creates a 12 ADA state output, retained by state-custody rules |
-| Stake registration | Additional ledger deposits; not included in the 480 ADA figure |
+| Stake registration | Additional ledger deposits; not included in the reference-deposit figure |
 | Optional budget counter | 3 ADA retained by the counter script, still locked after disabling/removing the budget |
 | Sponsor collateral/top-ups | Separate funding requirements; not the same thing as the quoted transaction fee |
 
@@ -585,6 +585,7 @@ This document is a readable, maintained synthesis. It does not supersede the det
 | Restoration | [Locator specification](../phase2/account-locator.md) |
 | iPhone implementation | [Companion guide](../../companion-apps/ios/README.md), [device security](../../companion-apps/ios/docs/security.md), [ADR-006](../../adr/adr-006-offline-iphone-companion.md) |
 | Sponsored execution proposal | [ADR-010](../../adr/adr-010-intent-execution-and-fee-sponsorship.md); network execution is future work |
+| Reference deposit cost proposals | [ADR-011](../../adr/adr-011-reference-deposit-reclamation.md), [ADR-012](../../adr/adr-012-shared-deployment-core-scripts.md); proposed, not implemented, and mutually constraining |
 | Current qualification | [Policy](../policy/completion-checklist.md), [browser](../browser/completion-checklist.md), [Phase 2](../phase2/completion-checklist.md) |
 | Historical qualification | [Phase 0](../phase0/qualification.md), [Phase 1](../phase1/completion-checklist.md), [fee review](../fee-optimization/review.md) |
 

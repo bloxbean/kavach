@@ -138,7 +138,7 @@ class AccountLifecycleDevkitTest {
         candidateForMutation = AccountFixtures.load(Ed25519Module.class, BigInteger.ONE, BigInteger.ONE,
                 state.deploymentDomain(), scripts.state().getScriptHash(), scripts.checkpoint().getScriptHash(), candidateSink);
         var candidate = candidateForMutation;
-        String publication = submit(builder.compose(new Tx().payToAddress(holder, Amount.ada(80), candidate).from(sponsor.baseAddress()))
+        String publication = submit(builder.compose(new Tx().payToAddress(holder, Amount.lovelace(BigInteger.ZERO), candidate).from(sponsor.baseAddress()))
                 .withSigner(SignerProviders.signerFrom(sponsor)).buildAndSign(), "candidate-publication");
         references.put(HexUtil.encodeHexString(candidate.getScriptHash()), awaitUtxos(holder, references.size() + 2).stream()
                 .filter(u -> u.getTxHash().equals(publication)).findFirst().orElseThrow());
@@ -216,7 +216,7 @@ class AccountLifecycleDevkitTest {
         holder = AddressProvider.getEntAddress(scripts.state(), NETWORK).toBech32();
         for (var script : List.of(scripts.state(), scripts.checkpoint(), scripts.module(), scripts.nft(), scripts.asset())) {
             String hash = HexUtil.encodeHexString(script.getScriptHash());
-            String id = submit(builder.compose(new Tx().payToAddress(holder, Amount.ada(80), script).from(sponsor.baseAddress()))
+            String id = submit(builder.compose(new Tx().payToAddress(holder, Amount.lovelace(BigInteger.ZERO), script).from(sponsor.baseAddress()))
                     .withSigner(SignerProviders.signerFrom(sponsor)).buildAndSign(), "publication-" + references.size());
             references.put(hash, awaitUtxos(holder, references.size() + 1).stream().filter(u -> u.getTxHash().equals(id)).findFirst().orElseThrow());
         }

@@ -3,6 +3,7 @@ package com.bloxbean.cardano.kavach.demo;
 import co.nstant.in.cbor.CborDecoder;
 
 import com.bloxbean.cardano.client.address.AddressProvider;
+import com.bloxbean.cardano.client.api.MinAdaCalculator;
 import com.bloxbean.cardano.client.api.common.OrderEnum;
 import com.bloxbean.cardano.client.api.model.Amount;
 import com.bloxbean.cardano.client.api.model.Utxo;
@@ -18,7 +19,9 @@ import com.bloxbean.cardano.client.quicktx.QuickTxBuilder;
 import com.bloxbean.cardano.client.quicktx.Tx;
 import com.bloxbean.cardano.client.transaction.spec.Transaction;
 import com.bloxbean.cardano.client.transaction.spec.TransactionInput;
+import com.bloxbean.cardano.client.transaction.spec.TransactionOutput;
 import com.bloxbean.cardano.client.transaction.spec.TransactionWitnessSet;
+import com.bloxbean.cardano.client.transaction.spec.Value;
 import com.bloxbean.cardano.client.transaction.spec.VkeyWitness;
 import com.bloxbean.cardano.client.transaction.util.TransactionUtil;
 import com.bloxbean.cardano.client.util.HexUtil;
@@ -92,6 +95,19 @@ import java.util.stream.Collectors;
 final class DemoService {
     private static final Network NETWORK = new Network(0, 42);
     private static final Path PROFILES = Path.of("dashboard-app/backend/data/profiles");
+    /**
+     * Fee headroom required on top of a reference deposit when selecting its funding input. A
+     * publication's fee is bounded by {@code min_fee_a * max_tx_size + min_fee_b}, about 0.88 ADA
+     * at the pinned DevKit parameters, so this flat margin holds only while that bound does. The
+     * largest observed publication fee is 0.83 ADA for the 14,766-byte module script.
+     */
+    private static final BigInteger REFERENCE_FEE_MARGIN = BigInteger.valueOf(2_000_000);
+    /**
+     * Slack allowed above the computed minimum before a publication is rejected as over-reserving.
+     * The builder lands exactly on the minimum; this only absorbs a protocol-parameter change
+     * between the check's read and the builder's.
+     */
+    private static final BigInteger REFERENCE_DEPOSIT_TOLERANCE = BigInteger.valueOf(1_000_000);
     private final BackendService backend =
             new BFBackendService("http://localhost:8080/api/v1/", "devkit");
     private final QuickTxBuilder builder = new QuickTxBuilder(backend);
@@ -555,6 +571,12 @@ final class DemoService {
                         setup.scripts.nft(),
                         setup.scripts.asset());
         if (index < 5) {
+            // Summed before the plan is registered: referenceMinimum queries DevKit, and a failure
+            // after finish() would strand a pending plan against the bounded plan registry.
+            var references = BigInteger.ZERO;
+            if (index == 0)
+                for (var script : scripts)
+                    references = references.add(referenceMinimum(setup.holder, script));
             var p =
                     plainPlan(
                             "Create account · publish script " + (index + 1) + " of 5",
@@ -565,9 +587,14 @@ final class DemoService {
             p.locator = AccountLocator.fromState(setup.state).backup();
             if (index == 0)
                 p.review +=
-                        "\n"
-                                + (setup.mode == 3 ? "Full development setup: six 80 ADA references (480 ADA permanently" : "Full development setup: five 80 ADA references (400 ADA permanently")
-                                + " locked), 12 ADA account state, registration deposits and"
+                        "\nFull development setup: five references at their ledger minimum (about "
+                                + ada(references)
+                                + " ADA permanently locked; each publication locks at least this"
+                                + " and the exact total is known only once all five are built)"
+                                + (setup.mode == 3
+                                        ? ", plus a sixth reference at its own minimum"
+                                        : "")
+                                + ", 12 ADA account state, registration deposits and"
                                 + " transaction fees. Use disposable DevKit assets only.";
             p.next = () -> publishSetup(setup, index + 1);
             return setupProgress(p, index + 1, setup.mode == 3 ? 10 : 7);
@@ -732,30 +759,105 @@ final class DemoService {
     private Plan plainPlan(
             String title, String sponsor, byte[] stateHash, PlutusV3Script script, Utxo reserved)
             throws Exception {
-        var p =
-                new Plan(
-                        title,
-                        "Publish immutable reference script.\nScript: "
-                                + hex(script.getScriptHash())
-                                + "\n"
-                                + "Reference deposit: 80 ADA\n"
-                                + "Network: DevKit 42\n"
-                                + "This development reference deposit cannot be reclaimed.");
+        var p = new Plan(title, "");
         feePayer(p, sponsor);
+        String holder =
+                AddressProvider.getEntAddress(
+                                com.bloxbean.cardano.client.address.Credential.fromScript(
+                                        stateHash),
+                                NETWORK)
+                        .toBech32();
+        var minimum = referenceMinimum(holder, script);
         var tx =
                 new Tx()
                         .collectFrom(
-                                List.of(feeInput(sponsor, reserved, BigInteger.valueOf(82000000))))
-                        .payToAddress(
-                                AddressProvider.getEntAddress(
-                                                com.bloxbean.cardano.client.address.Credential
-                                                        .fromScript(stateHash),
-                                                NETWORK)
-                                        .toBech32(),
-                                Amount.ada(80),
-                                script);
+                                List.of(
+                                        feeInput(
+                                                sponsor,
+                                                reserved,
+                                                minimum.add(REFERENCE_FEE_MARGIN))))
+                        // Requesting zero lets the builder raise the output to the ledger minimum
+                        // for this exact serialized script reference. Never hardcode a deposit.
+                        .payToAddress(holder, Amount.lovelace(BigInteger.ZERO), script);
         p.transaction = setupTransaction(tx, sponsor, reserved);
+        p.review =
+                "Publish immutable reference script.\nScript: "
+                        + hex(script.getScriptHash())
+                        + "\n"
+                        + "Reference deposit: "
+                        + ada(referenceDeposit(p.transaction, script, holder, minimum))
+                        + " ADA (ledger minimum for this script size)\n"
+                        + "Network: DevKit 42\n"
+                        + "This development reference deposit cannot be reclaimed.";
         return finish(p);
+    }
+
+    /**
+     * Expected ledger minimum for publishing {@code script} as a reference output.
+     *
+     * <p>This is a cross-check of the transaction builder, not the published amount: the builder
+     * raises the requested zero coin to the minimum it computes from the serialized output, and
+     * {@link #referenceDeposit} rejects any built output below the value computed here.
+     *
+     * <p>The check is deliberately narrow. It shares {@code MinAdaCalculator} and the output CBOR
+     * encoder with the builder, so it detects a top-up that was not applied, an output that was
+     * dropped, reshaped or sent elsewhere, and a protocol-parameter change between the two reads.
+     * It cannot detect an error in the shared minimum formula or encoder, because both sides would
+     * make the same error. Treat DevKit acceptance, not this check, as evidence the formula is
+     * right.
+     *
+     * @param holder ent address of the sealed state validator that receives the reference output
+     * @param script compiled reference script, whose serialized size sets the minimum
+     * @return minimum lovelace the ledger requires for that output
+     */
+    private BigInteger referenceMinimum(String holder, PlutusV3Script script) throws Exception {
+        var parameters = backend.getEpochService().getProtocolParameters();
+        require(parameters.isSuccessful(), "DevKit protocol parameters unavailable");
+        var output =
+                new TransactionOutput(holder, Value.builder().coin(BigInteger.ZERO).build());
+        output.setScriptRef(script.scriptRefBytes());
+        return new MinAdaCalculator(parameters.getValue()).calculateMinAda(output);
+    }
+
+    /**
+     * Reads the deposit the builder actually assigned, failing closed on an under-funded output.
+     *
+     * @param transaction built publication transaction
+     * @param script      compiled reference script the output must carry
+     * @param minimum     independently computed ledger minimum for that output
+     * @return lovelace locked by the reference output
+     */
+    private static BigInteger referenceDeposit(
+            Transaction transaction, PlutusV3Script script, String holder, BigInteger minimum)
+            throws Exception {
+        byte[] expected = script.scriptRefBytes();
+        var outputs =
+                transaction.getBody().getOutputs().stream()
+                        .filter(o -> Arrays.equals(expected, o.getScriptRef()))
+                        .toList();
+        require(outputs.size() == 1, "Publication must carry exactly one reference script output");
+        var output = outputs.getFirst();
+        require(
+                holder.equals(output.getAddress()),
+                "Reference script output is not addressed to the expected state validator");
+        var deposit = output.getValue().getCoin();
+        require(
+                deposit.compareTo(minimum) >= 0,
+                "Publication reserves less than the ledger minimum for this reference script");
+        // These deposits are unreclaimable, so over-reserving is a permanent loss and is rejected
+        // as firmly as under-reserving. The builder should land exactly on the minimum.
+        require(
+                deposit.compareTo(minimum.add(REFERENCE_DEPOSIT_TOLERANCE)) <= 0,
+                "Publication reserves more than the ledger minimum for this reference script");
+        return deposit;
+    }
+
+    /** Renders lovelace as ADA for review text, without trailing zeros. */
+    private static String ada(BigInteger lovelace) {
+        return new BigDecimal(lovelace)
+                .movePointLeft(6)
+                .stripTrailingZeros()
+                .toPlainString();
     }
 
     private Plan registration(String sponsor, List<PlutusV3Script> scripts, Utxo reserved)
