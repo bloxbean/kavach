@@ -169,6 +169,8 @@ final class DemoService {
         String locator;
         /** Hex script hash published as a reference by this plan, or null. */
         String publishedScript;
+        /** Hex script hashes whose publications this plan spends, cleared once it confirms. */
+        List<String> reclaimedScripts = List.of();
         final Map<String, VkeyWitness> witnesses = new LinkedHashMap<>();
 
         Plan(String title, String review) {
@@ -590,7 +592,7 @@ final class DemoService {
             var references = BigInteger.ZERO;
             if (index == 0)
                 for (var script : scripts)
-                    references = references.add(referenceMinimum(setup.holder, script));
+                    references = references.add(referenceMinimum(referenceHolder(setup.sponsor), script));
             var p =
                     plainPlan(
                             "Create account · publish script " + (index + 1) + " of 5",
@@ -874,7 +876,7 @@ final class DemoService {
      * @param sponsor fee-paying wallet whose holder address published it
      * @return the unspent output carrying that reference script
      */
-    private Utxo reference(PlutusV3Script script, String sponsor) throws Exception {
+    private Optional<Utxo> findReference(PlutusV3Script script, String sponsor) throws Exception {
         String scriptHash = hexUnchecked(script);
         var record = referenceRecord(scriptHash);
         if (Files.exists(record)) {
@@ -884,19 +886,35 @@ final class DemoService {
                         .getTxOutput(parts[0], Integer.parseInt(parts[1]));
                 if (found.isSuccessful() && found.getValue() != null
                         && scriptHash.equals(found.getValue().getReferenceScriptHash()))
-                    return found.getValue();
+                    return Optional.of(found.getValue());
             }
         }
+        // Only reached for a missing or stale manifest. A query failure propagates rather than
+        // being reported as "absent": treating an outage as absence would pay to republish a
+        // script that already exists.
         var rescanned = utxos(referenceHolder(sponsor)).stream()
                 .filter(u -> scriptHash.equals(u.getReferenceScriptHash()))
-                .findFirst()
-                .orElseThrow(() -> new IllegalArgumentException(
-                        "Reference script " + scriptHash + " is not published or not confirmed yet."
-                                + " Republish references for this account, then retry."));
+                .findFirst();
+        if (rescanned.isEmpty()) return Optional.empty();
         Files.createDirectories(PROFILES);
         Files.writeString(referenceRecord(scriptHash),
-                rescanned.getTxHash() + "#" + rescanned.getOutputIndex());
+                rescanned.get().getTxHash() + "#" + rescanned.get().getOutputIndex());
         return rescanned;
+    }
+
+    /**
+     * Resolves a published reference script, failing when it is genuinely unavailable.
+     *
+     * @param script  compiled script that must be available as a reference
+     * @param sponsor fee-paying wallet whose holder address published it
+     * @return the unspent output carrying that reference script
+     */
+    private Utxo reference(PlutusV3Script script, String sponsor) throws Exception {
+        return findReference(script, sponsor)
+                .orElseThrow(() -> new IllegalArgumentException(
+                        "Reference script " + hexUnchecked(script) + " is not published or not"
+                                + " confirmed yet. Republish references for this account, then"
+                                + " retry."));
     }
 
     /**
@@ -991,8 +1009,9 @@ final class DemoService {
                         .feePayer(sponsor)
                         .additionalSignersCount(1)
                         .build();
-        for (var script : referenceSet(scripts))
-            Files.deleteIfExists(referenceRecord(hexUnchecked(script)));
+        // Manifests are cleared when the spend confirms, never while building a plan the signer
+        // may abandon. Deleting here would strand live publications behind a rescan.
+        p.reclaimedScripts = referenceSet(scripts).stream().map(DemoService::hexUnchecked).toList();
         return finish(p);
     }
 
@@ -1014,12 +1033,7 @@ final class DemoService {
      * @return true when the reference resolves, false when it must still be published
      */
     private boolean published(PlutusV3Script script, String sponsor) throws Exception {
-        try {
-            reference(script, sponsor);
-            return true;
-        } catch (IllegalArgumentException absent) {
-            return false;
-        }
+        return findReference(script, sponsor).isPresent();
     }
 
     /**
@@ -1713,6 +1727,8 @@ final class DemoService {
                     p.txHash = result.getValue();
                     if (p.publishedScript != null)
                         recordReference(p.publishedScript, tx, p.txHash);
+                    for (var reclaimed : p.reclaimedScripts)
+                        Files.deleteIfExists(referenceRecord(reclaimed));
                 }
                 case "advance" -> {
                     require(p.txHash != null && p.next != null, "No next setup step");
