@@ -11,9 +11,12 @@ import com.bloxbean.cardano.client.api.model.ProtocolParams;
 import com.bloxbean.cardano.client.api.model.Utxo;
 import com.bloxbean.cardano.client.common.model.Networks;
 import com.bloxbean.cardano.client.function.helper.SignerProviders;
+import com.bloxbean.cardano.client.plutus.spec.BytesPlutusData;
 import com.bloxbean.cardano.client.plutus.spec.PlutusV3Script;
 import com.bloxbean.cardano.client.quicktx.QuickTxBuilder;
 import com.bloxbean.cardano.client.quicktx.Tx;
+import com.bloxbean.cardano.client.transaction.spec.Asset;
+import com.bloxbean.cardano.client.transaction.spec.MultiAsset;
 import com.bloxbean.cardano.client.transaction.spec.TransactionOutput;
 import com.bloxbean.cardano.client.transaction.spec.Value;
 import com.bloxbean.cardano.client.util.JsonUtil;
@@ -120,6 +123,48 @@ class ReferenceDepositTest {
         }
         assertTrue(total.compareTo(BigInteger.valueOf(400_000_000)) < 0,
                 "Five references must lock less than the former 400 ADA");
+    }
+
+    /**
+     * The state output's ADA is permanently locked, so it must track the ledger minimum for its own
+     * datum rather than a flat constant. Records the minimum by datum size and pins the two bounds
+     * the protocol itself defines, so a change to either is visible.
+     *
+     * <p>The upper bound matters: mutations may only increase a successor's lovelace, so a genesis
+     * amount below the minimum for the largest permitted state makes those states unwritable unless
+     * the successor is topped up.
+     */
+    @Test
+    void stateOutputMinimumTracksDatumSize() throws Exception {
+        var parameters = parameters();
+        String holder = AddressProvider.getEntAddress(scripts().state(), Networks.testnet()).toBech32();
+        var calculator = new MinAdaCalculator(parameters);
+        var measured = new java.util.LinkedHashMap<String, Object>();
+        BigInteger previous = BigInteger.ZERO;
+        for (int datumBytes : new int[] {128, 408, 1536, 3072}) {
+            var asset = new Asset("", BigInteger.ONE);
+            var value = Value.builder().coin(BigInteger.ZERO).multiAssets(List.of(
+                    MultiAsset.builder().policyId("00".repeat(28)).assets(List.of(asset)).build())).build();
+            var output = new TransactionOutput(holder, value);
+            output.setInlineDatum(BytesPlutusData.of(new byte[datumBytes]));
+            var minimum = calculator.calculateMinAda(output);
+            assertTrue(minimum.compareTo(previous) > 0, "Minimum must grow with datum size");
+            previous = minimum;
+            measured.put(String.valueOf(datumBytes), minimum.toString());
+        }
+        // A realistic account state costs far less than the flat 12 ADA previously reserved.
+        var typical = new BigInteger(measured.get("408").toString());
+        assertTrue(typical.compareTo(BigInteger.valueOf(12_000_000)) < 0,
+                "A typical state datum must cost less than the former flat 12 ADA reservation");
+        // The former constant did not cover the protocol's own maximum state size.
+        assertTrue(new BigInteger(measured.get("3072").toString())
+                        .compareTo(BigInteger.valueOf(12_000_000)) > 0,
+                "The former 12 ADA constant did not cover MAX_STATE_BYTES; successors must top up");
+        Files.createDirectories(Path.of("build/phase2"));
+        Files.writeString(Path.of("build/phase2/state-output-minimums.json"), JsonUtil.getPrettyJson(Map.of(
+                "scope", "State output minimums by inline datum size at coinsPerUtxoSize "
+                        + COINS_PER_UTXO_SIZE + "; derived, not live ledger acceptance",
+                "minimumLovelaceByDatumBytes", measured)));
     }
 
     /**

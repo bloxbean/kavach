@@ -483,12 +483,7 @@ final class DemoService {
             var candidate =
                     browser(scripts, state.deploymentDomain(), ledgerAddress(sponsor), nextMode);
             var publication =
-                    plainPlan(
-                            "Publish candidate module",
-                            sponsor,
-                            state.coreBinding().stateValidator(),
-                            candidate,
-                            null);
+                    plainPlan("Publish candidate module", sponsor, candidate, null);
             publication.next =
                     () -> {
                         var registration = registration(sponsor, List.of(candidate), null);
@@ -597,7 +592,6 @@ final class DemoService {
                     plainPlan(
                             "Create account · publish script " + (index + 1) + " of 5",
                             setup.sponsor,
-                            setup.state.coreBinding().stateValidator(),
                             scripts.get(index),
                             setup.seed);
             p.locator = AccountLocator.fromState(setup.state).backup();
@@ -610,8 +604,9 @@ final class DemoService {
                                 + (setup.mode == 3
                                         ? ", plus a sixth reference at its own minimum"
                                         : "")
-                                + ", 12 ADA account state, registration deposits and"
-                                + " transaction fees. Use disposable DevKit assets only.";
+                                + ". The account state output and the stake-registration deposits"
+                                + " are the only amounts that stay locked permanently; reference"
+                                + " deposits are reclaimable. Use disposable DevKit assets only.";
             p.next = () -> publishSetup(setup, index + 1);
             return setupProgress(p, index + 1, setup.mode == 3 ? 10 : 7);
         }
@@ -668,7 +663,15 @@ final class DemoService {
                                     .payToContract(
                                             setup.holder,
                                             List.of(
-                                                    Amount.ada(12),
+                                                    Amount.lovelace(
+                                                            stateMinimum(
+                                                                    setup.holder,
+                                                                    hex(
+                                                                            setup.state
+                                                                                    .accountId()
+                                                                                    .policy()),
+                                                                    AccountCodec.data(
+                                                                            setup.state))),
                                                     Amount.asset(
                                                             hex(setup.state.accountId().policy()),
                                                             "",
@@ -717,7 +720,7 @@ final class DemoService {
         var expected = mixedSetup(scripts, state.deploymentDomain(), sink, candidate);
         require(Arrays.equals(expected.getScriptHash(), state.authModule().scriptHash()), "Setup deployment record does not match its immutable checkpoint");
         if (!published(candidate, sponsor)) {
-            var publication = plainPlan("Create account · publish final signing module", sponsor, state.coreBinding().stateValidator(), candidate, null);
+            var publication = plainPlan("Create account · publish final signing module", sponsor, candidate, null);
             publication.locator = locator;
             publication.next = () -> finishMixedSetup(locator, sponsor);
             return setupProgress(publication, 8, 10);
@@ -772,7 +775,7 @@ final class DemoService {
     }
 
     private Plan plainPlan(
-            String title, String sponsor, byte[] stateHash, PlutusV3Script script, Utxo reserved)
+            String title, String sponsor, PlutusV3Script script, Utxo reserved)
             throws Exception {
         var p = new Plan(title, "");
         feePayer(p, sponsor);
@@ -938,11 +941,7 @@ final class DemoService {
             if (published(script, sponsor)) continue;
             var p =
                     plainPlan(
-                            "Republish reference script",
-                            sponsor,
-                            state.coreBinding().stateValidator(),
-                            script,
-                            null);
+                            "Republish reference script", sponsor, script, null);
             p.locator = locator;
             p.next = () -> republishReferences(state, scripts, sponsor, locator);
             return p;
@@ -1037,6 +1036,67 @@ final class DemoService {
     }
 
     /**
+     * Ledger minimum for a state output carrying {@code datum} and the account's identity NFT.
+     *
+     * <p>The state output's ADA is permanently locked: the NFT policy supports no burn, no
+     * closure action exists, and {@code StateTransitionLib.outputs} requires each successor's
+     * lovelace to be at least its predecessor's. Reserving more than the ledger requires is
+     * therefore a permanent loss per account, in the same way an over-reserved reference
+     * publication was.
+     *
+     * @param address state validator address receiving the output
+     * @param policy  hex policy id of the account identity NFT
+     * @param datum   inline state datum the output must carry
+     * @return minimum lovelace the ledger requires for that output
+     */
+    private BigInteger stateMinimum(String address, String policy, PlutusData datum)
+            throws Exception {
+        var parameters = backend.getEpochService().getProtocolParameters();
+        require(parameters.isSuccessful(), "DevKit protocol parameters unavailable");
+        var asset = new com.bloxbean.cardano.client.transaction.spec.Asset("", BigInteger.ONE);
+        var value =
+                Value.builder()
+                        .coin(BigInteger.ZERO)
+                        .multiAssets(
+                                List.of(
+                                        com.bloxbean.cardano.client.transaction.spec.MultiAsset
+                                                .builder()
+                                                .policyId(policy)
+                                                .assets(List.of(asset))
+                                                .build()))
+                        .build();
+        var output = new TransactionOutput(address, value);
+        output.setInlineDatum(PlutusDataAdapter.toClientLib(datum));
+        return new MinAdaCalculator(parameters.getValue()).calculateMinAda(output);
+    }
+
+    /**
+     * State output amounts for a successor, never below the ledger minimum for its own datum.
+     *
+     * <p>Mutations previously carried the input's amount forward verbatim, so a successor whose
+     * datum needed more than genesis reserved was rejected by the ledger rather than topped up.
+     * That capped usable state size below the protocol's own bound. Paying
+     * {@code max(previous, minimum)} satisfies both the ledger minimum and the contract's
+     * non-decreasing rule.
+     *
+     * @param input previous state output being consumed
+     * @param datum successor state datum
+     * @param policy hex policy id of the account identity NFT
+     * @return amounts for the successor output
+     */
+    private List<Amount> stateAmounts(Utxo input, PlutusData datum, String policy)
+            throws Exception {
+        var minimum = stateMinimum(input.getAddress(), policy, datum);
+        var amounts = new ArrayList<Amount>();
+        for (var amount : input.getAmount())
+            amounts.add(
+                    amount.getUnit().equals("lovelace")
+                            ? Amount.lovelace(amount.getQuantity().max(minimum))
+                            : amount);
+        return amounts;
+    }
+
+    /**
      * Expected ledger minimum for publishing {@code script} as a reference output.
      *
      * <p>This is a cross-check of the transaction builder, not the published amount: the builder
@@ -1083,7 +1143,7 @@ final class DemoService {
         var output = outputs.getFirst();
         require(
                 holder.equals(output.getAddress()),
-                "Reference script output is not addressed to the expected state validator");
+                "Reference script output is not addressed to the expected reference holder");
         var deposit = output.getValue().getCoin();
         require(
                 deposit.compareTo(minimum) >= 0,
@@ -1291,7 +1351,10 @@ final class DemoService {
                                                             BigInteger.valueOf(5000000))))
                                     .payToContract(
                                             stateInput.getAddress(),
-                                            List.copyOf(stateInput.getAmount()),
+                                            stateAmounts(
+                                                    stateInput,
+                                                    AccountCodec.data(next),
+                                                    hex(old.accountId().policy())),
                                             PlutusDataAdapter.toClientLib(AccountCodec.data(next)));
                     AccountMutation.attach(
                             tx,

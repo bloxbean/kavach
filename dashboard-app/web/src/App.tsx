@@ -1606,9 +1606,10 @@ export default function App() {
                                     <p>DevKit setup reserves the ledger minimum in each of six reference scripts (about
                                         220 ADA for the five core references). These are held at an address your fee
                                         wallet controls and can be reclaimed from Security when the account no longer
-                                        needs them. The 12 ADA account state, registration deposits and fees are not
-                                        reclaimable. Spending remains blocked until activation; an unfinished confirmed
-                                        account can resume setup after refresh or backend restart.</p>
+                                        needs them. Only the account state output (its own ledger minimum, a few ADA)
+                                        and the stake-registration deposits stay locked permanently. Spending remains
+                                        blocked until activation; an unfinished confirmed account can resume setup
+                                        after refresh or backend restart.</p>
                                 </section>
                             </>
                         ) : modal === "Send assets" ? (
