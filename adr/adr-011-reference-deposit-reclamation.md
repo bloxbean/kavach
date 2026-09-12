@@ -1,8 +1,8 @@
-# ADR-011: Reference deposit reclamation on account closure
+# ADR-011: Reference deposit reclamation
 
 Status: Proposed. Not implemented, not qualified and not approved for production. No contract,
-validator, wire schema or acceptance ledger changes accompany this document. The feasibility
-gates below are unverified.
+validator, wire schema or acceptance ledger changes accompany this document. The feasibility gates
+below are unverified.
 
 Related: [ADR-001](adr-001-kavach-programmable-smart-account-architecture.md),
 [ADR-009](adr-009-per-key-account-creation.md),
@@ -12,145 +12,185 @@ Related: [ADR-001](adr-001-kavach-programmable-smart-account-architecture.md),
 
 Account setup publishes each core script as a reference output at the sealed state validator's
 enterprise address with no datum. Publications now lock the ledger minimum for each script rather
-than a flat 80 ADA, measured on DevKit as:
+than a flat 80 ADA:
 
-| script | bytes | locked |
-| --- | ---: | ---: |
-| state | 7,935 | 35.09 ADA |
-| checkpoint | 10,615 | 46.64 ADA |
-| module | 14,766 | 64.53 ADA |
-| nft | 5,865 | 26.17 ADA |
-| asset | 10,719 | 47.09 ADA |
-| **total** | **49,900** | **219.53 ADA** |
+| script | script bytes | serialized output bytes | locked |
+| --- | ---: | ---: | ---: |
+| state | 7,935 | 7,982 | 35.09 ADA |
+| checkpoint | 10,615 | 10,662 | 46.64 ADA |
+| module | 14,766 | 14,813 | 64.53 ADA |
+| nft | 5,865 | 5,912 | 26.17 ADA |
+| asset | 10,719 | 10,766 | 47.09 ADA |
+| **total** | **49,900** | **50,135** | **219.53 ADA** |
 
-That minimum is `4310 × (serialized output bytes + 160)`, so the figure is set almost entirely by
-compiled script size and cannot be reduced further by transaction construction. The remaining
-cost is structural: the ADA is not merely idle, it is unreachable.
+The minimum is `4310 × (serialized output bytes + 160)`; the output adds 47 bytes of address and
+CBOR framing to the script, which is why the figure is not reproducible from the script column
+alone. These values are computed by `MinAdaCalculator` at DevKit's `coins_per_utxo_size` of 4310
+and recorded in `build/phase2/reference-minimums.json`. The deposits were also read back from the
+DevKit ledger after publication and are recorded with their transaction ids in
+[the deposit evidence](../docs/phase2/evidence/reference-deposits-2026-09-12.json). The table
+describes the `Ed25519Module` script graph; the dashboard's browser graph settles at 223.29 ADA for
+the same five references, because applied parameters differ. This is DevKit evidence, not a
+production deployment or audit claim.
 
-It is unreachable by construction, not by omission. `AccountStateValidator.validate` has one
-entrypoint, which resolves a previous `AccountState` by exact `stateRef`, authenticates the
-singleton state NFT and requires `StateTransitionLib.sponsorInputs` to hold — and that helper
-requires every non-state input to be a plain ADA-only key input. A datum-less, NFT-less reference
-output can be neither the resolved state nor a permitted additional script input, so no
-transaction can spend it under any redeemer.
+The cost is structural rather than wasteful-by-omission: the ADA is unreachable.
+`AccountStateValidator.validate` has one entrypoint, which resolves a previous `AccountState` by
+exact `stateRef`, authenticates the singleton state NFT and requires
+`StateTransitionLib.sponsorInputs` to hold — and that helper requires every non-state input to be a
+plain ADA-only key input. A datum-less, NFT-less reference output can be neither the resolved state
+nor a permitted additional script input, so no transaction can spend it under any redeemer.
 
 ## Decision
 
-Introduce a terminal account-closure lifecycle and a reclaim spending branch, so that a
-deliberately closed account returns its reference deposits instead of burning them.
+**Publish reference scripts to a reclaimable holder address instead of the sealed state validator.
+Do not add a reclaim branch to the immutable core.**
 
-This is two decisions, and the first is the larger one:
+Nothing in the protocol requires reference publications to live at the state validator's address.
+The ledger resolves a reference script by hash, not by location. `AccountDeployment.restore`
+fetches each script by hash from the chain indexer, which is location-independent and survives the
+output being spent. No validator in the graph inspects the address of a reference output: every
+`referenceScript()` check in the contracts is a *negative* check asserting that some output does
+**not** carry a reference script. The only binding is off-chain and self-imposed —
+`DemoService.build` filters `utxos(holder)` for a matching `getReferenceScriptHash()` purely
+because that is where the publication flow happens to put them.
 
-1. **A terminal `Closed` account mode and a `Close` action.** Neither exists. `AccountMode`
-   permits `Normal`, `Frozen` and `RecoveryPending`; `Action` permits `Spend`, `ReplaceConfig`,
-   `ReplaceModule`, `Freeze`, `Unfreeze`, `StartRecovery`, `CancelRecovery` and
-   `CompleteRecovery`. Closure must be an authorized, irreversible state transition that burns
-   the account's state NFT and asserts no remaining account-held value.
-2. **A reclaim branch in the immutable state validator**, contingent on (1), permitting a
-   datum-less reference output at the state address to be spent only when its account is
-   provably closed in the same transaction.
+Publishing instead to a key-controlled holder makes the whole deposit reclaimable by an ordinary
+spend, with:
 
-### What this cannot do
+- no change to immutable core code, and therefore no new script hash and no address migration;
+- no `Close` action, no terminal lifecycle mode and no wire-schema change;
+- no state-NFT burn path;
+- no new spending branch on the address that holds every account's state;
+- no interaction with recovery, freeze or admin authority;
+- reclamation decoupled from account lifecycle entirely — references can be reclaimed and
+  republished independently, including for a live account.
 
-**It cannot recover ADA already locked.** The reclaim branch changes immutable core code, which
-changes the state validator's script hash and therefore its address. Per ADR-001, core upgrades do
-not preserve addresses. Deposits published under today's core remain permanently locked at the old
-address. This ADR benefits future deployments only, and must not be presented as a recovery of
-existing funds.
+### Residual risk this accepts
 
-### Governing invariant
+Spending a published reference makes transactions that read it unbuildable until it is republished.
+This is a liveness cost, not a custody one: the script bytes are public, recoverable from the
+indexer by hash, and republication is permissionless, so any party can restore availability.
+Account funds and authorization are unaffected, because no validator consults the publication's
+location or existence — only transaction construction does.
 
-> A reference output may be spent only when no live account depends on it.
+That risk must still be bounded deliberately. The holder should be an address the account operator
+controls and does not sweep, and the creation flow should verify each required reference resolves
+before building. Under [ADR-012](adr-012-shared-deployment-core-scripts.md) sharing, a shared
+publication becomes a shared liveness dependency, and whoever holds its key can degrade every
+account in the domain until republication — which argues for shared publications to be placed at an
+address nobody can spend, accepting permanence for exactly those.
 
-Under today's per-account references that reads as "this account is closed". The dependency is
-real and not merely conventional: `AccountDeployment.restore` retrieves all five scripts by hash
-from the chain indexer, which is how an account is recovered on a clean device with only its
-locator. Stripping a live account's references removes its recovery path. That is the adversarial
-case this design exists to prevent, and it is more damaging than the ADA it recovers.
+### Feasibility gates
 
-### Authorization and destination
+1. Reference scripts at a key-controlled address are accepted by the ledger as reference inputs for
+   spending, minting and rewarding executions, verified on DevKit rather than assumed.
+2. Off-chain reference discovery moves off address enumeration. `DemoService.build` currently scans
+   `utxos(holder)`, which is the only thing tying publications to the state address; resolution
+   should use a deployment manifest recording each publication's exact `TxOutRef`.
+3. Republication after a reclaim reproduces byte-identical scripts and therefore identical hashes,
+   so an account's bindings stay valid.
+4. A reclaim that races a transaction reading the same reference fails the reader loudly rather
+   than producing an unauthorized outcome.
 
-Closure must be authorized by the configuration's admin policy under the same signed intent
-encoding, deployment domain binding and state-version replay protection as every other mutation.
-Spending authority must not imply closure authority.
+## Rejected alternative: closure-based reclaim from the state address
 
-The reclaimed ADA pays the immutable `coreSink` address recorded in the account's core binding,
-not an address supplied in the redeemer. The sink is already an immutable full key address fixed
-at deployment and already the enforced destination for reward receipts; reusing it means closure
-introduces no new caller-chosen payment destination and no new front-running surface. A
-redeemer-supplied destination would let a relayer redirect the refund and is rejected.
+The obvious design — a terminal `Closed` mode plus a reclaim branch in the state validator — was
+examined and rejected. It is recorded here because it is the design most likely to be proposed
+again, and each of the following is a separate reason it fails.
 
-The sink is per-creator today, so the refund reaches whoever deployed the account. That is the
-right answer while references stay per-account, and the wrong one under
-[ADR-012](adr-012-shared-deployment-core-scripts.md) Tier B, where a shared checkpoint means a
-shared sink and every refund in the domain would reach the operator's key rather than the account
-owner's. Acceptable for an enterprise tenant, not for a consumer deployment.
+**It cannot recover ADA already locked.** A reclaim branch changes immutable core code, changing
+the state validator's hash and therefore its address. Per ADR-001, core upgrades do not preserve
+addresses. Deposits published under today's core stay locked at the old address regardless. This is
+equally true of the accepted decision above, and is the one property no design can fix.
 
-### Transaction size
+**Closure would strictly dominate recovery.** Every mutation consumes the same state UTxO, so a
+`Close` transaction and a `StartRecovery` transaction are direct competitors for it. A `Close`
+landing one block earlier destroys the recovery path permanently, and no ordering rule prevents
+that — the same honesty ADR-001 already applies to freeze, and which AGENTS.md requires. Forbidding
+closure from `RecoveryPending` buys nothing, and is in any case vacuous because `CancelRecovery`
+moves `RecoveryPending → Frozen`. An admin-authorized, instantly irreversible action that removes
+recovery is precisely the "disable recovery" capability ADR-001 §9 lists as unsupported in V1 and
+requiring its own ADR. Closure authority would be strictly stronger than admin authority, and would
+have to be timelocked by at least the immutable recovery delay to be safe — at which point it is no
+longer a small addition.
 
-Reclaim must **reference** the state script, not attach it. The reference outputs themselves cost
-no body bytes when spent, since a spent input's `scriptRef` lives in the resolved output rather
-than the transaction body. The witness does not: `AccountMutation` attaches the state validator
-inline today, which is 7,935 bytes before the redeemer, against a 16,384-byte bound that already
-forced `MixedSetupModule` to exist (ADR-009). A reclaim transaction that also burns the state NFT
-and spends up to five reference inputs is unlikely to fit if the state script is attached. This is
-a design constraint on the implementation, not an open question.
+**The state validator cannot read the reclaim destination.** The obvious destination is the
+immutable reward sink, but `CoreBinding` is three script hashes and `AccountState` carries no sink.
+The sink exists only as a `CoreCheckpoint` script parameter, baked into that script's hash. A
+reclaim branch in the state validator therefore cannot observe it, and would have to bind the
+destination through the checkpoint's invocation or relocate the sink into authenticated state —
+the same hash-to-datum weakening ADR-012 defers to a separate ADR. The sink is also fixed at
+derivation while account control legitimately changes through `ReplaceConfig`, `ReplaceModule` and
+`CompleteRecovery`, so after a successful recovery the refund would reach the original creator,
+possibly the party recovered against. In the dashboard today that address is the sponsor, not the
+owner.
 
-### Adversarial cases the design must reject
+**Burning the state NFT is not possible, and not compatible with a `Closed` mode.**
+`StateNftPolicy` mints exactly `+1` and has no burn path; its own documentation records that
+burning is unsupported. `StateTransitionLib.authenticate` additionally requires an empty mint field
+on every mutation, and `StateTransitionLib.outputs` requires exactly one NFT-bearing output. The
+two halves of the design also contradict each other: burning the NFT leaves no state UTxO and
+therefore no `Closed` datum, while keeping a `Closed` UTxO leaves a permanent standing
+authorization reusable for unlimited future reclaims.
 
-- Spending any reference output of an account that is not closed in the same transaction.
-- Spending the state UTxO, the asset address or any account-held native asset through the reclaim
-  branch. The branch must key on absence of the state NFT and absence of a datum, and must not
-  accept a datum-bearing output.
-- Closing an account that still holds value, which would strand it at an address with no
-  remaining spending path.
-- Closing an account in `RecoveryPending`, which would let a spend-authority holder discard a
-  pending recovery. Closure from `Frozen` and from `RecoveryPending` must be decided explicitly.
-- Replay of a closure intent against a different account, state version or deployment domain.
-- Partial closure: burning the NFT without reclaiming, or reclaiming a subset of references,
-  leaving an account that `restore` can no longer reconstruct but that still holds value.
+**Reclaim at a shared address cannot identify its account.** Reference outputs are datum-less and
+carry no account binding. Under a per-account `deploymentId` the address happens to hold one
+account's publications, but ADR-012 records that per-account randomization is a dashboard choice
+rather than a protocol requirement. Where accounts co-reside, "spend this reference because its
+account is closed" has no on-chain referent, and closing one account would authorize spending a
+live account's publications. Only `nft` and `asset` are genuinely per-account; `state`, `checkpoint`
+and `module` are shared by construction, and `authModule` is caller-chosen through `ReplaceModule`.
 
-### Scope note
+**Double satisfaction is hard to exclude.** Spending five reference outputs produces five separate
+`Spending` executions of the state validator. A naive per-execution check that "some output pays
+the sink at least my value" is satisfied for all five by one output. The sink is also already the
+enforced destination for reward receipts, so a reclaim output and a receipt are the same shape and
+one output could satisfy both. Excluding this needs the explicit output-index disjointness
+machinery the codebase already carries for receipts, and budget analysis would have to cover six
+executions of a 7,935-byte validator in one transaction against a per-transaction limit.
 
-The `nft` reference (26.17 ADA) is already functionally dead after genesis. `StateNftPolicy` is a
-one-shot policy bound to a consumed seed UTxO and can never mint again, yet its publication is
-still required because `restore` fetches it by hash. The same reclaim path covers it; no separate
-mechanism is warranted.
+**"Assert no remaining account value" is unimplementable.** A validator sees only the transaction's
+inputs and reference inputs; there is no global UTxO view, and account assets live at a different
+address that `sponsorInputs` forbids consuming. After a burn, anything left at the asset address is
+permanently unspendable, so closure converts a racing inbound payment into total loss.
 
-## Feasibility gates
+**Closure strands more than it recovers, and the balance sheet is incomplete.** There is no
+deregistration path — `CoreCheckpoint.certify` accepts only registration — so both stake deposits
+stay locked, which ADR-001 already records as unrefundable in V1. Both reward credentials remain
+registered and can still receive credits afterwards, but withdrawal requires state authentication
+and therefore the NFT, so any post-closure reward is stranded permanently.
 
-None of these are verified. Each must pass before this ADR advances beyond Proposed.
-
-1. A reclaim branch fits within the state validator's execution budget and the 16,384-byte
-   publication bound that already forced `MixedSetupModule` to exist (ADR-009).
-2. Closure, NFT burning and multi-reference reclamation fit in one transaction, or the design
-   tolerates a partially reclaimed account without violating the governing invariant.
-3. Adversarial rejection cases above are expressed as compiled UPLC tests, not JVM helpers.
-4. Full ledger validation on DevKit confirms both acceptance of a legitimate closure and rejection
-   of every adversarial case.
-5. The interaction with [ADR-012](adr-012-shared-deployment-core-scripts.md) is resolved — see
-   below.
+**The wire-schema impact is larger than the refund.** A `Closed` mode needs a new mode tag,
+`LifecycleLib.stateShape`'s exhaustive switch extended, and a `schemaVersion` decision. A `Close`
+action must be appended at constructor index **9**: `Action` permits nine variants, not eight, and
+index 8 is already `TransferWholeUtxo`. Placing `Close` at 8 would silently collide and change the
+meaning of every previously signed intent. All of this is normative, language-independent wire
+schema requiring conformance fixtures.
 
 ## Relationship to ADR-012
 
-These two proposals are a trade-off, not a stack. ADR-012 reduces per-account reference cost by
-sharing core scripts across every account in a deployment domain. Under sharing, the governing
-invariant above — "no live account depends on it" — is satisfied only when no account in the
-entire domain is live, which for a shared deployment is effectively never. Sharing therefore makes
-the deposits amortized-cheap and permanently unreclaimable, while this ADR makes them reclaimable
-but only while references stay per-account.
+The accepted decision here is largely independent of ADR-012, which is the main reason to prefer
+it: moving publications off the state address does not depend on how many accounts share that
+address. The rejected design was tightly coupled to it, because a shared address makes per-account
+reclaim inexpressible.
 
-Adopting both is possible only if reference publication is explicitly tiered: shared scripts are
-published once and never reclaimed, while any genuinely per-account script retains a reclaim path.
-On today's script graph that leaves `nft` and `asset` reclaimable and the rest permanent. The two
-ADRs must be decided together, and whichever is adopted first constrains the other.
+One interaction remains. ADR-012 reduces cost by publishing shared scripts once; this ADR reduces
+it by making publications spendable. They compose — a shared publication can also sit at a
+reclaimable holder — but a shared publication is a shared liveness dependency, so the operator
+holding its key can degrade the whole domain. For shared scripts, permanence is the safer choice
+and the amortized cost makes it acceptable; for genuinely per-account scripts, reclaimability is
+worth more than permanence. That split is the coherent combination, and it is available without
+touching immutable core.
 
 ## Consequences
 
-- Future accounts recover roughly 220 ADA on deliberate closure, subject to the tiering above.
-- The immutable core gains a spending branch at the address holding every account's state. This is
-  the most security-sensitive surface in the protocol and the reason the gates above are strict.
-- Account closure becomes a first-class protocol concept with its own authorization policy,
-  approval flow and recovery interaction, which is a larger change than the deposit refund that
-  motivates it.
-- Accounts created before this change keep their deposits locked permanently.
+- Future accounts can recover their per-account reference deposits by an ordinary spend, with no
+  protocol change. Under today's per-account publication that is the full 219.53 ADA; under
+  ADR-012 Tier A it is 184.44 ADA, and under Tier B 73.26 ADA, the shared remainder being
+  deliberately permanent.
+- Accounts created before this change keep their deposits locked permanently, because their
+  publications already sit at an address with no spending path.
+- Reference availability becomes an operational responsibility rather than a structural guarantee.
+  This is the real cost of the decision and the reason gates 2 and 4 exist.
+- The immutable core is untouched, so no adversarial contract test, execution-budget measurement,
+  address migration or conformance fixture is required.
