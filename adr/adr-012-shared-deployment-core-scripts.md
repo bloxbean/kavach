@@ -1,13 +1,72 @@
 # ADR-012: Shared deployment core scripts
 
-Status: Proposed. Not implemented, not qualified and not approved for production. No contract,
-validator, wire schema or acceptance ledger changes accompany this document. The feasibility
-gates below are unverified.
+Status: Analyzed; **Tier A declined**, Tiers B and C remain declined. Not implemented. The tier
+analysis below is retained because it is the reason not to proceed, but it was written before
+[ADR-011](adr-011-reference-deposit-reclamation.md) was implemented and its cost tables described a
+world where reference deposits were burned. See **Post-ADR-011 reassessment** immediately below,
+which supersedes them.
 
 Related: [ADR-001](adr-001-kavach-programmable-smart-account-architecture.md),
 [ADR-007](adr-007-tiered-mixed-authorization.md),
 [ADR-009](adr-009-per-key-account-creation.md),
 [ADR-011](adr-011-reference-deposit-reclamation.md).
+
+## Post-ADR-011 reassessment
+
+This ADR was written when every reference deposit was permanently burned, which is what made
+amortizing them worth the risks. [ADR-011](adr-011-reference-deposit-reclamation.md) removed that
+premise: publications now go to a key-controlled holder and are reclaimable by an ordinary spend.
+Re-measured against the goal of reducing what an account **permanently loses**, sharing no longer
+helps and actively hurts.
+
+| | permanent burn per account | reclaimable float per account | permanent burn per domain |
+| --- | ---: | ---: | ---: |
+| before ADR-011 | ~20 ADA + 219.53 ADA references | 0 | 0 |
+| after ADR-011 | ~20 ADA | 219.53 ADA | 0 |
+| with Tier A | ~20 ADA | 184.44 ADA | **35.09 ADA** |
+| after the state-output fix below | **~11.7 ADA** | 219.53 ADA | 0 |
+
+Tier A leaves per-account permanent burn **unchanged** and converts 35.09 ADA of reclaimable
+per-account float into 35.09 ADA of irrecoverable domain-wide burn, because a shared publication
+must sit where nobody can spend it — otherwise whoever published it can take every account in the
+domain offline until it is republished. It breaks even on float after one account and never breaks
+even on burn. It is a working-capital optimization being proposed for a loss problem.
+
+It also carries preconditions that are not satisfied and are not free:
+
+- Fixing `deploymentId` leaves the reward sink as the only discriminator for `checkpoint` and
+  `module`, and the dashboard defaults both to the sponsor. Two accounts from one sponsor would
+  derive identical hashes, and the second stake registration would be rejected at step 6 of 7 —
+  after five publications have been paid for — with no deregistration path to recover the deposits.
+  Avoiding this requires mandatory distinct per-account sinks.
+- The reference manifest is keyed by script hash. A shared `state` hash means one entry for the
+  whole domain, so one sponsor's publication silently overwrites another's record, and a reclaim
+  can build a transaction spending an output the caller cannot sign.
+- The saving is not realized without a publish-once rule that proves an *unspent* reference output
+  exists. Checking the indexer for the script bytes does not prove availability, and concurrent
+  creations would both pay.
+- Domain membership is permissionless, so an attacker can pre-compute and pre-register a victim's
+  checkpoint and module credentials for 2 ADA each, turning a race into an offline attack.
+
+**What actually reduced permanent burn.** The remaining per-account loss was dominated not by
+sharing but by a hardcoded constant: the genesis state output reserved a flat 12 ADA. That ADA is
+permanently locked — the NFT policy supports no burn, no closure action exists, and each successor
+must carry at least its predecessor's lovelace. Computing the ledger minimum instead brings a
+typical 408-byte state datum to **3.741 ADA**, measured on DevKit, saving **8.26 ADA per account**
+with no sharing, no blast-radius increase and no precondition.
+
+The same change fixed a latent defect. Mutations carried the input's amount forward verbatim, so a
+successor whose datum needed more than genesis reserved was rejected by the ledger rather than
+topped up. At 12 ADA that capped usable state at roughly 2,500 datum bytes against a
+`MAX_STATE_BYTES` bound of 3,072, so large recovery states could not be written at all. Successor
+outputs now pay `max(previous, minimum)`, which satisfies both the ledger minimum and the
+contract's non-decreasing rule.
+
+**Remaining permanent burn per account**, after both changes: the state output at its ledger
+minimum (~3.7 ADA, datum-size dependent), two stake-registration deposits (4 ADA, with no
+deregistration path in `CoreCheckpoint.certify`), and roughly 4 ADA of fees — about **11.7 ADA**,
+against roughly 20 ADA before. Reference deposits are float, not loss. Reducing the remainder
+further requires a protocol change, not a deployment change.
 
 ## Context
 
@@ -163,15 +222,12 @@ None are verified.
    asset unit and requests two entries specifically to reject an ambiguous claim. All of this is
    source-verified only and not ledger-tested.
 
-   **The off-chain reference-discovery path is not safe and an earlier revision of this ADR wrongly
-   claimed otherwise.** `DemoService.build` resolves every required reference by scanning
-   `utxos(holder)` — the whole state address — for a matching `getReferenceScriptHash()`, and
-   `utxos` pages 100 at a time to a hard limit, throwing beyond 10,000 outputs. Under sharing that
-   address accumulates roughly five outputs per account, so every transaction build for every
-   account becomes an O(N) paginated scan of the entire domain, and organic growth alone fails the
-   domain at around two thousand accounts. Resolution must move to a deployment manifest recording
-   each publication's exact `TxOutRef`, read directly rather than discovered by enumeration. The
-   same pattern appears in the mixed-setup and budget-counter lookups.
+   **An earlier revision of this ADR wrongly claimed no discovery path breaks under sharing.** It
+   did: `DemoService.build` resolved every reference by scanning the whole state address, and that
+   scan pages to a hard 10,000-output limit. ADR-011 has since replaced it with a manifest
+   recording each publication's exact `TxOutRef`, verified on read, so the state address is no
+   longer enumerated at all. A bounded scan of the *sponsor's* holder address remains as a resume
+   fallback, which keeps the same O(N) characteristic per sponsor rather than per domain.
 
    Separately, the saving is not realized by current code: setup publishes all five scripts
    unconditionally with no existence check, and adding one introduces a concurrent-creation race in
