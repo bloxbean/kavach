@@ -57,6 +57,18 @@ These bytes bought capability; they are not waste to reclaim, and removing them 
 The `AccountStateValidator` row of that historical manifest reads 32 bytes because it predates the
 real state validator. It is not comparable and is excluded above.
 
+Reproduce the middle column from a detached worktree at this commit, whose result was read from
+`build/classes/java/main/META-INF/plutus` and the worktree then discarded:
+
+```sh
+git worktree add --detach /tmp/kavach-oldjulc HEAD
+cd /tmp/kavach-oldjulc && ./gradlew -PjulcVersion=0.1.0-pre17-1a46882-SNAPSHOT \
+    -x verifyJulcToolchain --write-locks compileJava
+```
+
+`verifyJulcToolchain` is skipped and the dependency lock rewritten precisely because this build
+deliberately uses an unpinned toolchain; neither is done in the repository itself.
+
 ### 2. Compiler optimization level: already maximal
 
 The annotation processor accepts `julc.optimization` with levels `none`, `baseline`, `pv11-safe`
@@ -104,8 +116,9 @@ program; it only measures one.
 A transfer attaches exactly the three scripts it executes: `AccountAssetValidator` as the spending
 validator, and `CoreCheckpoint` and the authorization module as withdraw-0 reward validators. The
 state UTxO is only `readFrom`, so the state validator neither executes nor is attached, and no
-minting happens, so the NFT policy is absent. `ScriptSizeAnalysisTest.transferAttachesOnlyExecutedScripts`
-pins that correspondence.
+minting happens, so the NFT policy is absent. `ScriptSizeAnalysisTest.TRANSFER_SCRIPTS` mirrors
+that list by hand and must be updated when the `build` call changes; nothing enforces it
+automatically.
 
 Scripts are also not paid for twice. The recorded spend transaction is **1,617 bytes**; had the
 witness set carried the scripts inline alongside the reference inputs it would exceed 36,000.

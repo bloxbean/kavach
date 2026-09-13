@@ -59,7 +59,8 @@ not assumption.
 **Generalising**
 
 A real CSE pass over closed repeated subterms recovers **at least 3,510 bytes (7.0%)** on the same
-set; 3,510 is one greedy 40-candidate selection, so treat it as a lower bound. A narrower fix worth
+set; 3,510 comes from one greedy 40-candidate selection, so treat it as a floor rather than an
+estimate of what a thorough pass would reach. A narrower fix worth
 having independently: `constantFold` does not fold `constrData n (mkNilData ())`, a
 compile-time-known `Data` value, which one of these scripts builds 147 times across two tags.
 

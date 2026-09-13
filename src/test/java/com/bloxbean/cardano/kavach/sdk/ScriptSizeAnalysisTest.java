@@ -16,7 +16,6 @@ import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 
-import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 /**
@@ -46,7 +45,15 @@ class ScriptSizeAnalysisTest {
             List.of("AccountStateValidator", "CoreCheckpoint", "BrowserModule",
                     "StateNftPolicy", "AccountAssetValidator");
 
-    /** Scripts a single browser-module transfer attaches and executes. */
+    /**
+     * Scripts a single browser-module transfer attaches and executes.
+     *
+     * <p>This mirrors the list `DemoService.transfer` passes to `build` by hand; nothing
+     * enforces the correspondence, so update it here when that call changes. A transfer spends
+     * with the asset validator and invokes the checkpoint and module as withdraw-0 reward
+     * validators. The state UTxO is only `readFrom`, so the state validator neither executes nor
+     * is attached, and no minting happens, so the NFT policy is absent.
+     */
     private static final List<String> TRANSFER_SCRIPTS =
             List.of("AccountAssetValidator", "CoreCheckpoint", "BrowserModule");
 
@@ -79,7 +86,8 @@ class ScriptSizeAnalysisTest {
             // A hoist is only sound if putting the combinator back reproduces the original term
             // exactly; that makes the rewrite a beta-expansion of a closed value, which cannot
             // capture a variable, duplicate work or reorder an error.
-            assertTrue(betaInverseIsExact(program), name + " hoist is not an exact beta-expansion");
+            assertTrue(betaInverseIsExact(program),
+                    name + " hoist does not restore the original program byte-for-byte");
             assertTrue(occurrences > 1, name + " should emit the combinator more than once");
 
             var entry = new LinkedHashMap<String, Object>();
@@ -124,25 +132,6 @@ class ScriptSizeAnalysisTest {
                 "Z-hoist now recovers more than the single-tier gap; revisit the findings");
     }
 
-    /**
-     * Every transfer script must be one the transaction actually executes.
-     *
-     * <p>Attaching a reference the transaction never runs would pay Conway bytes for nothing.
-     * {@code AccountTransfer.attach} spends with the asset validator and invokes the checkpoint
-     * and module as withdraw-0 reward validators; the state UTxO is only {@code readFrom}, so the
-     * state validator neither executes nor is attached. This pins that correspondence so a later
-     * change cannot quietly start paying for an unused script.
-     */
-    @Test
-    void transferAttachesOnlyExecutedScripts() {
-        assertEquals(List.of("AccountAssetValidator", "CoreCheckpoint", "BrowserModule"),
-                TRANSFER_SCRIPTS);
-        assertTrue(!TRANSFER_SCRIPTS.contains("AccountStateValidator"),
-                "The state validator is read as a reference input and must not be attached");
-        assertTrue(!TRANSFER_SCRIPTS.contains("StateNftPolicy"),
-                "No minting happens during a transfer");
-    }
-
     private static Program decode(String name) throws Exception {
         var path = Path.of("build/classes/java/main/META-INF/plutus", name + ".plutus.json");
         assertTrue(Files.exists(path), "Compile the contracts before measuring " + name);
@@ -177,10 +166,14 @@ class ScriptSizeAnalysisTest {
                 new Program(program.major(), program.minor(), program.patch(), hoisted)).length;
     }
 
-    /** Substituting the combinator back must reproduce the original term exactly. */
+    /** Substituting the combinator back must reproduce the original program byte-for-byte. */
     private static boolean betaInverseIsExact(Program program) {
         var body = replace(program.term(), key(Z_COMBINATOR), 0);
-        return key(restore(body, 0)).equals(key(program.term()));
+        var restored = new Program(
+                program.major(), program.minor(), program.patch(), restore(body, 0));
+        return key(restored.term()).equals(key(program.term()))
+                && Arrays.equals(UplcFlatEncoder.encodeProgram(restored),
+                        UplcFlatEncoder.encodeProgram(program));
     }
 
     private static Term replace(Term term, String target, int depth) {
