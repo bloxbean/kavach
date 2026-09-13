@@ -51,6 +51,7 @@ test {
     systemProperty 'kavach.aikenContracts', providers.gradleProperty('aikenContracts').getOrElse('')
     systemProperty 'kavach.aikenBlueprint', file('contracts-aiken/plutus.json').absolutePath
     systemProperty 'kavach.budgetLog', providers.gradleProperty('budgetLog').getOrElse('')
+    if (providers.gradleProperty('aikenContracts').getOrElse('')) dependsOn 'aikenSizeSpike'
 }
 tasks.withType(Test).configureEach {
     systemProperty 'kavach.julcVersion', julcVersion

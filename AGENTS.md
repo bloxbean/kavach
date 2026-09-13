@@ -4,7 +4,7 @@
 
 Kavach is a programmable, recoverable smart-account protocol for Cardano. **Safety and correctness come first**, ahead of performance, convenience and feature breadth. Yano Wallet is its initial reference integration; contracts and SDKs must remain wallet-independent.
 
-The protocol is language-independent. JuLC is the initial implementation, not a protocol dependency. Future implementations in Aiken or other Cardano smart-contract languages must follow the same normative wire schema, invariants and conformance fixtures. Do not define protocol encoding solely through Java field order or compiler behavior. Conformance does not imply identical script hashes or addresses.
+The protocol is language-independent. JuLC is the initial implementation, not a protocol dependency. `contracts-aiken/` is a size and execution comparison port, not a protocol implementation: it is unqualified and must not be deployed (see [the comparison](docs/fee-optimization/aiken-size-spike.md)). Future implementations in Aiken or other Cardano smart-contract languages must follow the same normative wire schema, invariants and conformance fixtures. Do not define protocol encoding solely through Java field order or compiler behavior. Conformance does not imply identical script hashes or addresses.
 
 Read [ADR-001](adr/adr-001-kavach-programmable-smart-account-architecture.md) before architectural or implementation work. It is **Proposed**, not an implemented or audited specification. Preserve its security invariants, distinguish settled requirements from feasibility gates, and record material changes in an ADR. Do not silently promote future capabilities into V1.
 
