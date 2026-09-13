@@ -153,6 +153,54 @@ tasks.register('phase0BuildManifest') {
     }
 }
 
+// Size spike only. Aiken is not a Kavach dependency and this is never wired into `check`:
+// it shells out to a tool whose binaries the repository does not pin, and a missing or drifted
+// Aiken must fail loudly here rather than silently skew a comparison or break the build.
+tasks.register('aikenSizeSpike') {
+    group = 'verification'
+    description = 'Build the Aiken state-validator spike and compare its size with JuLC output.'
+    dependsOn tasks.named('classes')
+    doLast {
+        def expected = 'v1.1.23'
+        // Gradle's daemon does not inherit an interactive shell's PATH, so look where the
+        // official installer puts it before giving up.
+        def candidates = ['aiken', "${System.getProperty('user.home')}/.aiken/bin/aiken".toString()]
+        def run = { List<String> command, File dir ->
+            def process = new ProcessBuilder(command).directory(dir).redirectErrorStream(true).start()
+            def output = process.inputStream.text
+            [status: process.waitFor(), output: output]
+        }
+        def binary = candidates.find { candidate ->
+            try { run([candidate, '--version'], projectDir).status == 0 } catch (Exception ignored) { false }
+        }
+        if (binary == null)
+            throw new GradleException('Aiken is not on PATH or in ~/.aiken/bin. Install ' + expected +
+                    ' or read docs/fee-optimization/aiken-size-spike.md for the recorded result.')
+        def actual = run([binary, '--version'], projectDir).output.trim()
+        if (!actual.contains(expected))
+            throw new GradleException("Aiken $expected is required for a comparable measurement; found: $actual")
+        def spike = file('contracts-aiken')
+        ['check', 'build'].each { step ->
+            def result = run([binary, step], spike)
+            if (result.status != 0) throw new GradleException("aiken $step failed:\n" + result.output)
+        }
+        def blueprint = new JsonSlurper().parse(file('contracts-aiken/plutus.json'))
+        def aiken = blueprint.validators.find { it.title.startsWith('account_state') }
+        def julc = new JsonSlurper().parse(
+                file('build/classes/java/main/META-INF/plutus/AccountStateValidator.plutus.json'))
+        def aikenBytes = (aiken.compiledCode.length() / 2) as int
+        def julcBytes = (julc.cborHex.length() / 2) as int
+        def ratio = (julcBytes / (double) aikenBytes).round(3)
+        def report = [scope: 'Single-validator size spike; not a second protocol implementation',
+                      aikenVersion: actual, julcVersion: julcVersion,
+                      aikenCborBytes: aikenBytes, julcCborBytes: julcBytes,
+                      ratio: ratio, singleTierRatioNeeded: 1.50]
+        def out = file('build/fee-optimization/aiken-size-spike.json'); out.parentFile.mkdirs()
+        out.text = groovy.json.JsonOutput.prettyPrint(groovy.json.JsonOutput.toJson(report)) + '\n'
+        println "Aiken $aikenBytes vs JuLC $julcBytes bytes; ratio ${ratio}x (1.50x needed for one tier)"
+    }
+}
+
 // Normative baseline changes must be reviewed together with their conformance fixtures.
 tasks.register('verifyProtocolBaseline') {
     group = 'verification'
