@@ -1,23 +1,25 @@
-//// Port of the Java `SpendLib`: exact partial-transfer semantics and bounded native-asset
-//// conservation. Authorization is checked by the calling core.
+//// Port of the Java `BudgetSpendLib`: `SpendLib` semantics that additionally admit the
+//// budget counter input and output at the budget address when the account is budgeted.
 
 use aiken/builtin
 use aiken/collection/list
 use cardano/address.{Address}
-use cardano/assets.{Value}
 use cardano/transaction.{Input, Output, OutputReference, Transaction}
-use kavach/account_lib.{index, is_key, plain, receipt_at, shape, uint63}
+use kavach/account_lib.{index, is_key, plain, receipt_at, shape}
 use kavach/native_accounting
-use kavach/types.{Action, Asset, Recipient, RewardReceipt}
+use kavach/spend_lib
+use kavach/types.{Action, Recipient, RewardReceipt}
 
 /// Complete signed input/output sets, then every account asset.
-/// Mirrors `SpendLib.validate`; `action` is the enclosing Spend action as signed.
+/// Mirrors `BudgetSpendLib.validate`; `action` is the enclosing Spend action as signed.
 pub fn validate(
   action: Action,
   account_inputs: List<OutputReference>,
   recipients: List<Recipient>,
   fee_limit: Int,
   account_address: Address,
+  budget_address: Address,
+  budgeted: Bool,
   receipts: List<RewardReceipt>,
   tx: Transaction,
 ) -> Bool {
@@ -53,6 +55,8 @@ pub fn validate(
       account_inputs,
       recipients,
       account_address,
+      budget_address,
+      budgeted,
       receipts,
       recipient_mask,
       tx,
@@ -61,11 +65,13 @@ pub fn validate(
 }
 
 /// Strictly ordered signed references merged against ledger-ordered consumed inputs;
-/// recipients, account change and reward receipts are disjoint. Mirrors `SpendLib.semantics`.
+/// recipients, account change and reward receipts are disjoint. Mirrors `BudgetSpendLib.semantics`.
 fn semantics(
   account_inputs: List<OutputReference>,
   recipients: List<Recipient>,
   account_address: Address,
+  budget_address: Address,
+  budgeted: Bool,
   receipts: List<RewardReceipt>,
   recipient_mask: ByteArray,
   tx: Transaction,
@@ -76,10 +82,22 @@ fn semantics(
     0,
     list.length(account_inputs),
     account_address,
-  ) && recipients_match(recipients, -1, account_address, receipts, tx) && outputs_match(
+    budget_address,
+    budgeted,
+  ) && recipients_match(
+    recipients,
+    -1,
+    account_address,
+    budget_address,
+    budgeted,
+    receipts,
+    tx,
+  ) && outputs_match(
     tx.outputs,
     0,
     account_address,
+    budget_address,
+    budgeted,
     receipts,
     recipient_mask,
   )
@@ -109,6 +127,8 @@ fn inputs_match(
   count: Int,
   expected: Int,
   account_address: Address,
+  budget_address: Address,
+  budgeted: Bool,
 ) -> Bool {
   when inputs is {
     [] -> remaining == [] && count == expected
@@ -126,16 +146,20 @@ fn inputs_match(
                 count + 1,
                 expected,
                 account_address,
+                budget_address,
+                budgeted,
               )
           }
         }
       } else {
-        is_key(input.output.address.payment_credential) && inputs_match(
+        ( is_key(input.output.address.payment_credential) || budgeted && input.output.address == budget_address ) && inputs_match(
           rest,
           remaining,
           count,
           expected,
           account_address,
+          budget_address,
+          budgeted,
         )
       }
   }
@@ -145,6 +169,8 @@ fn recipients_match(
   recipients: List<Recipient>,
   previous: Int,
   account_address: Address,
+  budget_address: Address,
+  budgeted: Bool,
   receipts: List<RewardReceipt>,
   tx: Transaction,
 ) -> Bool {
@@ -155,7 +181,7 @@ fn recipients_match(
       if !index(position, tx) || position <= previous || receipt_at(
         receipts,
         position,
-      ) || recipient.address.payment_credential == account_address.payment_credential || !shape(
+      ) || recipient.address.payment_credential == account_address.payment_credential || budgeted && recipient.address.payment_credential == budget_address.payment_credential || !shape(
         recipient,
         0,
         3,
@@ -163,10 +189,18 @@ fn recipients_match(
         False
       } else {
         expect Some(output) = list.at(tx.outputs, position)
-        output.address == recipient.address && plain(output) && exact_value(
+        output.address == recipient.address && plain(output) && spend_lib.exact_value(
           recipient.value,
           output.value,
-        ) && recipients_match(rest, position, account_address, receipts, tx)
+        ) && recipients_match(
+          rest,
+          position,
+          account_address,
+          budget_address,
+          budgeted,
+          receipts,
+          tx,
+        )
       }
     }
   }
@@ -176,6 +210,8 @@ fn outputs_match(
   outputs: List<Output>,
   position: Int,
   account_address: Address,
+  budget_address: Address,
+  budgeted: Bool,
   receipts: List<RewardReceipt>,
   recipient_mask: ByteArray,
 ) -> Bool {
@@ -192,7 +228,7 @@ fn outputs_match(
             receipts,
             position,
           )
-        } else if recipient {
+        } else if recipient || budgeted && output.address == budget_address {
           True
         } else {
           is_key(output.address.payment_credential) && plain(output)
@@ -201,6 +237,8 @@ fn outputs_match(
         rest,
         position + 1,
         account_address,
+        budget_address,
+        budgeted,
         receipts,
         recipient_mask,
       )
@@ -208,61 +246,3 @@ fn outputs_match(
   }
 }
 
-/// Exact signed asset list versus the entire ledger Value; absent and extra assets reject.
-/// Mirrors `SpendLib.exactValue`.
-pub fn exact_value(signed: List<Asset>, actual: Value) -> Bool {
-  let size = list.length(signed)
-  if size == 1 {
-    let ada = native_accounting.only_lovelace(actual)
-    expect [head] = signed
-    let expected: Data = Asset { policy: "", name: "", quantity: ada }
-    let head_data: Data = head
-    0 < ada && head_data == expected
-  } else {
-    let entries = assets.flatten(actual)
-    if signed == [] || size > 12 || size != list.length(entries) {
-      False
-    } else {
-      assets_match(signed, entries, True, "", "")
-    }
-  }
-}
-
-fn assets_match(
-  signed: List<Asset>,
-  entries: List<(ByteArray, ByteArray, Int)>,
-  first: Bool,
-  previous_policy: ByteArray,
-  previous_name: ByteArray,
-) -> Bool {
-  when signed is {
-    [] -> True
-    [asset, ..rest] -> {
-      expect [entry, ..remaining] = entries
-      let policy_length = builtin.length_of_bytearray(asset.policy)
-      let name_length = builtin.length_of_bytearray(asset.name)
-      let matches =
-        asset.policy == entry.1st && asset.name == entry.2nd && asset.quantity == entry.3rd && asset.quantity > 0 && uint63(
-          asset.quantity,
-        ) && shape(asset, 0, 3)
-      let ordered =
-        if first {
-          policy_length == 0 && name_length == 0
-        } else {
-          policy_length == 28 && name_length <= 32 && (
-            builtin.less_than_bytearray(previous_policy, asset.policy) || previous_policy == asset.policy && builtin.less_than_bytearray(
-              previous_name,
-              asset.name,
-            )
-          )
-        }
-      matches && ordered && assets_match(
-        rest,
-        remaining,
-        False,
-        asset.policy,
-        asset.name,
-      )
-    }
-  }
-}

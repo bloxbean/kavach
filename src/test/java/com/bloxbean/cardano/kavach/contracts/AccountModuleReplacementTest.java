@@ -119,9 +119,11 @@ class AccountModuleReplacementTest {
 
     private EvalResult evaluate(String role, PlutusData context) {
         if (!role.equals("candidate")) return f.evaluate(role, context);
-        return JulcVm.create("Java").evaluateWithArgs(JulcScriptAdapter.toProgram(candidateScript.getCborHex()),
+        var result = JulcVm.create("Java").evaluateWithArgs(JulcScriptAdapter.toProgram(candidateScript.getCborHex()),
                 LedgerEvaluationTarget.pv11(PlutusLanguage.PLUTUS_V3), List.of(context),
                 new ExBudget(10000000000L, 16500000), EvalOptions.DEFAULT);
+        AikenScripts.record(role, result);
+        return result;
     }
 
     @Test

@@ -40,6 +40,7 @@ class PeriodicBudgetNftTest {
         var result = JulcVm.create("Java").evaluateWithArgs(JulcScriptAdapter.toProgram(script.getCborHex()),
                 LedgerEvaluationTarget.pv11(PlutusLanguage.PLUTUS_V3), List.of(ctx.buildPlutusData()),
                 new ExBudget(1_000_000_000, 3_000_000), EvalOptions.DEFAULT);
+        AikenScripts.record("budgetNft", result);
         if (scenario.equals("valid")) assertInstanceOf(EvalResult.Success.class, result, result.toString());
         else assertInstanceOf(EvalResult.Failure.class, result, scenario);
     }
