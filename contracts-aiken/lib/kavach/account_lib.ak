@@ -3,7 +3,7 @@
 //// Every check here mirrors one in `AccountLib.java`. Where the Java uses a JuLC-specific
 //// idiom (PV11 array-length builtins, explicit `Value.lovelace` reconstruction) this uses
 //// the natural Aiken equivalent with identical semantics; those choices are recorded in
-//// `docs/fee-optimization/aiken-spike.md`. No check is dropped, weakened or reordered in a
+//// `docs/fee-optimization/aiken-size-spike.md`. No check is dropped, weakened or reordered in a
 //// way that changes what is accepted.
 
 use aiken/builtin

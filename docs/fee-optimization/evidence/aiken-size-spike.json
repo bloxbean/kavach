@@ -1,40 +1,68 @@
 {
-  "scope": "Single-validator size spike. One validator ported, not a second protocol implementation. Not deployed, not audited, not qualified.",
-  "validator": "AccountStateValidator / account_state",
-  "julc": {
-    "version": "0.1.0-pre17-6754861-SNAPSHOT",
-    "flatBytes": 7877,
-    "cborBytes": 7883,
-    "terms": 8794,
-    "distinctSubterms": 2063,
-    "largestRepeatedSubtermBytes": 304
-  },
-  "aiken": {
-    "version": "v1.1.23+8949565",
-    "stdlib": "v2.2.0",
-    "traceLevel": "silent",
-    "flatBytes": 7570,
-    "cborBytes": 7573,
-    "terms": 7239,
-    "distinctSubterms": 3091,
-    "largestRepeatedSubtermBytes": 144
-  },
-  "ratioAsShipped": 1.041,
-  "aikenUncheckedCastOverhead": {
-    "coreRedeemerExpectBytes": 1470,
-    "accountStateExpectBytes": 481,
-    "combinedBytes": 1951,
-    "method": "probe_typed and probe_state_typed, each minus probe_raw (98 bytes).",
-    "note": "The Java casts (CoreRedeemer)(Object) redeemer and (AccountState)(Object) datum are unchecked; Aiken's typed redeemer and resolve_from's expect validate structurally. Subtracting both from the full validator over-corrects where that validation overlaps explicit shape checks, so it bounds rather than fixes the ratio."
-  },
-  "ratioLikeForLikeUpperBound": 1.402,
-  "breakEvenStateExpectBytesFor150x": 849,
-  "singleTierRatioNeeded": 1.5,
-  "conclusion": "As shipped, idiomatic Aiken is 1.04x smaller while validating strictly more. Removing both unchecked-cast validations bounds the like-for-like ratio at 1.40x, against the 1.50x a single Conway tier needs. Reaching even that bound requires writing Aiken against raw Data instead of its types.",
-  "wireParity": {
-    "stateEncodingMatchesFixture": true,
-    "stateDigestMatchesFixture": true,
-    "fixture": "conformance/v1/state.hex"
-  },
-  "limitation": "One validator. The transfer-path scripts are list- and crypto-heavier and their ratio may differ; the margin here is wide enough that a different ratio elsewhere is unlikely to reach 1.50x, but this does not prove it."
+    "scope": "Unapplied templates, flat bytes; Aiken port for comparison only, not a second qualified implementation",
+    "aikenVersion": "aiken v1.1.23+8949565",
+    "aikenStdlib": "v2.2.0",
+    "julcVersion": "0.1.0-pre17-6754861-SNAPSHOT",
+    "validators": {
+        "AccountStateValidator": {
+            "julcFlatBytes": 7877,
+            "aikenFlatBytes": 7570,
+            "ratio": 1.041
+        },
+        "CoreCheckpoint": {
+            "julcFlatBytes": 10478,
+            "aikenFlatBytes": 8822,
+            "ratio": 1.188
+        },
+        "AccountAssetValidator": {
+            "julcFlatBytes": 10553,
+            "aikenFlatBytes": 7466,
+            "ratio": 1.413
+        },
+        "BudgetAccountAssetValidator": {
+            "julcFlatBytes": 14498,
+            "aikenFlatBytes": 10141,
+            "ratio": 1.43
+        },
+        "StateNftPolicy": {
+            "julcFlatBytes": 5695,
+            "aikenFlatBytes": 6270,
+            "ratio": 0.908
+        },
+        "PeriodicBudgetValidator": {
+            "julcFlatBytes": 7134,
+            "aikenFlatBytes": 6965,
+            "ratio": 1.024
+        },
+        "PeriodicBudgetNftPolicy": {
+            "julcFlatBytes": 2501,
+            "aikenFlatBytes": 1709,
+            "ratio": 1.463
+        },
+        "Ed25519Module": {
+            "julcFlatBytes": 14589,
+            "aikenFlatBytes": 11924,
+            "ratio": 1.223
+        },
+        "BrowserModule": {
+            "julcFlatBytes": 15377,
+            "aikenFlatBytes": 12680,
+            "ratio": 1.213
+        },
+        "PolicyModule": {
+            "julcFlatBytes": 15489,
+            "aikenFlatBytes": 12344,
+            "ratio": 1.255
+        },
+        "BudgetPolicyModule": {
+            "julcFlatBytes": 15827,
+            "aikenFlatBytes": 12819,
+            "ratio": 1.235
+        },
+        "MixedSetupModule": {
+            "julcFlatBytes": 12671,
+            "aikenFlatBytes": 11517,
+            "ratio": 1.1
+        }
+    }
 }

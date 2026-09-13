@@ -1,0 +1,261 @@
+{
+    "scope": "Fabricated script contexts in the JuLC VM at PV11; fee is an estimate from those budgets, not a ledger measurement",
+    "julcVersion": "0.1.0-pre17-6754861-SNAPSHOT",
+    "outcomeParity": {
+        "evaluations": 813,
+        "divergences": [
+            
+        ]
+    },
+    "aikenSuiteFailures": [
+        "AccountBudgetTest.[1] false, 0: org.opentest4j.AssertionFailedError: Combined memory with SDK allowance 19076632 ==> expected: <true> but was: <false>",
+        "AccountBudgetTest.[2] true, 0: org.opentest4j.AssertionFailedError: Combined memory with SDK allowance 19322779 ==> expected: <true> but was: <false>",
+        "AccountBudgetTest.[3] false, 8: org.opentest4j.AssertionFailedError: Combined memory with SDK allowance 20834295 ==> expected: <true> but was: <false>",
+        "AccountBudgetTest.[4] true, 8: org.opentest4j.AssertionFailedError: Combined memory with SDK allowance 21490093 ==> expected: <true> but was: <false>",
+        "AccountModuleReplacementTest.maximumOldApprovalAndCandidatePossessionFitTogether(): org.opentest4j.AssertionFailedError: combined memory with 5% allowance 16634768 ==> expected: <true> but was: <false>"
+    ],
+    "executionRatiosAikenOverJulc": {
+        "asset": {
+            "acceptedEvaluations": 138,
+            "cpu": {
+                "median": 0.859,
+                "max": 1.567,
+                "min": 0.762
+            },
+            "memory": {
+                "median": 0.737,
+                "max": 3.498,
+                "min": 0.642
+            }
+        },
+        "core": {
+            "acceptedEvaluations": 127,
+            "cpu": {
+                "median": 1.202,
+                "max": 1.377,
+                "min": 1.077
+            },
+            "memory": {
+                "median": 1.291,
+                "max": 1.912,
+                "min": 1.082
+            }
+        },
+        "module": {
+            "acceptedEvaluations": 142,
+            "cpu": {
+                "median": 1.117,
+                "max": 1.246,
+                "min": 1.056
+            },
+            "memory": {
+                "median": 1.113,
+                "max": 1.25,
+                "min": 1.034
+            }
+        },
+        "nft": {
+            "acceptedEvaluations": 2,
+            "cpu": {
+                "median": 1.092,
+                "max": 1.092,
+                "min": 1.032
+            },
+            "memory": {
+                "median": 1.092,
+                "max": 1.092,
+                "min": 0.941
+            }
+        },
+        "state": {
+            "acceptedEvaluations": 42,
+            "cpu": {
+                "median": 1.101,
+                "max": 1.118,
+                "min": 1.082
+            },
+            "memory": {
+                "median": 1.085,
+                "max": 1.107,
+                "min": 1.066
+            }
+        },
+        "candidate": {
+            "acceptedEvaluations": 2,
+            "cpu": {
+                "median": 1.107,
+                "max": 1.107,
+                "min": 1.053
+            },
+            "memory": {
+                "median": 1.166,
+                "max": 1.166,
+                "min": 1.047
+            }
+        },
+        "budgetNft": {
+            "acceptedEvaluations": 1,
+            "cpu": {
+                "median": 0.779,
+                "max": 0.779,
+                "min": 0.779
+            },
+            "memory": {
+                "median": 0.651,
+                "max": 0.651,
+                "min": 0.651
+            }
+        },
+        "budget": {
+            "acceptedEvaluations": 11,
+            "cpu": {
+                "median": 1.1,
+                "max": 1.101,
+                "min": 1.067
+            },
+            "memory": {
+                "median": 1.085,
+                "max": 1.088,
+                "min": 1.063
+            }
+        }
+    },
+    "appliedSizes": {
+        "julc": {
+            "AccountAssetValidator": 10716,
+            "AccountStateValidator": 7932,
+            "BrowserModule": 15558,
+            "BudgetAccountAssetValidator": 14695,
+            "BudgetPolicyModule": 16001,
+            "CoreCheckpoint": 10612,
+            "Ed25519Module": 14763,
+            "MixedSetupModule": 12880,
+            "PeriodicBudgetNftPolicy": 2617,
+            "PeriodicBudgetValidator": 7297,
+            "PolicyModule": 15663,
+            "StateNftPolicy": 5862
+        },
+        "aiken": {
+            "AccountAssetValidator": 7630,
+            "AccountStateValidator": 7624,
+            "BrowserModule": 12860,
+            "BudgetAccountAssetValidator": 10338,
+            "BudgetPolicyModule": 12994,
+            "CoreCheckpoint": 8956,
+            "Ed25519Module": 12098,
+            "MixedSetupModule": 11726,
+            "PeriodicBudgetNftPolicy": 1825,
+            "PeriodicBudgetValidator": 7128,
+            "PolicyModule": 12518,
+            "StateNftPolicy": 6437
+        }
+    },
+    "maximumProfiles": {
+        "limits": {
+            "memory": 16500000,
+            "cpu": 10000000000
+        },
+        "transfer": {
+            "julc": {
+                "combined-budget": {
+                    "memoryWithFivePercentAllowance": 13354509,
+                    "cpuWithFivePercentAllowance": 6530723156
+                },
+                "combined-positive-reward-budget": {
+                    "memoryWithFivePercentAllowance": 13990410,
+                    "cpuWithFivePercentAllowance": 6740788491
+                },
+                "combined-eight-recipient-budget": {
+                    "memoryWithFivePercentAllowance": 13853167,
+                    "cpuWithFivePercentAllowance": 8115052965
+                },
+                "combined-positive-reward-eight-recipient-budget": {
+                    "memoryWithFivePercentAllowance": 14360227,
+                    "cpuWithFivePercentAllowance": 8300363780
+                }
+            },
+            "aiken": {
+                "combined-budget": {
+                    "memoryWithFivePercentAllowance": 19076632,
+                    "cpuWithFivePercentAllowance": 8292715116
+                },
+                "combined-positive-reward-budget": {
+                    "memoryWithFivePercentAllowance": 19322779,
+                    "cpuWithFivePercentAllowance": 8450182128
+                },
+                "combined-eight-recipient-budget": {
+                    "memoryWithFivePercentAllowance": 20834295,
+                    "cpuWithFivePercentAllowance": 10413259041
+                },
+                "combined-positive-reward-eight-recipient-budget": {
+                    "memoryWithFivePercentAllowance": 21490093,
+                    "cpuWithFivePercentAllowance": 10692404222
+                }
+            }
+        },
+        "moduleReplacement": {
+            "julc": {
+                "memory": 14205823,
+                "cpu": 9142621496,
+                "memoryWithFivePercentAllowance": 14916116,
+                "cpuWithFivePercentAllowance": 9599752573
+            },
+            "aiken": {
+                "memory": 16634768,
+                "cpu": 10270917057,
+                "memoryWithFivePercentAllowance": 17466509,
+                "cpuWithFivePercentAllowance": 10784462912
+            }
+        }
+    },
+    "ed25519Transfer": {
+        "julc": {
+            "referenceScriptBytes": 36091,
+            "referenceScriptLovelace": 572838,
+            "executionLovelace": 274007,
+            "baseLovelace": 226529,
+            "totalLovelace": 1073374,
+            "budgets": {
+                "asset": {
+                    "success": true,
+                    "cpu": 277558612,
+                    "mem": 701795
+                },
+                "core": {
+                    "success": true,
+                    "cpu": 447682667,
+                    "mem": 792275
+                },
+                "module": {
+                    "success": true,
+                    "cpu": 760582109,
+                    "mem": 1398104
+                }
+            }
+        },
+        "aiken": {
+            "referenceScriptBytes": 28684,
+            "referenceScriptLovelace": 439512,
+            "executionLovelace": 300038,
+            "baseLovelace": 226529,
+            "totalLovelace": 966079,
+            "budgets": {
+                "asset": {
+                    "success": true,
+                    "cpu": 282485700,
+                    "mem": 638656
+                },
+                "core": {
+                    "success": true,
+                    "cpu": 525791126,
+                    "mem": 961131
+                },
+                "module": {
+                    "success": true,
+                    "cpu": 841514574,
+                    "mem": 1538652
+                }
+            }
+        }
+    }
+}

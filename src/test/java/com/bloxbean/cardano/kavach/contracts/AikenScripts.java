@@ -47,6 +47,13 @@ final class AikenScripts {
     private AikenScripts() {
     }
 
+    /**
+     * Whether any validator is substituted; evidence writers must then avoid qualification directories.
+     */
+    static boolean active() {
+        return !SELECTED.isEmpty();
+    }
+
     static boolean selected(Class<?> type) {
         return SELECTED.contains(type.getSimpleName()) || (SELECTED.contains("all") && VALIDATORS.containsKey(type.getSimpleName()));
     }
@@ -81,6 +88,23 @@ final class AikenScripts {
                 + "\t" + consumed.cpuSteps() + "\t" + consumed.memoryUnits() + "\n";
         try {
             Files.writeString(Path.of(log), line, StandardOpenOption.CREATE, StandardOpenOption.APPEND);
+        } catch (IOException e) {
+            throw new UncheckedIOException(e);
+        }
+    }
+
+    /**
+     * Appends one applied script's serialized size to {@code kavach.budgetLog}, when set. The size is
+     * the ledger's reference-script measure: the script bytes inside the outer CBOR wrapper.
+     */
+    static synchronized void recordSize(Class<?> type, PlutusV3Script script) {
+        var log = System.getProperty("kavach.budgetLog", "");
+        if (log.isEmpty()) return;
+        var wrapped = HexFormat.of().parseHex(script.getCborHex());
+        int header = (wrapped[0] & 31) < 24 ? 1 : (wrapped[0] & 31) == 24 ? 2 : (wrapped[0] & 31) == 25 ? 3 : 5;
+        try {
+            Files.writeString(Path.of(log), "size\t" + type.getSimpleName() + "\t" + (wrapped.length - header) + "\n",
+                    StandardOpenOption.CREATE, StandardOpenOption.APPEND);
         } catch (IOException e) {
             throw new UncheckedIOException(e);
         }

@@ -3,7 +3,6 @@
 //// state validator enforces successors; core and modules independently authenticate the
 //// same old state and intent.
 
-use aiken/builtin
 use aiken/collection/list
 use aiken/collection/pairs
 use cardano/assets.{lovelace_of}
