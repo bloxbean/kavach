@@ -124,7 +124,11 @@ final class AccountFixtures {
     static PlutusV3Script load(Class<?> type, Object... args) {
         var data = Arrays.stream(args).map(AccountCodec::data).map(PlutusDataAdapter::toClientLib)
                 .toArray(com.bloxbean.cardano.client.plutus.spec.PlutusData[]::new);
-        return JulcScriptLoader.load(type, data);
+        var script = AikenScripts.selected(type)
+                ? AikenScripts.load(type, Arrays.stream(args).map(AccountCodec::data).toArray(PlutusData[]::new))
+                : JulcScriptLoader.load(type, data);
+        AikenScripts.recordSize(type, script);
+        return script;
     }
 
     @SafeVarargs
@@ -210,7 +214,9 @@ final class AccountFixtures {
 
     EvalResult evaluate(String role, PlutusData context) {
         var script = role.equals("budget") ? budgetScript : role.equals("core") ? coreScript : role.equals("asset") ? assetScript : role.equals("nft") ? nftScript : role.equals("state") ? stateScript : moduleScript;
-        return JulcVm.create("Java").evaluateWithArgs(JulcScriptAdapter.toProgram(script.getCborHex()), LedgerEvaluationTarget.pv11(PlutusLanguage.PLUTUS_V3),
+        var result = JulcVm.create("Java").evaluateWithArgs(JulcScriptAdapter.toProgram(script.getCborHex()), LedgerEvaluationTarget.pv11(PlutusLanguage.PLUTUS_V3),
                 List.of(context), new ExBudget(10000000000L, 16500000), EvalOptions.DEFAULT);
+        AikenScripts.record(role, result);
+        return result;
     }
 }
