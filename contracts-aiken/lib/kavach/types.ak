@@ -133,6 +133,55 @@ pub type CoreRedeemer {
   receipts: List<RewardReceipt>,
 }
 
+/// `signature = #6.121([credential-id: uint, signature: bytes])`
+pub type Signature {
+  credential_id: Int,
+  signature: ByteArray,
+}
+
+/// `proof = #6.121([scheme: uint, signatures: [* signature]])`
+pub type Proof {
+  scheme: Int,
+  signatures: List<Signature>,
+}
+
+/// Module invocation variants; constructor order is wire ABI (tags 0, 1, 2).
+pub type ModuleInvocation {
+  /// Ordinary invocation; configuration possession must be empty for transfers.
+  ModuleRedeemer {
+    abi_version: Int,
+    intent: IntentEnvelope,
+    operation_proof: Option<Proof>,
+    config_possession: List<Signature>,
+    receipts: List<RewardReceipt>,
+  }
+  /// Module registration only.
+  ModuleRegistration
+  /// Initialization has a distinct all-key proof domain and no ordinary intent.
+  GenesisModuleRedeemer {
+    abi_version: Int,
+    state: AccountState,
+    config_possession: List<Signature>,
+    receipts: List<RewardReceipt>,
+  }
+}
+
+/// `asset-redeemer = #6.121([abi-version: 1, intent-digest: hash32])`
+pub type AssetRedeemer {
+  abi_version: Int,
+  intent_digest: ByteArray,
+}
+
+/// Separate genesis possession preimage, assembled after derived script hashes exist.
+pub type GenesisProofEnvelope {
+  tag: ByteArray,
+  deployment_domain: DeploymentDomain,
+  account_id: AccountId,
+  core_binding: CoreBinding,
+  auth_module: AuthModuleRef,
+  config_digest: ByteArray,
+}
+
 /// `recovery-commitment = #6.121([intent-domain, next-sequence, auth-module-ref,
 /// replacement-config, old-delay, old-cooldown])` — the six-field preimage, in wire order.
 pub type ProposalEnvelope {

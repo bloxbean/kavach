@@ -3,6 +3,7 @@ package com.bloxbean.cardano.kavach.contracts;
 import com.bloxbean.cardano.client.plutus.spec.PlutusV3Script;
 import com.bloxbean.cardano.julc.clientlib.JulcScriptAdapter;
 import com.bloxbean.cardano.julc.core.PlutusData;
+import com.bloxbean.cardano.julc.vm.EvalResult;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 
@@ -10,6 +11,7 @@ import java.io.IOException;
 import java.io.UncheckedIOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
+import java.nio.file.StandardOpenOption;
 import java.util.Arrays;
 import java.util.HexFormat;
 import java.util.Map;
@@ -61,6 +63,27 @@ final class AikenScripts {
         // Blueprint code is CBOR-wrapped flat; ledger script bytes wrap it once more.
         var wrapped = HexFormat.of().formatHex(cborBytes(HexFormat.of().parseHex(code)));
         return JulcScriptAdapter.fromProgram(JulcScriptAdapter.toProgram(wrapped).applyParams(args));
+    }
+
+    /**
+     * Appends one evaluation outcome to {@code kavach.budgetLog}, when set, so JuLC and Aiken runs
+     * of the same suite can be compared per test and role. Records budgets only, never contexts.
+     */
+    static synchronized void record(String role, EvalResult result) {
+        var log = System.getProperty("kavach.budgetLog", "");
+        if (log.isEmpty()) return;
+        var caller = StackWalker.getInstance().walk(frames -> frames
+                .filter(frame -> frame.getClassName().endsWith("Test"))
+                .map(frame -> frame.getClassName().substring(frame.getClassName().lastIndexOf('.') + 1) + "." + frame.getMethodName())
+                .reduce((first, last) -> last).orElse("unknown"));
+        var consumed = result.budgetConsumed();
+        var line = caller + "\t" + role + "\t" + (result.isSuccess() ? "success" : "failure")
+                + "\t" + consumed.cpuSteps() + "\t" + consumed.memoryUnits() + "\n";
+        try {
+            Files.writeString(Path.of(log), line, StandardOpenOption.CREATE, StandardOpenOption.APPEND);
+        } catch (IOException e) {
+            throw new UncheckedIOException(e);
+        }
     }
 
     private static byte[] cborBytes(byte[] value) {

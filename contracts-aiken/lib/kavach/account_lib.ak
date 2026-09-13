@@ -9,13 +9,15 @@
 use aiken/builtin
 use aiken/collection/dict
 use aiken/collection/list
+use aiken/collection/pairs
+use aiken/crypto
 use aiken/interval.{Finite}
 use cardano/address.{Address, Credential, Script}
 use cardano/assets.{Value, lovelace_of, quantity_of, tokens}
 use cardano/transaction.{Input, InlineDatum, NoDatum, Output, Transaction}
 use kavach/types.{
   AccountId, AccountState, AuthModuleRef, CoreBinding, DeploymentDomain,
-  IntentDomain, IntentEnvelope, RewardReceipt, Validity,
+  IntentDomain, IntentEnvelope, Normal, RewardReceipt, Validity,
 }
 
 /// Largest signed 63-bit quantity; the protocol's unsigned arithmetic bound.
@@ -272,5 +274,160 @@ pub fn receipt_at(table: List<RewardReceipt>, position: Int) -> Bool {
   when table is {
     [] -> False
     [head, ..rest] -> head.output_index == position || receipt_at(rest, position)
+  }
+}
+
+/// Normal-mode state structure and immutable deployment identity; opaque configuration is
+/// not interpreted. Mirrors `AccountLib.normalState`.
+pub fn normal_state(
+  state: AccountState,
+  expected_domain: DeploymentDomain,
+  state_hash: ByteArray,
+) -> Bool {
+  state_fields(state, expected_domain, state_hash) && builtin.length_of_bytearray(
+    builtin.serialise_data(state),
+  ) <= 1536 && state.mode == Normal
+}
+
+/// Resolves the signed reference among reference inputs. Mirrors `AccountLib.resolve`.
+pub fn resolve(domain: IntentDomain, tx: Transaction) -> AccountState {
+  resolve_from(domain, tx.reference_inputs)
+}
+
+/// Authenticates the unique NFT-bearing reference, signed state version and immutable
+/// binding, and rejects spending the signed state reference. Mirrors `AccountLib.authenticate`.
+pub fn authenticate(
+  state: AccountState,
+  domain: IntentDomain,
+  deployment: DeploymentDomain,
+  state_hash: ByteArray,
+  tx: Transaction,
+) -> Bool {
+  normal_state(state, deployment, state_hash) && authenticate_from(
+    state,
+    domain,
+    deployment,
+    state_hash,
+    tx.reference_inputs,
+  ) && list.all(
+    tx.inputs,
+    fn(input) { input.output_reference != domain.state_ref },
+  )
+}
+
+/// Blake2b-256 of the serialized envelope; the only signature message.
+/// Mirrors `AccountLib.digest`.
+pub fn digest(intent: IntentEnvelope) -> ByteArray {
+  crypto.blake2b_256(builtin.serialise_data(intent))
+}
+
+/// Nonnegative index within the transaction outputs. Mirrors `AccountLib.index`.
+pub fn index(position: Int, tx: Transaction) -> Bool {
+  0 <= position && position < list.length(tx.outputs)
+}
+
+/// Validates the common positive-reward table: every positive withdrawal has one sorted
+/// script credential entry and a distinct plain ADA output. Mirrors `AccountLib.receipts`.
+pub fn receipts(table: List<RewardReceipt>, tx: Transaction) -> Bool {
+  if list.length(table) > 3 {
+    False
+  } else {
+    let withdrawals_valid =
+      list.all(tx.withdrawals, fn(Pair(_, amount)) { amount >= 0 })
+    let positives =
+      list.count(tx.withdrawals, fn(Pair(_, amount)) { amount > 0 })
+    withdrawals_valid && receipt_entries(table, "", tx) && unique_receipt_indices(
+      table,
+    ) && positives == list.length(table)
+  }
+}
+
+/// Walks the table carrying the previous credential hash for the strict ordering check.
+fn receipt_entries(
+  table: List<RewardReceipt>,
+  previous: ByteArray,
+  tx: Transaction,
+) -> Bool {
+  when table is {
+    [] -> True
+    [receipt, ..rest] -> {
+      let hash =
+        when receipt.reward_credential is {
+          Script(hash) -> hash
+          _ -> ""
+        }
+      let valid =
+        if builtin.length_of_bytearray(hash) != 28 || !builtin.less_than_bytearray(
+          previous,
+          hash,
+        ) || receipt.reward_credential != Script(hash) || !shape(receipt, 0, 2) || !pairs.has_key(
+          tx.withdrawals,
+          receipt.reward_credential,
+        ) || !index(receipt.output_index, tx) {
+          False
+        } else {
+          expect Some(output) = list.at(tx.outputs, receipt.output_index)
+          expect Some(amount) =
+            pairs.get_first(tx.withdrawals, receipt.reward_credential)
+          amount > 0 && plain(output) && positive_ada_only(output.value) && lovelace_of(
+            output.value,
+          ) >= amount
+        }
+      valid && receipt_entries(rest, hash, tx)
+    }
+  }
+}
+
+/// Checks each receipt-index pair once. Mirrors `AccountLib.uniqueReceiptIndices`.
+pub fn unique_receipt_indices(table: List<RewardReceipt>) -> Bool {
+  when table is {
+    [] -> True
+    [head, ..rest] ->
+      !receipt_at(rest, head.output_index) && unique_receipt_indices(rest)
+  }
+}
+
+/// The calling checkpoint's immutable full key reward sink.
+/// Mirrors `AccountLib.ownSink`.
+pub fn own_sink(
+  own: Credential,
+  sink: Address,
+  table: List<RewardReceipt>,
+  tx: Transaction,
+) -> Bool {
+  is_key(sink.payment_credential) && pairs.has_key(tx.withdrawals, own) && list.all(
+    table,
+    fn(receipt) {
+      if receipt.reward_credential == own {
+        index(receipt.output_index, tx) && when
+          list.at(tx.outputs, receipt.output_index)
+        is {
+          Some(output) -> output.address == sink
+          None -> False
+        }
+      } else {
+        True
+      }
+    },
+  )
+}
+
+/// Only a deposit-bearing script stake registration. The certificate is read as Data
+/// because the pinned stdlib types the registration deposit as `Never`, while the Java
+/// requires it to be present. Mirrors `AccountLib.registration`.
+pub fn registration(certificate: Data) -> Bool {
+  let Pair(tag, fields) = builtin.un_constr_data(certificate)
+  if tag != 0 {
+    False
+  } else {
+    expect [credential, deposit, ..] = fields
+    let Pair(deposit_tag, deposit_fields) = builtin.un_constr_data(deposit)
+    let Pair(credential_tag, _) = builtin.un_constr_data(credential)
+    if deposit_tag != 0 {
+      False
+    } else {
+      expect [amount, ..] = deposit_fields
+      builtin.un_i_data(amount) >= 0 && credential_tag == 1
+    }
   }
 }

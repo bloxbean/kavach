@@ -50,6 +50,7 @@ tasks.withType(Test).configureEach {
     systemProperty 'kavach.cclVersion', cclVersion
     systemProperty 'kavach.aikenContracts', providers.gradleProperty('aikenContracts').getOrElse('')
     systemProperty 'kavach.aikenBlueprint', file('contracts-aiken/plutus.json').absolutePath
+    systemProperty 'kavach.budgetLog', providers.gradleProperty('budgetLog').getOrElse('')
 }
 tasks.register('toolchainAcceptance', Test) {
     description = 'Require compiler output to verify a valid signature without artifact rewriting.'
