@@ -124,6 +124,8 @@ final class AccountFixtures {
     static PlutusV3Script load(Class<?> type, Object... args) {
         var data = Arrays.stream(args).map(AccountCodec::data).map(PlutusDataAdapter::toClientLib)
                 .toArray(com.bloxbean.cardano.client.plutus.spec.PlutusData[]::new);
+        if (AikenScripts.selected(type))
+            return AikenScripts.load(type, Arrays.stream(args).map(AccountCodec::data).toArray(PlutusData[]::new));
         return JulcScriptLoader.load(type, data);
     }
 

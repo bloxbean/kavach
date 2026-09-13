@@ -48,6 +48,8 @@ test { useJUnitPlatform { excludeTags 'browserDevkit', 'devkit', 'toolchainGate'
 tasks.withType(Test).configureEach {
     systemProperty 'kavach.julcVersion', julcVersion
     systemProperty 'kavach.cclVersion', cclVersion
+    systemProperty 'kavach.aikenContracts', providers.gradleProperty('aikenContracts').getOrElse('')
+    systemProperty 'kavach.aikenBlueprint', file('contracts-aiken/plutus.json').absolutePath
 }
 tasks.register('toolchainAcceptance', Test) {
     description = 'Require compiler output to verify a valid signature without artifact rewriting.'
