@@ -69,3 +69,10 @@ final optimization pass covering administration, recovery and transfer together.
 
 Accounts still have sealed state and require external collateral. Recovery, administration,
 CIP-113, staking, governance and production deployment remain outside this work.
+
+A later measurement pass quantified "better generated code" and reconciled the growth since this
+review: see [compiled script size analysis](script-size-analysis.md). It confirms the cost-aware
+profile finding above against the current toolchain, establishes that the toolchain upgrade to
+`6754861` changed no emitted byte, attributes the subsequent growth to Phase 2 source features
+rather than the compiler, and measures the representation-level headroom it found at 5.4–7.0%
+— a floor rather than a ceiling, but far short of the 25,600-byte single tier.

@@ -1,0 +1,47 @@
+{
+  "scope" : "Unapplied compiled templates; applied parameters add a few bytes each. DevKit measurement, not a production deployment or audit claim.",
+  "julcVersion" : "0.1.0-pre17-6754861-SNAPSHOT",
+  "scripts" : {
+    "AccountStateValidator" : {
+      "flatBytes" : 7877,
+      "terms" : 8794,
+      "zCombinatorOccurrences" : 17,
+      "zHoistSavingBytes" : 261,
+      "betaInverseExact" : true
+    },
+    "CoreCheckpoint" : {
+      "flatBytes" : 10478,
+      "terms" : 11603,
+      "zCombinatorOccurrences" : 44,
+      "zHoistSavingBytes" : 707,
+      "betaInverseExact" : true
+    },
+    "BrowserModule" : {
+      "flatBytes" : 15377,
+      "terms" : 16728,
+      "zCombinatorOccurrences" : 52,
+      "zHoistSavingBytes" : 837,
+      "betaInverseExact" : true
+    },
+    "StateNftPolicy" : {
+      "flatBytes" : 5695,
+      "terms" : 6283,
+      "zCombinatorOccurrences" : 22,
+      "zHoistSavingBytes" : 344,
+      "betaInverseExact" : true
+    },
+    "AccountAssetValidator" : {
+      "flatBytes" : 10553,
+      "terms" : 11438,
+      "zCombinatorOccurrences" : 35,
+      "zHoistSavingBytes" : 557,
+      "betaInverseExact" : true
+    }
+  },
+  "referenceGraphFlatBytes" : 49980,
+  "referenceGraphZHoistSavingBytes" : 2706,
+  "transferFlatBytes" : 36408,
+  "transferSingleTierBytes" : 25600,
+  "transferBytesOverSingleTier" : 10808,
+  "transferReductionNeededForSingleTier" : "29.7%"
+}
