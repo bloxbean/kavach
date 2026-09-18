@@ -44,7 +44,15 @@ dependencies {
     testRuntimeOnly 'org.junit.platform:junit-platform-launcher'
 }
 
-test { useJUnitPlatform { excludeTags 'browserDevkit', 'devkit', 'toolchainGate', 'rewardCredit', 'pairedRewardCredit', 'phase1RewardCredit' } }
+test {
+    useJUnitPlatform { excludeTags 'browserDevkit', 'devkit', 'toolchainGate', 'rewardCredit', 'pairedRewardCredit', 'phase1RewardCredit' }
+    // Aiken substitution is confined to fabricated-context unit tests; it must never reach DevKit
+    // tasks or overwrite qualification evidence. See docs/fee-optimization/aiken-size-spike.md.
+    systemProperty 'kavach.aikenContracts', providers.gradleProperty('aikenContracts').getOrElse('')
+    systemProperty 'kavach.aikenBlueprint', file('contracts-aiken/plutus.json').absolutePath
+    systemProperty 'kavach.budgetLog', providers.gradleProperty('budgetLog').getOrElse('')
+    if (providers.gradleProperty('aikenContracts').getOrElse('')) dependsOn 'aikenSizeSpike'
+}
 tasks.withType(Test).configureEach {
     systemProperty 'kavach.julcVersion', julcVersion
     systemProperty 'kavach.cclVersion', cclVersion
@@ -150,6 +158,184 @@ tasks.register('phase0BuildManifest') {
                         julcVersion: julcVersion, cclVersion: cclVersion, scripts: scripts]
         def output = file('build/phase0/build-manifest.json'); output.parentFile.mkdirs()
         output.text = groovy.json.JsonOutput.prettyPrint(groovy.json.JsonOutput.toJson(manifest)) + '\n'
+    }
+}
+
+// Aiken comparison only. Aiken is not a Kavach dependency and none of this is wired into `check`:
+// it shells out to a tool whose binaries the repository does not pin, and a missing or drifted
+// Aiken must fail loudly here rather than silently skew a comparison or break the build.
+// Results and limitations: docs/fee-optimization/aiken-size-spike.md.
+def aikenValidators = [AccountStateValidator: 'account_state', CoreCheckpoint: 'core_checkpoint',
+                       AccountAssetValidator: 'account_asset', BudgetAccountAssetValidator: 'budget_account_asset',
+                       StateNftPolicy: 'state_nft', PeriodicBudgetValidator: 'periodic_budget',
+                       PeriodicBudgetNftPolicy: 'periodic_budget_nft', Ed25519Module: 'ed25519_module',
+                       BrowserModule: 'browser_module', PolicyModule: 'policy_module',
+                       BudgetPolicyModule: 'budget_policy_module', MixedSetupModule: 'mixed_setup_module']
+// Strips CBOR byte-string wrappers until the flat program remains.
+def flatBytes = { String hex ->
+    byte[] bytes = hex.decodeHex()
+    while (bytes.length > 0 && ((bytes[0] & 0xff) >> 5) == 2) {
+        int info = bytes[0] & 31
+        int offset = info < 24 ? 1 : info == 24 ? 2 : info == 25 ? 3 : 5
+        bytes = Arrays.copyOfRange(bytes, offset, bytes.length)
+    }
+    bytes.length
+}
+
+tasks.register('aikenSizeSpike') {
+    group = 'verification'
+    description = 'Build the Aiken port and compare every validator\'s flat size with JuLC output.'
+    dependsOn tasks.named('classes')
+    doLast {
+        def expected = 'v1.1.23'
+        // Gradle's daemon does not inherit an interactive shell's PATH, so look where the
+        // official installer puts it before giving up.
+        def candidates = ['aiken', "${System.getProperty('user.home')}/.aiken/bin/aiken".toString()]
+        def run = { List<String> command, File dir ->
+            def process = new ProcessBuilder(command).directory(dir).redirectErrorStream(true).start()
+            def output = process.inputStream.text
+            [status: process.waitFor(), output: output]
+        }
+        def binary = candidates.find { candidate ->
+            try { run([candidate, '--version'], projectDir).status == 0 } catch (Exception ignored) { false }
+        }
+        if (binary == null)
+            throw new GradleException('Aiken is not on PATH or in ~/.aiken/bin. Install ' + expected +
+                    ' or read docs/fee-optimization/aiken-size-spike.md for the recorded result.')
+        def actual = run([binary, '--version'], projectDir).output.trim()
+        if (!actual.contains(expected))
+            throw new GradleException("Aiken $expected is required for a comparable measurement; found: $actual")
+        def port = file('contracts-aiken')
+        ['check', 'build'].each { step ->
+            def result = run([binary, step], port)
+            if (result.status != 0) throw new GradleException("aiken $step failed:\n" + result.output)
+        }
+        def blueprint = new JsonSlurper().parse(file('contracts-aiken/plutus.json'))
+        def sizes = [:]
+        aikenValidators.each { julcName, aikenName ->
+            def aiken = blueprint.validators.find { it.title.startsWith(aikenName + '.' + aikenName + '.') }
+            if (aiken == null) throw new GradleException("Aiken blueprint has no validator $aikenName")
+            def julc = new JsonSlurper().parse(file("build/classes/java/main/META-INF/plutus/${julcName}.plutus.json"))
+            int julcFlat = flatBytes(julc.cborHex)
+            int aikenFlat = flatBytes(aiken.compiledCode)
+            sizes[julcName] = [julcFlatBytes: julcFlat, aikenFlatBytes: aikenFlat,
+                               ratio: (julcFlat / (double) aikenFlat).round(3)]
+            println String.format('%-28s JuLC %6d  Aiken %6d  %.3fx', julcName, julcFlat, aikenFlat, julcFlat / (double) aikenFlat)
+        }
+        def report = [scope: 'Unapplied templates, flat bytes; Aiken port for comparison only, not a second qualified implementation',
+                      aikenVersion: actual, aikenStdlib: 'v2.2.0', julcVersion: julcVersion, validators: sizes]
+        def out = file('build/fee-optimization/aiken-size-spike.json'); out.parentFile.mkdirs()
+        out.text = groovy.json.JsonOutput.prettyPrint(groovy.json.JsonOutput.toJson(report)) + '\n'
+    }
+}
+
+// The same fabricated-context contract suite, once per implementation, logging every evaluation.
+['Julc': '', 'Aiken': 'all'].each { implementation, contracts ->
+    tasks.register("aikenParity${implementation}", Test) {
+        group = 'verification'
+        description = "Run the compiled-contract suite against the ${implementation} scripts and log every evaluation budget."
+        testClassesDirs = sourceSets.test.output.classesDirs
+        classpath = sourceSets.test.runtimeClasspath
+        useJUnitPlatform { excludeTags 'browserDevkit', 'devkit', 'toolchainGate', 'rewardCredit', 'pairedRewardCredit', 'phase1RewardCredit' }
+        filter { includeTestsMatching 'com.bloxbean.cardano.kavach.contracts.*' }
+        dependsOn tasks.named('aikenSizeSpike')
+        def log = file("build/fee-optimization/aiken-port/${implementation.toLowerCase()}.tsv")
+        systemProperty 'kavach.aikenContracts', contracts
+        systemProperty 'kavach.aikenBlueprint', file('contracts-aiken/plutus.json').absolutePath
+        systemProperty 'kavach.budgetLog', log.absolutePath
+        // Aiken execution-budget ceilings are findings to record, not a reason to stop the comparison.
+        ignoreFailures = implementation == 'Aiken'
+        outputs.upToDateWhen { false }
+        doFirst { log.parentFile.mkdirs(); log.delete() }
+    }
+}
+
+tasks.register('aikenPortComparison') {
+    group = 'verification'
+    description = 'Compare Aiken and JuLC outcomes, execution budgets, applied sizes and an estimated transfer fee.'
+    dependsOn tasks.named('aikenParityJulc'), tasks.named('aikenParityAiken')
+    doLast {
+        def parse = { String name ->
+            def budgets = [:].withDefault { [] }
+            def sizes = [:]
+            file("build/fee-optimization/aiken-port/${name}.tsv").eachLine { line ->
+                def f = line.split('\t')
+                if (f[0] == 'size') sizes[f[1]] = Math.max(sizes.getOrDefault(f[1], 0), f[2] as int)
+                else budgets[[f[0], f[1]]] << [success: f[2] == 'success', cpu: f[3] as long, mem: f[4] as long]
+            }
+            [budgets: budgets, sizes: sizes]
+        }
+        def julc = parse('julc')
+        def aiken = parse('aiken')
+        int evaluations = julc.budgets.values().sum { it.size() }
+        def divergences = []
+        def ratios = [:].withDefault { [cpu: [], mem: []] }
+        (julc.budgets.keySet() + aiken.budgets.keySet()).each { key ->
+            def j = julc.budgets[key]; def a = aiken.budgets[key]
+            if (j*.success.sort() != a*.success.sort()) divergences << key.join(' ')
+            def js = j.findAll { it.success }; def as_ = a.findAll { it.success }
+            if (js.size() == as_.size())
+                [js, as_].transpose().each { pair -> ratios[key[1]].cpu << pair[1].cpu / (double) pair[0].cpu; ratios[key[1]].mem << pair[1].mem / (double) pair[0].mem }
+        }
+        def summary = { List<Double> values -> def s = values.sort(); [median: s[s.size().intdiv(2)].round(3), max: s[-1].round(3), min: s[0].round(3)] }
+        def roleRatios = ratios.collectEntries { role, r -> [role, [acceptedEvaluations: r.cpu.size(), cpu: summary(r.cpu), memory: summary(r.mem)]] }
+        def failures = []
+        fileTree('build/test-results/aikenParityAiken').matching { include '*.xml' }.each { report ->
+            def suite = new groovy.xml.XmlSlurper().parse(report)
+            suite.testcase.findAll { !it.failure.isEmpty() || !it.error.isEmpty() }.each {
+                failures << "${it.@classname.text().tokenize('.')[-1]}.${it.@name.text()}: ${(it.failure.@message.text() ?: it.error.@message.text()).take(120)}"
+            }
+        }
+        // Conway reference-script fee: 15 lovelace/byte in 25,600-byte tiers, each 1.2x the last.
+        def referenceFee = { int bytes ->
+            double fee = 0, price = 15; int remaining = bytes
+            while (remaining > 0) { int chunk = Math.min(remaining, 25600); fee += chunk * price; remaining -= chunk; price *= 1.2 }
+            (long) Math.floor(fee)
+        }
+        def transfer = { Map run, String test ->
+            def roles = ['asset', 'core', 'module'].collectEntries { role -> [role, run.budgets[[test, role]].find { it.success }] }
+            double execution = roles.values().sum { it.mem * 0.0577d + it.cpu * 0.0000721d }
+            [roles: roles, executionLovelace: (long) Math.ceil(execution)]
+        }
+        def estimate = { Map run, String module ->
+            int bytes = ['AccountAssetValidator', 'CoreCheckpoint', module].sum { run.sizes[it] }
+            def execution = transfer(run, 'AccountTransferTest.completeTransferExecutesEveryRequiredScript')
+            // Base fee from the recorded Phase 2 transfer (1,617-byte transaction); identical for both.
+            long base = 226529
+            [referenceScriptBytes: bytes, referenceScriptLovelace: referenceFee(bytes), executionLovelace: execution.executionLovelace,
+             baseLovelace: base, totalLovelace: base + referenceFee(bytes) + execution.executionLovelace, budgets: execution.roles]
+        }
+        // Whole-transaction totals for the maximum profiles, against max_tx_ex_mem 16,500,000 and
+        // max_tx_ex_steps 10,000,000,000 including the SDK's 5% allowance.
+        def combined = { String directory ->
+            ['combined-budget.json', 'combined-positive-reward-budget.json', 'combined-eight-recipient-budget.json',
+             'combined-positive-reward-eight-recipient-budget.json'].collectEntries { name ->
+                def evidence = new JsonSlurper().parse(file("$directory/$name"))
+                [name - '.json', [memoryWithFivePercentAllowance: evidence.memoryWithFivePercentAllowance,
+                                  cpuWithFivePercentAllowance: evidence.cpuWithFivePercentAllowance]]
+            }
+        }
+        def replacement = { Map run ->
+            def key = 'AccountModuleReplacementTest.maximumOldApprovalAndCandidatePossessionFitTogether'
+            def accepted = ['state', 'core', 'module', 'candidate'].collect { run.budgets[[key, it]].find { it.success } }.findAll { it != null }
+            [memory: accepted.sum { it.mem }, cpu: accepted.sum { it.cpu },
+             memoryWithFivePercentAllowance: accepted.sum { (it.mem * 105 + 99).intdiv(100) },
+             cpuWithFivePercentAllowance: accepted.sum { (it.cpu * 105 + 99).intdiv(100) }]
+        }
+        def report = [scope: 'Fabricated script contexts in the JuLC VM at PV11; fee is an estimate from those budgets, not a ledger measurement',
+                      julcVersion: julcVersion,
+                      outcomeParity: [evaluations: evaluations, divergences: divergences],
+                      aikenSuiteFailures: failures,
+                      executionRatiosAikenOverJulc: roleRatios,
+                      appliedSizes: [julc: julc.sizes.sort(), aiken: aiken.sizes.sort()],
+                      maximumProfiles: [limits: [memory: 16500000, cpu: 10000000000L],
+                                        transfer: [julc: combined('build/phase1'), aiken: combined('build/fee-optimization/aiken-port')],
+                                        moduleReplacement: [julc: replacement(julc), aiken: replacement(aiken)]],
+                      ed25519Transfer: [julc: estimate(julc, 'Ed25519Module'), aiken: estimate(aiken, 'Ed25519Module')]]
+        def out = file('build/fee-optimization/aiken-port-comparison.json'); out.parentFile.mkdirs()
+        out.text = groovy.json.JsonOutput.prettyPrint(groovy.json.JsonOutput.toJson(report)) + '\n'
+        println "Evaluations: $evaluations, outcome divergences: ${divergences.size()}, Aiken suite failures: ${failures.size()}"
+        println "Ed25519 transfer estimate: JuLC ${report.ed25519Transfer.julc.totalLovelace}, Aiken ${report.ed25519Transfer.aiken.totalLovelace} lovelace"
     }
 }
 

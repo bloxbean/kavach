@@ -1,0 +1,68 @@
+{
+    "scope": "Unapplied templates, flat bytes; Aiken port for comparison only, not a second qualified implementation",
+    "aikenVersion": "aiken v1.1.23+8949565",
+    "aikenStdlib": "v2.2.0",
+    "julcVersion": "0.1.0-pre17-6754861-SNAPSHOT",
+    "validators": {
+        "AccountStateValidator": {
+            "julcFlatBytes": 7877,
+            "aikenFlatBytes": 7570,
+            "ratio": 1.041
+        },
+        "CoreCheckpoint": {
+            "julcFlatBytes": 10478,
+            "aikenFlatBytes": 8822,
+            "ratio": 1.188
+        },
+        "AccountAssetValidator": {
+            "julcFlatBytes": 10553,
+            "aikenFlatBytes": 7466,
+            "ratio": 1.413
+        },
+        "BudgetAccountAssetValidator": {
+            "julcFlatBytes": 14498,
+            "aikenFlatBytes": 10141,
+            "ratio": 1.43
+        },
+        "StateNftPolicy": {
+            "julcFlatBytes": 5695,
+            "aikenFlatBytes": 6270,
+            "ratio": 0.908
+        },
+        "PeriodicBudgetValidator": {
+            "julcFlatBytes": 7134,
+            "aikenFlatBytes": 6965,
+            "ratio": 1.024
+        },
+        "PeriodicBudgetNftPolicy": {
+            "julcFlatBytes": 2501,
+            "aikenFlatBytes": 1709,
+            "ratio": 1.463
+        },
+        "Ed25519Module": {
+            "julcFlatBytes": 14589,
+            "aikenFlatBytes": 11924,
+            "ratio": 1.223
+        },
+        "BrowserModule": {
+            "julcFlatBytes": 15377,
+            "aikenFlatBytes": 12680,
+            "ratio": 1.213
+        },
+        "PolicyModule": {
+            "julcFlatBytes": 15489,
+            "aikenFlatBytes": 12344,
+            "ratio": 1.255
+        },
+        "BudgetPolicyModule": {
+            "julcFlatBytes": 15827,
+            "aikenFlatBytes": 12819,
+            "ratio": 1.235
+        },
+        "MixedSetupModule": {
+            "julcFlatBytes": 12671,
+            "aikenFlatBytes": 11517,
+            "ratio": 1.1
+        }
+    }
+}

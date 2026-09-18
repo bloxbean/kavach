@@ -22,7 +22,8 @@ compiler emits and what a compiler change would move. Applying parameters adds a
 across the graph: the three transfer scripts measure 36,408 as templates and about 36,973 as
 charged. Comparisons are template-to-template throughout.
 
-That is the prize. This document records whether it is reachable.
+That is the prize. This document records whether it is reachable. A different compiler was measured
+afterwards, in [the Aiken port comparison](aiken-size-spike.md).
 
 ## The headline
 

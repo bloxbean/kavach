@@ -138,8 +138,10 @@ class AccountBudgetTest {
         budgets.put("memoryWithFivePercentAllowance", allocatedMemory);
         budgets.put("cpuWithFivePercentAllowance", allocatedCpu);
         budgets.put("scope", "8 account + 8 sponsor inputs, 4 references, 16 outputs, 16 transaction signatories, 12 native entries with 32-byte names, 16 registry keys, all six roles at 8 members, 8 spend signatures, base-address recipients; synthetic full script-context composition");
-        Files.createDirectories(Path.of("build/phase1"));
-        Files.writeString(Path.of("build/phase1/combined-" + (positiveRewards ? "positive-reward-" : "") + (recipientCount == 0 ? "" : "eight-recipient-") + "budget.json"), JsonUtil.getPrettyJson(budgets));
+        // Substituted Aiken scripts must never overwrite the JuLC Phase 1 budget evidence.
+        var directory = Path.of(AikenScripts.active() ? "build/fee-optimization/aiken-port" : "build/phase1");
+        Files.createDirectories(directory);
+        Files.writeString(directory.resolve("combined-" + (positiveRewards ? "positive-reward-" : "") + (recipientCount == 0 ? "" : "eight-recipient-") + "budget.json"), JsonUtil.getPrettyJson(budgets));
         assertTrue(allocatedMemory <= 16500000, "Combined memory with SDK allowance " + allocatedMemory);
         assertTrue(allocatedCpu <= 10000000000L, "Combined CPU with SDK allowance " + allocatedCpu);
     }

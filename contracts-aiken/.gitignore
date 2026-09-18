@@ -1,0 +1,3 @@
+# Aiken build output and generated blueprint; regenerate with `aiken build`.
+build/
+plutus.json
