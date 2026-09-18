@@ -1,8 +1,9 @@
 # ADR-011: Reference deposit reclamation
 
-Status: Proposed. Not implemented, not qualified and not approved for production. No contract,
-validator, wire schema or acceptance ledger changes accompany this document. The feasibility gates
-below are unverified.
+Status: Accepted; implemented in the dashboard development flow. Not qualified and not approved
+for production. No contract, validator or wire schema changes are involved, which is the point of
+the accepted decision. Gates 1 and 2 are met by the implementation and its DevKit run; gates 3 and
+4 are exercised by the republish path but not yet adversarially tested.
 
 Related: [ADR-001](adr-001-kavach-programmable-smart-account-architecture.md),
 [ADR-009](adr-009-per-key-account-creation.md),
@@ -181,6 +182,24 @@ holding its key can degrade the whole domain. For shared scripts, permanence is 
 and the amortized cost makes it acceptable; for genuinely per-account scripts, reclaimability is
 worth more than permanence. That split is the coherent combination, and it is available without
 touching immutable core.
+
+## Implementation
+
+The dashboard publishes references to `referenceHolder(sponsor)` — the enterprise address of the
+sponsor's payment credential. It is a different address from the sponsor's base wallet, so ordinary
+fee selection never sees these outputs; CCL's selection strategies skip datum hashes but not
+reference scripts, so that separation is what prevents a publication being consumed as a fee input,
+and creation therefore requires a base fee address.
+
+Each confirmed publication records `txHash#index` in a local manifest, and resolution reads that
+exact output and verifies it still carries the expected script, falling back to a bounded scan of
+the holder address only when the manifest is missing or stale. This replaces the previous scan of
+the state address, which was the discovery limit ADR-012 gate 2 requires removing.
+
+Two actions expose the lifecycle: `Republish references` publishes any script the account needs but
+cannot resolve, and `Reclaim references` spends the publications back to the sponsor. Reclaim
+refuses a live account unless explicitly forced, because the common mistake is reclaiming from an
+account still in use.
 
 ## Consequences
 

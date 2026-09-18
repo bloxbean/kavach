@@ -8,6 +8,7 @@ React, TypeScript and Cardano Foundation Connect with Wallet.
 
 Use the repository's pinned Java 25 / JuLC toolchain and a running Yaci DevKit with network
 magic **42**, Blockfrost-compatible API at `http://localhost:8080/api/v1/`, and faucet on port
+
 10000. Do not reset the ledger while the separate delayed-recovery worker is running.
 
 From the repository root, start the Java API:
@@ -32,7 +33,8 @@ operational design, independently verified deployment manifests and wallet quali
 
 1. Configure a **disposable** CIP-30 wallet for this exact local DevKit. Choosing a generic
    “testnet” is insufficient: CIP-30 network ID 0 also covers preview and preprod. The backend
-   verifies genesis magic 42 and resolves funding from that ledger. CF Connect is explicitly restricted to `NetworkType.TESTNET`; its default is Mainnet. It does not change
+   verifies genesis magic 42 and resolves funding from that ledger. CF Connect is explicitly restricted to
+   `NetworkType.TESTNET`; its default is Mainnet. It does not change
    the wallet's chain/provider configuration.
 2. Prepare three independent payment public keys: everyday key 0, guardian key 1, defensive
    backup key 2. In Connect wallet, **Verify & show public key** verifies a domain-separated
@@ -44,9 +46,12 @@ operational design, independently verified deployment manifests and wallet quali
 4. Create an account and choose a device, signing method and public key for each signer.
    Wallet keys support transaction signing or COSE; Companion keys require COSE. The
    initial role profile is editable; invalid defensive-role overlaps and unsafe admin
-   thresholds reject. All registered keys prove possession at creation. Use Add signer for up to 8 keys; each policy allows up to eight members. Remove signer requires clearing its policy assignments first and keeps at least three keys.
+   thresholds reject. All registered keys prove possession at creation. Use Add signer for up to 8 keys; each policy
+   allows up to eight members. Remove signer requires clearing its policy assignments first and keeps at least three
+   keys.
 5. Review and approve each setup transaction, including final policy activation. The default
-   per-key flow publishes six reference scripts with **80 ADA each permanently locked**, creates a **12 ADA state output**, and
+   per-key flow publishes six reference scripts, each locking **only the ledger minimum for its own script size**
+   (**about 220 ADA total** for the five core references), creates a **12 ADA state output**, and
    pays stake-registration deposits and network fees. Reference publication is deliberately
    conservative and is not an optimized production onboarding cost. Continue only after
    ledger confirmation. Save the public account locator before proceeding.
@@ -109,13 +114,15 @@ See [ADR-009](../adr/adr-009-per-key-account-creation.md) for the restricted set
 ## Scope and limitations
 
 This is a development preview, not an audited wallet or a general dApp connector. The UI
-starts with a three-key reference setup, allows up to 8 keys, and supports up to 16 ordinary account inputs per transfer,
+starts with a three-key reference setup, allows up to 8 keys, and supports up to 16 ordinary account inputs per
+transfer,
 with one recipient. The protocol/SDK expose broader shapes that need separate UI work and
 budget qualification. Recipient support is currently key-payment enterprise/base addresses.
 CIP-113 transfers, staking, governance and session keys are not implemented here.
 
 COSE support is the exact [bounded profile](../protocol/browser/specification.md), including
-payment-key address binding, unhashed 32-byte payloads, and two bounded protected-header forms (with or without an address-valued `kid`). Other
+payment-key address binding, unhashed 32-byte payloads, and two bounded protected-header forms (with or without an
+address-valued `kid`). Other
 valid CIP-8 variants intentionally fail. No particular wallet or hardware-wallet version
 has yet been qualified by actual extension signatures. Automated signers exercise the same
 response shape and real ledger, but do not establish extension compatibility.
@@ -126,7 +133,8 @@ separate trust domain. A wallet showing only a digest cannot detect a compromise
 misleading human description. Inspect wallet transaction details and independently compare
 request digests for meaningful signing assurance.
 
-Existing raw-Ed25519 accounts are not automatically enabled for browser signing; an explicit, qualified module upgrade is required. This demo restores known browser-module deployments.
+Existing raw-Ed25519 accounts are not automatically enabled for browser signing; an explicit, qualified module upgrade
+is required. This demo restores known browser-module deployments.
 
 Only zero-reward checkpoint flows are exposed by this UI slice. Positive checkpoint/module
 balances require the SDK's explicit, disjoint reward-receipt allocation flow; do not reset or

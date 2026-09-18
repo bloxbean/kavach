@@ -167,6 +167,10 @@ final class DemoService {
         int setupTotal;
         String txHash;
         String locator;
+        /** Hex script hash published as a reference by this plan, or null. */
+        String publishedScript;
+        /** Hex script hashes whose publications this plan spends, cleared once it confirms. */
+        List<String> reclaimedScripts = List.of();
         final Map<String, VkeyWitness> witnesses = new LinkedHashMap<>();
 
         Plan(String title, String review) {
@@ -381,14 +385,21 @@ final class DemoService {
             new SecureRandom().nextBytes(discriminator);
             var domain =
                     new DeploymentDomain(BigInteger.ZERO, BigInteger.valueOf(42), discriminator);
-            var sink = ledgerAddress(sponsor);
+            // Reward sinks are immutable and fixed here. A distinct address per account gives
+            // per-account reward attribution; defaulting both to the sponsor pools every account's
+            // rewards into one address, which is the same attribution problem ADR-012 Tier B has
+            // at deployment scale. The sink must be a key address this wallet's owner controls:
+            // rewards paid there are unreachable otherwise, and it can never be changed.
+            var coreSink = ledgerAddress(optionalAddress(body, "coreSink", sponsor));
+            var moduleSink = ledgerAddress(optionalAddress(body, "moduleSink", sponsor));
             var scripts =
-                    AccountDeployment.derive(domain, ref(setup.seed), payment(sponsor), sink, sink);
+                    AccountDeployment.derive(
+                            domain, ref(setup.seed), payment(sponsor), coreSink, moduleSink);
             if (Boolean.TRUE.equals(body.get("budgetCore"))) scripts = PeriodicBudgetDeployment.derive(scripts, domain);
-            var module = browser(scripts, domain, sink, mode);
+            var module = browser(scripts, domain, moduleSink, mode);
             if (mode == 3) {
                 setup.finalModule = module;
-                module = mixedSetup(scripts, domain, sink, module);
+                module = mixedSetup(scripts, domain, moduleSink, module);
                 Files.writeString(PROFILES.resolve(hex(module.getScriptHash()) + ".setup"), setup.sponsor);
             }
             setup.scripts = withModule(scripts, module);
@@ -408,6 +419,11 @@ final class DemoService {
         var scripts = AccountDeployment.restore(state, backend);
         int mode = profile(state.authModule().scriptHash());
         if (action.equals("Finish account setup")) return view(finishMixedSetup(locator, sponsor));
+        if (action.equals("Republish references"))
+            return view(republishReferences(state, scripts, sponsor, locator));
+        if (action.equals("Reclaim references"))
+            return view(reclaimReferences(state, scripts, sponsor, locator,
+                    Boolean.TRUE.equals(body.get("force"))));
         require(!Files.exists(PROFILES.resolve(hex(state.authModule().scriptHash()) + ".setup")),
                 "Finish account setup before changing policies or spending");
         require(
@@ -576,7 +592,7 @@ final class DemoService {
             var references = BigInteger.ZERO;
             if (index == 0)
                 for (var script : scripts)
-                    references = references.add(referenceMinimum(setup.holder, script));
+                    references = references.add(referenceMinimum(referenceHolder(setup.sponsor), script));
             var p =
                     plainPlan(
                             "Create account · publish script " + (index + 1) + " of 5",
@@ -700,8 +716,7 @@ final class DemoService {
         var candidate = browser(scripts, state.deploymentDomain(), sink, 3);
         var expected = mixedSetup(scripts, state.deploymentDomain(), sink, candidate);
         require(Arrays.equals(expected.getScriptHash(), state.authModule().scriptHash()), "Setup deployment record does not match its immutable checkpoint");
-        String holder = AddressProvider.getEntAddress(scripts.state(), NETWORK).toBech32();
-        if (utxos(holder).stream().noneMatch(u -> hexUnchecked(candidate).equals(u.getReferenceScriptHash()))) {
+        if (!published(candidate, sponsor)) {
             var publication = plainPlan("Create account · publish final signing module", sponsor, state.coreBinding().stateValidator(), candidate, null);
             publication.locator = locator;
             publication.next = () -> finishMixedSetup(locator, sponsor);
@@ -761,12 +776,8 @@ final class DemoService {
             throws Exception {
         var p = new Plan(title, "");
         feePayer(p, sponsor);
-        String holder =
-                AddressProvider.getEntAddress(
-                                com.bloxbean.cardano.client.address.Credential.fromScript(
-                                        stateHash),
-                                NETWORK)
-                        .toBech32();
+        // ADR-011: a reclaimable key-controlled holder, never the sealed state validator.
+        String holder = referenceHolder(sponsor);
         var minimum = referenceMinimum(holder, script);
         var tx =
                 new Tx()
@@ -780,6 +791,7 @@ final class DemoService {
                         // for this exact serialized script reference. Never hardcode a deposit.
                         .payToAddress(holder, Amount.lovelace(BigInteger.ZERO), script);
         p.transaction = setupTransaction(tx, sponsor, reserved);
+        p.publishedScript = hex(script.getScriptHash());
         p.review =
                 "Publish immutable reference script.\nScript: "
                         + hex(script.getScriptHash())
@@ -787,9 +799,241 @@ final class DemoService {
                         + "Reference deposit: "
                         + ada(referenceDeposit(p.transaction, script, holder, minimum))
                         + " ADA (ledger minimum for this script size)\n"
-                        + "Network: DevKit 42\n"
-                        + "This development reference deposit cannot be reclaimed.";
+                        + "Held at: "
+                        + holder
+                        + "\nNetwork: DevKit 42\n"
+                        + "This deposit is reclaimable by this wallet once the reference is no"
+                        + " longer needed. Reclaiming it blocks further transactions for accounts"
+                        + " using this script until it is republished.";
         return finish(p);
+    }
+
+    /**
+     * Key-controlled address that holds this sponsor's reference publications.
+     *
+     * <p>ADR-011: publications deliberately do NOT go to the sealed state validator, where they
+     * would be permanently unspendable. The ledger resolves a reference script by hash and no
+     * validator inspects a reference output's address, so the location is free to choose. This
+     * returns the enterprise address of the sponsor's own payment credential: a different address
+     * from the sponsor's base wallet, so ordinary fee selection never sees these outputs, but the
+     * same signing key, so the deposit is reclaimable by an ordinary spend.
+     *
+     * @param sponsor fee-paying wallet address
+     * @return enterprise address controlled by the sponsor's payment key
+     */
+    private static String referenceHolder(String sponsor) {
+        String holder =
+                AddressProvider.getEntAddress(
+                                com.bloxbean.cardano.client.address.Credential.fromKey(
+                                        payment(sponsor)),
+                                NETWORK)
+                        .toBech32();
+        // CCL's selection strategies skip datum hashes but not reference scripts, so a publication
+        // sharing the fee wallet's address could be consumed as a fee input. Separation is what
+        // prevents that, and it only holds for a base fee address.
+        require(
+                !holder.equals(sponsor),
+                "Use a base (delegated) wallet address as fee payer. Reference publications are"
+                        + " held at the enterprise address of the same key and must not share the"
+                        + " fee wallet's address.");
+        return holder;
+    }
+
+    /** Local manifest file recording where a published reference script was confirmed. */
+    private static Path referenceRecord(String scriptHash) {
+        return PROFILES.resolve(scriptHash + ".ref");
+    }
+
+    /**
+     * Records the confirmed location of a published reference script.
+     *
+     * <p>Resolution reads this instead of enumerating a holder address. Address enumeration does
+     * not scale once many accounts publish to one address and is the discovery limit ADR-012
+     * gate 2 requires removing; it remains only as a resume fallback.
+     */
+    private static void recordReference(String scriptHash, Transaction transaction, String txHash)
+            throws Exception {
+        var outputs = transaction.getBody().getOutputs();
+        for (int index = 0; index < outputs.size(); index++) {
+            byte[] scriptRef = outputs.get(index).getScriptRef();
+            if (scriptRef == null) continue;
+            var published = PlutusV3Script.deserializeScriptRef(scriptRef);
+            if (!scriptHash.equals(hex(published.getScriptHash()))) continue;
+            Files.createDirectories(PROFILES);
+            Files.writeString(referenceRecord(scriptHash), txHash + "#" + index);
+            return;
+        }
+    }
+
+    /**
+     * Resolves a published reference script to its exact confirmed output.
+     *
+     * <p>Prefers the recorded {@code TxOutRef}, verifying that the output still exists and still
+     * carries the expected script. Falls back to a bounded scan of the holder address so a lost or
+     * stale manifest cannot strand an account, and rewrites the manifest when it does.
+     *
+     * @param script  compiled script that must be available as a reference
+     * @param sponsor fee-paying wallet whose holder address published it
+     * @return the unspent output carrying that reference script
+     */
+    private Optional<Utxo> findReference(PlutusV3Script script, String sponsor) throws Exception {
+        String scriptHash = hexUnchecked(script);
+        var record = referenceRecord(scriptHash);
+        if (Files.exists(record)) {
+            String[] parts = Files.readString(record).trim().split("#");
+            if (parts.length == 2) {
+                var found = backend.getUtxoService()
+                        .getTxOutput(parts[0], Integer.parseInt(parts[1]));
+                if (found.isSuccessful() && found.getValue() != null
+                        && scriptHash.equals(found.getValue().getReferenceScriptHash()))
+                    return Optional.of(found.getValue());
+            }
+        }
+        // Only reached for a missing or stale manifest. A query failure propagates rather than
+        // being reported as "absent": treating an outage as absence would pay to republish a
+        // script that already exists.
+        var rescanned = utxos(referenceHolder(sponsor)).stream()
+                .filter(u -> scriptHash.equals(u.getReferenceScriptHash()))
+                .findFirst();
+        if (rescanned.isEmpty()) return Optional.empty();
+        Files.createDirectories(PROFILES);
+        Files.writeString(referenceRecord(scriptHash),
+                rescanned.get().getTxHash() + "#" + rescanned.get().getOutputIndex());
+        return rescanned;
+    }
+
+    /**
+     * Resolves a published reference script, failing when it is genuinely unavailable.
+     *
+     * @param script  compiled script that must be available as a reference
+     * @param sponsor fee-paying wallet whose holder address published it
+     * @return the unspent output carrying that reference script
+     */
+    private Utxo reference(PlutusV3Script script, String sponsor) throws Exception {
+        return findReference(script, sponsor)
+                .orElseThrow(() -> new IllegalArgumentException(
+                        "Reference script " + hexUnchecked(script) + " is not published or not"
+                                + " confirmed yet. Republish references for this account, then"
+                                + " retry."));
+    }
+
+    /**
+     * Republishes any reference script this account needs that is not currently available.
+     *
+     * <p>This is the cheap repair for the liveness cost ADR-011 accepts: a reclaimed or otherwise
+     * missing publication makes transactions unbuildable but never endangers funds or authority,
+     * because the script bytes are public and republication is permissionless. Hashes are
+     * unchanged by republication, so the account's immutable bindings stay valid.
+     *
+     * @param state   authenticated current account state
+     * @param scripts script graph restored for this account
+     * @param sponsor fee-paying wallet that will hold the new publications
+     * @param locator account locator carried onto the plan
+     * @return a publication plan for the first missing script, chaining to the rest
+     */
+    private Plan republishReferences(
+            AccountState state, AccountDeployment.Scripts scripts, String sponsor, String locator)
+            throws Exception {
+        for (var script : referenceSet(scripts)) {
+            if (published(script, sponsor)) continue;
+            var p =
+                    plainPlan(
+                            "Republish reference script",
+                            sponsor,
+                            state.coreBinding().stateValidator(),
+                            script,
+                            null);
+            p.locator = locator;
+            p.next = () -> republishReferences(state, scripts, sponsor, locator);
+            return p;
+        }
+        throw new IllegalArgumentException(
+                "Every reference script for this account is already published and confirmed");
+    }
+
+    /**
+     * Reclaims the deposits locked in this account's reference publications.
+     *
+     * <p>ADR-011 makes these deposits recoverable by publishing them to a key-controlled holder
+     * instead of the sealed state validator. Reclaiming is an ordinary spend and touches no
+     * validator, no account state and no account-held value.
+     *
+     * <p>It does break transaction building for every account still using these scripts, until
+     * they are republished. A live account is therefore refused unless the caller explicitly
+     * forces it, because the common mistake is reclaiming from an account still in use.
+     *
+     * @param state   authenticated current account state
+     * @param scripts script graph restored for this account
+     * @param sponsor wallet that published the references and receives the refund
+     * @param locator account locator carried onto the plan
+     * @param force   proceed even though this account still holds its state NFT
+     * @return a plan spending every resolvable reference publication back to the sponsor
+     */
+    private Plan reclaimReferences(
+            AccountState state,
+            AccountDeployment.Scripts scripts,
+            String sponsor,
+            String locator,
+            boolean force)
+            throws Exception {
+        require(
+                force,
+                "This account is still live. Reclaiming its references blocks every further"
+                        + " transaction until they are republished. Confirm with force to proceed.");
+        var inputs = new ArrayList<Utxo>();
+        var reclaimed = BigInteger.ZERO;
+        for (var script : referenceSet(scripts)) {
+            if (!published(script, sponsor)) continue;
+            var input = reference(script, sponsor);
+            inputs.add(input);
+            reclaimed = reclaimed.add(lovelace(input));
+        }
+        require(!inputs.isEmpty(), "No reference publication for this account is available to reclaim");
+        var p =
+                new Plan(
+                        "Reclaim reference deposits",
+                        "Spend "
+                                + inputs.size()
+                                + " reference publication(s) back to this wallet, recovering "
+                                + ada(reclaimed)
+                                + " ADA.\nHeld at: "
+                                + referenceHolder(sponsor)
+                                + "\nEvery account using these scripts cannot transact until they"
+                                + " are republished. Republishing restores the identical hashes and"
+                                + " leaves account identity, funds and authority unchanged.");
+        p.locator = locator;
+        feePayer(p, sponsor);
+        var tx = new Tx().collectFrom(inputs).payToAddress(sponsor, Amount.lovelace(reclaimed));
+        p.transaction =
+                builder.compose(tx.from(sponsor))
+                        .feePayer(sponsor)
+                        .additionalSignersCount(1)
+                        .build();
+        // Manifests are cleared when the spend confirms, never while building a plan the signer
+        // may abandon. Deleting here would strand live publications behind a rescan.
+        p.reclaimedScripts = referenceSet(scripts).stream().map(DemoService::hexUnchecked).toList();
+        return finish(p);
+    }
+
+    /** The five core scripts every account publishes as references. */
+    private static List<PlutusV3Script> referenceSet(AccountDeployment.Scripts scripts) {
+        return List.of(
+                scripts.state(),
+                scripts.checkpoint(),
+                scripts.module(),
+                scripts.nft(),
+                scripts.asset());
+    }
+
+    /**
+     * Whether a reference script is already published and confirmed for this sponsor.
+     *
+     * @param script  compiled script to look for
+     * @param sponsor fee-paying wallet whose holder address would hold it
+     * @return true when the reference resolves, false when it must still be published
+     */
+    private boolean published(PlutusV3Script script, String sponsor) throws Exception {
+        return findReference(script, sponsor).isPresent();
     }
 
     /**
@@ -806,7 +1050,7 @@ final class DemoService {
      * make the same error. Treat DevKit acceptance, not this check, as evidence the formula is
      * right.
      *
-     * @param holder ent address of the sealed state validator that receives the reference output
+     * @param holder key-controlled address that receives the reference output
      * @param script compiled reference script, whose serialized size sets the minimum
      * @return minimum lovelace the ledger requires for that output
      */
@@ -1322,17 +1566,7 @@ final class DemoService {
                         "This authorization module has positive rewards. Use the receipt-aware SDK"
                                 + " flow; the demo currently supports zero-reward checkpoints only.");
             }
-        var available = utxos(holder);
-        for (var script : scripts)
-            tx.readFrom(
-                    available.stream()
-                            .filter(u -> hexUnchecked(script).equals(u.getReferenceScriptHash()))
-                            .findFirst()
-                            .orElseThrow(
-                                    () ->
-                                            new IllegalArgumentException(
-                                                    "Reference script is not confirmed yet; retry"
-                                                            + " after confirmation")));
+        for (var script : scripts) tx.readFrom(reference(script, sponsor));
         var parameters = backend.getEpochService().getProtocolParameters();
         require(parameters.isSuccessful(), "DevKit protocol parameters unavailable");
         var context =
@@ -1491,6 +1725,10 @@ final class DemoService {
                             result.isSuccessful(),
                             "Ledger rejected transaction: " + result.getResponse());
                     p.txHash = result.getValue();
+                    if (p.publishedScript != null)
+                        recordReference(p.publishedScript, tx, p.txHash);
+                    for (var reclaimed : p.reclaimedScripts)
+                        Files.deleteIfExists(referenceRecord(reclaimed));
                 }
                 case "advance" -> {
                     require(p.txHash != null && p.next != null, "No next setup step");
@@ -1708,6 +1946,20 @@ final class DemoService {
                         HexUtil.decodeHexString(value));
         require((a.getBytes()[0] & 15) == 0, "Use a testnet address");
         return a.toBech32();
+    }
+
+    /**
+     * Reads an optional address field, falling back to a default.
+     *
+     * @param body     request body
+     * @param field    optional field name
+     * @param fallback address used when the field is absent or blank
+     * @return a validated address
+     */
+    private static String optionalAddress(Map<String, Object> body, String field, String fallback) {
+        var value = body.get(field);
+        if (!(value instanceof String text) || text.isBlank()) return fallback;
+        return address(text);
     }
 
     private static byte[] payment(String address) {
