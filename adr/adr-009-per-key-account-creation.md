@@ -36,8 +36,11 @@ recovery and arbitrary module replacements cannot bypass activation.
 This is an explicitly reviewed creation sequence, not a silent upgrade. Both genesis and
 activation require wallet/phone approval. Ten confirmed steps publish five initial references,
 register checkpoints, initialize state, publish/register the final module and activate it.
-The sixth reference adds 80 ADA to the existing development reference deposits (480 ADA
-total), apart from account state, registration and transaction fees. The account's identity,
+The sixth reference adds its own deposit to the existing development reference deposits,
+apart from account state, registration and transaction fees. Each reference deposit was
+later reduced from a flat 80 ADA to the ledger minimum for that script's serialized size,
+which lowers the five core references from 400 ADA to about 220 ADA; the arrangement and
+its permanence are unchanged. The account's identity,
 asset address, keys and methods stay unchanged across activation. Creation is complete only
 after the final policy is confirmed. No automatic transaction signing or submission occurs.
 

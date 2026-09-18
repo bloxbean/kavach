@@ -81,7 +81,7 @@ no new physical-phone policy signing is claimed.
 
 See [ADR-009](../../adr/adr-009-per-key-account-creation.md) for the initialization/activation
 boundary and [the testing guide](testing.md) for the default UI flow. Ten-step mixed setup
-costs six reference deposits (480 ADA), versus five for legacy API creation. Before genesis,
+costs six reference deposits at their ledger minimums, versus five for legacy API creation. Before genesis,
 existing pending-plan persistence limitations still apply. Confirmed unfinished setup can
 resume, but lost deployment registry records must be recovered or independently reverified.
 The registration-history query fails closed beyond 10,000 indexed registrations in this demo.
