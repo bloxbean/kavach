@@ -2,6 +2,7 @@ import { useEffect, useRef, useState } from 'react';
 import { Check, Clock3, ArrowRight } from 'lucide-react';
 import { type Plan, ada } from './api';
 import { CompanionPanel } from './CompanionPanel';
+import { SetupEconomics } from './SetupEconomics';
 import { approvalPurpose, workflowStage, setupPhase, isFeePayerOnly, transactionRole } from './approvalWorkflow';
 
 type Device = 'wallet' | 'companion';
@@ -55,17 +56,18 @@ export function ApprovalWizard(p: Props) {
     {plan.setupTotal && <section className="workflow-setup">
       <div className="workflow-phases">{['Prepare account', 'Enroll keys', 'Activate account'].map((name, i) => <span key={name} aria-current={setupPhase(plan.setupStep || 1) === i ? 'step' : undefined}>{i + 1}. {name}</span>)}</div>
       <p>Transaction {plan.setupStep} of {plan.setupTotal} · {plan.title}</p>
-      <details><summary>Why multiple transactions?</summary><p>This development setup publishes six reference scripts, registers two authorization scripts, enrolls your keys and activates the final policy. Script size and deployment dependencies require separate transactions. Preparation needs the fee wallet; enrollment and activation also need your authority keys.</p></details>
+      <details><summary>Why multiple transactions?</summary><p>This development setup publishes reference scripts, registers authorization scripts and enrolls your keys. Mixed signing also activates the final policy. Script size and deployment dependencies require separate transactions. Preparation needs the fee wallet; enrollment and activation also need your authority keys.</p></details>
       <label className="checkbox-field"><input type="checkbox" checked={autoNext} onChange={e => { setAutoNext(e.target.checked); localStorage.setItem('kavach.prepareNextStep', String(e.target.checked)); }} />Prepare the next step after confirmation</label>
       <p className="field-note">Each new transaction still waits for your approval.</p>
     </section>}
-    <ol className="workflow-phases" aria-label="Transaction progress">{['Approve intent', fundingOnly ? 'Fee payer signing' : 'Wallet signatures', 'Confirm', 'Complete'].map((name, i) => <li key={name} aria-current={stage === i ? 'step' : undefined}>{i < stage ? '✓ ' : ''}{name}</li>)}</ol>
+    <ol className="workflow-phases" aria-label="Transaction progress">{['Approve intent', plan.reclamation ? 'Publisher signature' : fundingOnly ? 'Fee payer signing' : 'Wallet signatures', 'Confirm', 'Complete'].map((name, i) => <li key={name} aria-current={stage === i ? 'step' : undefined}>{i < stage ? '✓ ' : ''}{name}</li>)}</ol>
     {stage === 0 && <section className="workflow-card" aria-label="What you are approving">
       <h3>Approve → Fund → Confirm</h3>
       <p>Account keys approve this exact request. The fee wallet then signs the transaction, and the change takes effect after network confirmation.</p>
       {!fundingOnly && <p className="field-note">Transaction-based authority keys must also sign the transaction.</p>}
       {plan.title === 'Rotate keys' && <p className="field-note">Administrators approve the update; each key separately confirms its place in the new policy. Your account address stays the same.</p>}
     </section>}
+    <SetupEconomics plan={plan} />
     <details className="workflow-review" ><summary>Review request details · {plan.fee ? `${ada(plan.fee)} ADA fee` : 'fee calculated after approvals'}</summary><pre className="review-text">{plan.review}</pre></details>
     {authorities.length > 0 && <section className="approval-progress" aria-label="Account approval progress">
       <div className="approval-progress-heading">
@@ -89,7 +91,7 @@ export function ApprovalWizard(p: Props) {
     {plan.feePayer && stage < 2 && <section className="workflow-setup" aria-label="Fee payer">
       <strong>Fee payer · {stage === 0 ? 'signs after account approvals' : 'transaction funding'}</strong>
       <code className="workflow-key">{plan.feePayer.address}</code>
-      <p className="field-note">{fundingOnly ? 'Pays fees and provides collateral where required. This signature is separate from account approval.' : 'Funds the transaction. A transaction-based authority key may also serve as fee payer.'}</p>
+      <p className="field-note">{plan.reclamation ? 'Signs as the reference publisher and pays fees from separate funds. This grants no Kavach account authority.' : fundingOnly ? 'Pays fees and provides collateral where required. This signature is separate from account approval.' : 'Funds the transaction. A transaction-based authority key may also serve as fee payer.'}</p>
       <p className="field-note">To use a different sponsor, connect that wallet before preparing a new request.</p>
     </section>}
     {stage === 0 && proof && <>
@@ -111,7 +113,7 @@ export function ApprovalWizard(p: Props) {
     </>}
     {stage === 1 && <section className="workflow-card">
       <h3 ref={nextHeading} tabIndex={-1}>{plan.status === 'Ready' ? 'Ready to submit' : fundingOnly ? 'Fee payer: sign the transaction' : 'Collect remaining wallet signatures'}</h3>
-      <p>{plan.status === 'Ready' ? 'Account authorization and all required transaction signatures have been verified.' : fundingOnly ? 'Account intent approvals are complete. Switch to the fee-paying wallet shown above, review its funding and fees, then sign.' : `${remaining.length} wallet signature${remaining.length === 1 ? '' : 's'} remaining. Select a wallet account that owns a pending key. Yano can sign multiple keys from that account in one approval.`}</p>
+      <p>{plan.status === 'Ready' ? plan.reclamation ? 'The publisher signature for this exact reclamation transaction has been verified.' : 'Account authorization and all required transaction signatures have been verified.' : fundingOnly ? 'Account intent approvals are complete. Switch to the fee-paying wallet shown above, review its funding and fees, then sign.' : `${remaining.length} wallet signature${remaining.length === 1 ? '' : 's'} remaining. Select a wallet account that owns a pending key. Yano can sign multiple keys from that account in one approval.`}</p>
       {remaining.length > 0 && <div className="workflow-pending">{remaining.map(k => <p key={k}><strong>{signerLabel(k)}</strong> · Sign in your Cardano wallet<br /><code>{k}</code></p>)}</div>}
       <details><summary>All transaction signers</summary>{plan.requiredSigners.map(k => <p key={k}>{plan.approvals.includes(k) ? '✓ Signed' : 'Pending'} · <code>{k}</code></p>)}</details>
       {plan.status !== 'Ready' && <p>The button submits only when every required signature is present. Otherwise, switch wallet accounts and repeat.</p>}

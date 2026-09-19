@@ -766,6 +766,8 @@ The deployed JuLC wrappers, not just helper methods, must reject unsupported pur
 
 Publish redundant reference-script UTxOs under a verified always-fails spending script and retain the exact compiled bytes in reproducible release artifacts. Discover copies by expected script hash; do not freeze one reference UTxO into account identity. Test rebuilding after a reference becomes unavailable. When transaction-size limits permit, supplying the script as a normal witness is a fallback; otherwise republish a matching reference before submission. A spent reference may interrupt service but does not alone permanently brick accounts whose script bytes remain available. [CIP-33](https://cips.cardano.org/cip/CIP-0033) defines reference scripts as an alternative script source.
 
+[ADR-011](adr-011-economics-extensibility-and-wallet-safety.md) specifies a separate development-dashboard alternative: minimum-ADA references controlled by their publishing wallet, with retained exact bytes, funding-selection isolation and explicit republication. This reduces permanent capital locking but permits the publisher to interrupt availability. It does not make historical locked references or state reserves refundable, and publisher capital is outside account recovery. Its qualification is separate from this original permanently hosted reference strategy.
+
 If two checkpoints are impractical, retain direct core checks and a proven authorization path, even at higher cost. Do not collapse core invariants into an upgradeable module merely to save execution units.
 
 ---

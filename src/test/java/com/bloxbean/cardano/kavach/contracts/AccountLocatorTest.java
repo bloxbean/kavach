@@ -30,6 +30,18 @@ class AccountLocatorTest {
     AccountLocatorTest() throws Exception {
     }
 
+    @Test
+    void identityIsAvailableWithoutProviderAndCannotMutateLocatorBackup() {
+        String encoded = backup.backup();
+        var locator = AccountLocator.parse(encoded);
+        var identity = locator.accountId();
+        assertArrayEquals(f.state.accountId().policy(), identity.policy());
+        assertArrayEquals(f.state.accountId().name(), identity.name());
+        identity.policy()[0] ^= 1;
+        assertEquals(encoded, locator.backup());
+        assertArrayEquals(f.state.accountId().policy(), locator.accountId().policy());
+    }
+
     private Utxo output(AccountState state) throws Exception {
         return Utxo.builder().txHash("42".repeat(32)).outputIndex(3)
                 .address(AddressProvider.getEntAddress(f.stateScript, new Network(0, 42)).toBech32())

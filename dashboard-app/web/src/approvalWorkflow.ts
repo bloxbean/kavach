@@ -15,6 +15,7 @@ export function isFeePayerOnly(plan: Plan) {
 export function transactionRole(plan: Plan, hash: string) {
   const funding = plan.feePayer?.paymentKeyHash === hash;
   const authority = plan.transactionAuthoritySigners?.includes(hash);
+  if (plan.reclamation && funding) return 'Reference publisher + fee payer';
   if (funding && authority) return 'Fee payer + transaction-based account authority';
   if (funding) return 'Fee payer';
   if (authority) return 'Transaction-based account authority';

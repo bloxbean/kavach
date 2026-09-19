@@ -1,3 +1,5 @@
+import { referenceReclaim } from "./referenceReclaim";
+import { ReferenceAvailability } from "./ReferenceAvailability";
 import { ApprovalWizard } from "./ApprovalWizard";
 import { policiesAfterSignerRemoval } from "./signerPolicies";
 import { CreationSigners, emptyCreationSigners } from "./CreationSigners";
@@ -40,6 +42,7 @@ import {
   ada,
   short,
   type AccountView,
+  type ReferenceView,
   type Plan,
   type WalletApi,
 } from "./api";
@@ -48,6 +51,8 @@ type Page = "Overview" | "Activity" | "Security" | "Recovery";
 type Action =
   | "Create account"
   | "Finish account setup"
+  | "Repair reference"
+  | "Reclaim reference"
   | "Restore account"
   | "Send assets"
   | "Receive"
@@ -181,10 +186,13 @@ export default function App() {
     signing: string[];
   } | null>(null);
   const [plans, setPlans] = useState<Plan[]>([]);
+  const [reclaim, setReclaim] = useState<ReferenceView | null>(null);
+  const [reclaimAcknowledged, setReclaimAcknowledged] = useState(false);
   const [plan, setPlan] = useState<Plan | null>(null);
   const [form, setForm] = useState({
     locator: savedLocator,
     recipient: "",
+    scriptHash: "",
     amount: "",
     asset: "",
     quantity: "",
@@ -442,6 +450,7 @@ export default function App() {
     }
     const connected = await wallet();
     const sponsor = await connected.getChangeAddress();
+    const reclaimFields = modal === "Reclaim reference" ? referenceReclaim(reclaim, sponsor, reclaimAcknowledged) : {};
     const value = await api<Plan>("/plans", {
       ...form,
       smallMembers: form.smallMembers.split(",").map(v => v.trim()).filter(Boolean).map(Number),
@@ -452,7 +461,8 @@ export default function App() {
         coseIds: creationSigners.flatMap((k, id) => k.method === "2" ? [id] : []),
       } : {}),
       policies,
-      action: modal,
+      ...reclaimFields,
+      action: modal === "Repair reference" ? "repair-reference" : modal === "Reclaim reference" ? "reclaim-reference" : modal,
       locator: account?.locator || form.locator,
       sponsor,
     });
@@ -528,6 +538,8 @@ export default function App() {
     setNotice("Copied to clipboard.");
   };
   const open = (action: Action) => {
+    setReclaim(null);
+    setReclaimAcknowledged(false);
     const role = (
       {
         "Send assets": "Spend",
@@ -1064,6 +1076,7 @@ export default function App() {
                 <h2>Shared periodic ADA budget</h2>
                 {account.budget?.enabled ? <><p>{ada(account.budget.remaining || "0")} ADA remaining of {ada(account.budget.limit || "0")} ADA {account.budget.period}.</p><p>Resets {new Date(Number(account.budget.resetsAt)).toISOString().replace("T", " ").replace(".000Z", " UTC")}. Budgeted spends share one counter.</p></> : <p>Disabled. Enable it through the budget-aware module; ordinary spending remains concurrent.</p>}
               </div><button className="button" disabled={!isNormal} onClick={() => { open(account.signingMode === 4 ? "Rotate keys" : "Replace module"); update("mode", "4"); }}>Configure budget</button></section>}
+              {account?.references && <ReferenceAvailability references={account.references} busy={busy} onRepair={scriptHash => { open("Repair reference"); update("scriptHash", scriptHash); }} onReclaim={reference => { open("Reclaim reference"); setReclaim(reference); }} />}
               <section className="action-panel">
                 <div>
                   <h2>Change your keys. Keep your account.</h2>
@@ -1518,7 +1531,9 @@ export default function App() {
                   <h3>Your signing setup</h3>
                   {creationSigners.map((key, id) => <p key={id}>Key {id}: {key.source === "companion" ? "iPhone Companion" : "Cardano wallet"} · {key.method === "2" ? "COSE" : "Transaction signature"}</p>)}
                   <p>All keys prove possession and your admin signers approve activation. COSE keys authorize intents; a separate fee-paying wallet signs each transaction. Advanced transaction-witness keys also authorize through that transaction.</p>
-                  <p>DevKit setup locks 480 ADA in six reference scripts, plus 12 ADA in account state, registration deposits and fees. Spending remains blocked until activation; an unfinished confirmed account can resume setup after refresh or backend restart.</p>
+                  <p>Review the complete funding estimate before publishing: reference capital is held at a separate publisher-controlled script address; the account state reserve stays permanently locked. Registration withdrawals are unsupported. Fees are separate and collateral is reserved, not charged for a successful transaction.</p>
+                  <p>Explicitly reclaiming an active reference can interrupt account operations until an identical script is republished. New vault outputs are isolated from ordinary wallet coin selection. Kavach recovery does not recover a lost publisher wallet key. Historical locked references remain locked.</p>
+                  <p>Keep this backend running until genesis confirms. Pre-genesis progress is not restart-safe; paid fees and published capital remain if setup stops. Spending stays blocked until activation. After genesis, save the locator; an unfinished confirmed account can resume activation.</p>
                 </section>
               </>
             ) : modal === "Send assets" ? (
@@ -1610,19 +1625,37 @@ export default function App() {
                 )}
                 <p className="field-note">
                   Network fees come from your connected wallet. Every remaining
-                  asset stays in Kavach. The dashboard handles up to 16 ordinary
-                  account outputs.
+                  asset stays in Kavach. Ordinary payments and consolidation support
+                  at most 8 account inputs per transaction. If your balance is fragmented,
+                  use a separately qualified SDK batch workflow; this dashboard does not
+                  automatically split a payment. Send all assets is also bounded and is
+                  not a guaranteed rescue for oversized native-asset deposits.
                 </p>
               </>
             ) : (
               <>
                 <p>
-                  {modal === "Freeze account"
+                  {modal === "Reclaim reference"
+                    ? "Reclaim one selected publisher-vault output. Connect its publisher wallet. This returns hosted capital and does not change account authority. Fees and collateral come from separate plain wallet funds."
+                    : modal === "Repair reference"
+                    ? "Publish an identical missing script using the connected fee wallet. This does not change the account address or authority. Review capital and fees before signing; then refresh your account and prepare a fresh operation."
+                    : modal === "Freeze account"
                     ? "Once confirmed, ordinary spending is disabled. Your independent unfreeze authority can restore access."
                     : modal === "Cancel recovery"
                       ? "Cancellation leaves the account frozen. Unfreezing requires its independent authority."
                       : "The current policy determines which authorities must approve this action."}
                 </p>
+                {modal === "Reclaim reference" && reclaim && <section className="workflow-setup" aria-label="Confirm reference removal">
+                  <p>Selected output: <code className="workflow-key">{reclaim.transactionHash}#{reclaim.outputIndex}</code></p>
+                  <p>Hosted script: <code className="workflow-key">{reclaim.scriptHash}</code></p>
+                  <p>Vault: <code className="workflow-key">{reclaim.hostingAddress}</code></p>
+                  <p>Publisher: <code className="workflow-key">{reclaim.publisherAddress}</code></p>
+                  {reclaim.capital && <p>Capital to return: {ada(reclaim.capital)} ADA. Review the exact return destination and final fee in the next step.</p>}
+                  <p>{reclaim.activeRequired === false ? "This is an optional genesis-only copy; supported post-genesis operations do not require it. Keep its exact script bytes backed up." : "Removing this active reference may stop account operations until an identical script is republished. Other copies may also become unavailable."}</p>
+                  <p>Account recovery does not restore the publisher wallet key. Nothing is republished automatically.</p>
+                  <label className="checkbox-field"><input type="checkbox" checked={reclaimAcknowledged} onChange={e => setReclaimAcknowledged(e.target.checked)} /><span>I understand this removes the selected reference copy and that removing an active copy may stop account operations.</span></label>
+                </section>}
+                {modal === "Repair reference" && <p>Expected script: <code className="workflow-key">{form.scriptHash}</code></p>}
                 {["Rotate keys", "Start recovery"].includes(modal || "") && (
                   <label>
                     Target authority public keys
@@ -1737,7 +1770,8 @@ export default function App() {
                 className="button primary"
                 disabled={
                   busy ||
-                  (modal !== "Restore account" && !connector.isConnected)
+                  (modal !== "Restore account" && !connector.isConnected) ||
+                  (modal === "Reclaim reference" && !reclaimAcknowledged)
                 }
               >
                 {busy ? (

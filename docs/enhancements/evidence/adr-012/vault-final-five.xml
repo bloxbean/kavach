@@ -1,0 +1,60 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<testsuite name="com.bloxbean.cardano.kavach.demo.DemoServiceDevkitTest" tests="5" skipped="0" failures="0" errors="0" timestamp="2026-09-19T00:43:55.895Z" hostname="MacBook-Pro-3.local" time="233.352">
+  <properties/>
+  <testcase name="[1] 0" classname="com.bloxbean.cardano.kavach.demo.DemoServiceDevkitTest" time="59.322"/>
+  <testcase name="[2] 1" classname="com.bloxbean.cardano.kavach.demo.DemoServiceDevkitTest" time="55.686"/>
+  <testcase name="[3] 3" classname="com.bloxbean.cardano.kavach.demo.DemoServiceDevkitTest" time="59.77"/>
+  <testcase name="unaffordableSetupRejectsBeforeAnyPublication()" classname="com.bloxbean.cardano.kavach.demo.DemoServiceDevkitTest" time="5.968"/>
+  <testcase name="publisherReferenceRemovalRestartAndIndependentSponsorRepair()" classname="com.bloxbean.cardano.kavach.demo.DemoServiceDevkitTest" time="52.581"/>
+  <system-out><![CDATA[Create account · publish script 1 of 5 confirmed candidate b7a0d411009cc33a7a4769c4fc63ac9520fbaad61455dc4a2f6925f957eca9a8
+Create account · publish script 2 of 5 confirmed candidate b7e7df81faea2ca148b656b347df2b39f2977ad18b009f5c1715573afca83233
+Create account · publish script 3 of 5 confirmed candidate bb129fcd23c313d796047406bc65bee6c72944db3536f4fede6c449a8aca0b90
+Create account · publish script 4 of 5 confirmed candidate b1ae324cf82b8c50afc00acf7f7b86d1848bbfff522897ed755ad0f55c75e9e8
+Create account · publish script 5 of 5 confirmed candidate 839717af38fff2cd691fcb5b20c00d6a70ee51016b7c7bf8f231fcc636006602
+Register authorization checkpoints confirmed candidate dbe668a00bc11c55b000f85cf7eed8ad55551df5739b194d69c7ffd4e0ee9783
+Create account · approve genesis confirmed candidate d08c878df987e2bf16a2d93f423fb86ea1727faf99ee8b2be73902e9bb8e9617
+Create account · publish final signing module confirmed candidate 0ca449eb9e4436d1781e9bf81624f80fe1ea1f2f154cfd590e2bf69688a60417
+Register authorization checkpoints confirmed candidate a1fb0d620f3d0e409f0d96873ddb405439048d2ccfcdf6d86571d0cae21338aa
+Create account · activate selected signing methods confirmed candidate 45fe52d7be74bc7227a9c0be428f0ad053d0f98cafd7c4ee23f39d87802340f9
+Send assets confirmed candidate 474957262ff3ebaa9f2b2382f28b98618b31a5fe4a49a8733b48f36de0d0cb6e
+Send assets confirmed candidate 1fc66cf7ed4163073e5606cbc360d70a7d603145511ee08aebf29c611c2313da
+Create account · publish script 1 of 5 confirmed candidate f05904362e71939c86aeec2bb783b8f5b683760572f4671316eed81fef812df7
+Create account · publish script 2 of 5 confirmed candidate 9e05da785fc4fb21f47180332a047f75b0a362bfd48c38a9c886cd57259c21fa
+Create account · publish script 3 of 5 confirmed candidate 0968eb17422e0f49ef2dc6186ad9ff8f205164489bd2f3a404e5a4c8a2c70eeb
+Create account · publish script 4 of 5 confirmed candidate 72f0c613cb2ab06d2e95078fc463c3e7d070ce54e99bc22a9bf4c058ee30aaac
+Create account · publish script 5 of 5 confirmed candidate 7133792f7a0417b7c9c78e51b527a70ff1adbfcd460311de80ed10157e7bd522
+Register authorization checkpoints confirmed candidate 99366b160c0b2e7b7c9b945f371f893d56d402e13acd3a59678d3b2cc2d6f851
+Create account · approve genesis confirmed candidate 38d37a5049aafba42d03515027f9fa76ce51c0809cb3d8b9528c35d91e037862
+Create account · publish final signing module confirmed candidate 23afe5f631d5ce53db90d254c0cfaf124d5382d7296cef16b7f23d7eb078e6b7
+Register authorization checkpoints confirmed candidate e90cf40d453cf9c233fff3ebefb97365cddfe2e03f8367113dc7a657378645b7
+Create account · activate selected signing methods confirmed candidate 591e7493b9efe331e345b772cbe88584b407a4bdc96b190cfb04bf0955c5074b
+Send assets confirmed candidate 5888d8095c53f6e792eeafb7ce69aa823593638f884b893184b08c5e96e77a6a
+Send assets confirmed candidate edcd90c87b530250d3948aadf35877de03201d13ed8427a94281ba5abe22a6cc
+Create account · publish script 1 of 5 confirmed candidate 8e62359c643e2a6d24dce4d9a92edfd9f5b5b2204e0103f87b95039b9055e793
+Create account · publish script 2 of 5 confirmed candidate 23a2bde005e22bdfce7e1b24f96e9e0d9fddb855bc1f72a4f7fc426ee8e7b8d1
+Create account · publish script 3 of 5 confirmed candidate 09e2e07205fb25b67001396a6c04d06888e93e0e9089d78aaeaef4e9d6ebb37d
+Create account · publish script 4 of 5 confirmed candidate 4b9d83a62bd87a46d47c155257ba163f35ad02b024fce611971e6002a5d891da
+Create account · publish script 5 of 5 confirmed candidate aa5ad84f724d1c7c6d557b417085c21c81706199307e868a554efd8144eb0e43
+Register authorization checkpoints confirmed candidate c5177839d301dae21b8fceb63e1ce5f363478ed0a8bae68273d9c36eb7622992
+Create account · approve genesis confirmed candidate a28fe3a5cd3f14d86c919f0869ed40474af2dd4c7d7bd64c89879efab3e42b1c
+Create account · publish final signing module confirmed candidate 3e2cab77b560aeaab320ecc1d38d6069c158513fe25feafc496a0487f3f229ee
+Register authorization checkpoints confirmed candidate 217e2dea2a1562e7cdf01b84d74592a99f3eb78e50ba550ce69d91299609d790
+Create account · activate selected signing methods confirmed candidate b59b9ed554f4da88be6f59283067ac4c134641d9db9610b5f2aed5aaecea5630
+Send assets confirmed candidate c15631e5e7e618e86a2d69773b6a3284b74696a7765103815655ec599b30748b
+Send assets confirmed candidate 41b67f2ed993ca96caa601eacccee8a86f522d940a71aec5299ebf84c1614d29
+Create account · publish script 1 of 5 confirmed candidate 7027bd36077d32e1cb9c7b1c0d78c414c5ec3d25ea9956a0c77083a49410c07b
+Create account · publish script 2 of 5 confirmed candidate 7099223dd7180c940270c5339537ca3db66a65bf8b3e807101d51a4386820eda
+Create account · publish script 3 of 5 confirmed candidate 3575130a77540efbb28f405058b9399b1df866c48c9955e20f7f30586d9f2e87
+Create account · publish script 4 of 5 confirmed candidate 96fa986696d028f0e9eff24fad9c1655b3d1681071b2a6f6d3addbca169e68b3
+Create account · publish script 5 of 5 confirmed candidate 3ce75dbaa4f2706eb260eaa15b84b29bffeeb70249acf41e36cb590a1580c25c
+Register authorization checkpoints confirmed candidate 7c27af196f40cddd67352a7e7b3690ac54c93e82dfe2b87d67ecbad68ada45bb
+Create account · approve genesis confirmed candidate d60b0997ebc615ede696e5fa196c69f5302889bb97677991bd63aa3ef5a7f022
+Reclaim reference capital confirmed candidate 4640d187f6bae82d94bdbda7baedee7acb112aa4eac5317edbcbd78ff37f0cd4
+Repair reference availability confirmed candidate a6a2437bb320868d8d7ad561b118626f53d9ddddc7a121544147c106b06ae74b
+Send assets confirmed candidate 1261687f611d5cc8da3e79dd1c059bf5f89a3c82efc6057327233328d128fe5c
+]]></system-out>
+  <system-err><![CDATA[SLF4J(W): No SLF4J providers were found.
+SLF4J(W): Defaulting to no-operation (NOP) logger implementation
+SLF4J(W): See https://www.slf4j.org/codes.html#noProviders for further details.
+]]></system-err>
+</testsuite>

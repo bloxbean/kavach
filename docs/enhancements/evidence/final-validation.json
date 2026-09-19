@@ -1,0 +1,44 @@
+{
+  "date": "2026-09-19",
+  "scope": "Development qualification, synthetic browser signatures and external Yaci DevKit; not an independent audit or real-delay recovery completion",
+  "local": {
+    "rootTests": 561,
+    "backendTests": 8,
+    "toolchainAcceptance": 1,
+    "frontendTests": 19,
+    "gradleCheck": "passed",
+    "dashboardWebBuild": "passed"
+  },
+  "liveDashboard": [
+    {
+      "file": "mixed-final-test-results.xml",
+      "tests": "3",
+      "failures": "0",
+      "errors": "0",
+      "skipped": "0",
+      "time": "168.912",
+      "cases": [
+        "[1] 0",
+        "[2] 1",
+        "[3] 3"
+      ]
+    },
+    {
+      "file": "dashboard-final-test-results.xml",
+      "tests": "5",
+      "failures": "0",
+      "errors": "0",
+      "skipped": "0",
+      "time": "387.174",
+      "cases": [
+        "unaffordableSetupRejectsBeforeAnyPublication()",
+        "publisherReferenceRemovalRestartAndIndependentSponsorRepair()",
+        "periodicBudgetFullFlow()",
+        "[1] 1",
+        "[2] 2"
+      ]
+    }
+  ],
+  "ordinaryTransferBenchmark": "ordinary-transfer-baseline.json",
+  "historicalFailures": "Failed intermediate attempts preserved under build/enhancements/adr-011; corrected final runs only counted above"
+}

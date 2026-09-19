@@ -1511,3 +1511,8 @@ dialog .creation-summary p { margin: 8px 0 0; }
   .approval-member { padding: 9px; gap: 8px; }
   .approval-member-label { flex-direction: column; gap: 2px; }
 }
+
+.economics-breakdown { display: grid; grid-template-columns: minmax(0, 1fr) auto; gap: 10px 20px; }
+.economics-breakdown dt, .economics-breakdown dd { margin: 0; }
+.economics-breakdown dd { text-align: right; font-variant-numeric: tabular-nums; }
+@media (max-width: 540px) { .economics-breakdown { grid-template-columns: 1fr; gap: 6px; } .economics-breakdown dd { text-align: left; margin-bottom: 10px; } }

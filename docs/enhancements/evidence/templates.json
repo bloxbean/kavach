@@ -1,0 +1,47 @@
+{
+  "scope": "Unmodified current template bytes; applied deployment hashes vary by parameters; not production qualification",
+  "julc": "0.1.0-pre17-6754861-SNAPSHOT",
+  "ccl": "0.8.0-pre5",
+  "scripts": {
+    "AccountStateValidator": {
+      "cborBytes": 7883,
+      "sha256": "86586a8000543911e521e321fbddbd757d4059a0777368a17ee479aef676a322"
+    },
+    "AccountAssetValidator": {
+      "cborBytes": 10559,
+      "sha256": "50316d70d5a34c4851a3df3f3a68780ff7bb0ce5e774007c6ff080c738df788b"
+    },
+    "CoreCheckpoint": {
+      "cborBytes": 10484,
+      "sha256": "3fa02da4c672480e7b2a1ec05dd22ab8e8af9152978733c831ecac21d9fd66a1"
+    },
+    "StateNftPolicy": {
+      "cborBytes": 5701,
+      "sha256": "dae8b49dc81f67d0ecd05b1b37b688ab67458f096d98c3806dfe2572e26f1a56"
+    },
+    "Ed25519Module": {
+      "cborBytes": 14595,
+      "sha256": "a0710782cfe4aa6e9e89e5484e5f15854aebce06c2bd4fbe22a66c90676107dc"
+    },
+    "BrowserModule": {
+      "cborBytes": 15383,
+      "sha256": "11819b563d73f38fede0e620234044a34f45897e92e956e637a17139719d420a"
+    },
+    "PolicyModule": {
+      "cborBytes": 15495,
+      "sha256": "202c51d4d12258be40e79da75c998be7ecab95af5e35acb89aac6838f4317f94"
+    },
+    "MixedSetupModule": {
+      "cborBytes": 12677,
+      "sha256": "eeb7d1ffd0b2b33bb1a3b3848746048c89cf7d553b6370b8ab08564870ba77cb"
+    },
+    "BudgetAccountAssetValidator": {
+      "cborBytes": 14504,
+      "sha256": "05c0989a40e28f39f74c3a35d06da87a5b2aab66d0230030c15740d7c5f44e70"
+    },
+    "BudgetPolicyModule": {
+      "cborBytes": 15833,
+      "sha256": "8aab1150002a7b599b64f6586875efb4d2781ba26fb3c4917ce96acf280b3574"
+    }
+  }
+}

@@ -9,6 +9,8 @@ import java.security.interfaces.EdECPrivateKey;
 import co.nstant.in.cbor.CborEncoder;
 
 import com.bloxbean.cardano.client.account.Account;
+import com.bloxbean.cardano.kavach.sdk.AccountLocator;
+import com.bloxbean.cardano.client.api.common.OrderEnum;
 import com.bloxbean.cardano.client.address.Address;
 import com.bloxbean.cardano.client.api.model.Amount;
 import com.bloxbean.cardano.client.backend.blockfrost.service.BFBackendService;
@@ -67,6 +69,133 @@ class DemoServiceDevkitTest {
     private final Map<String, KeyPair> authorities = new HashMap<>();
     private final BFBackendService backend =
             new BFBackendService("http://localhost:8080/api/v1/", "devkit");
+
+    @Test
+    void publisherReferenceRemovalRestartAndIndependentSponsorRepair() throws Exception {
+        topUp(500); topUp(20); topUp(20);
+        Thread.sleep(2000);
+        var request = new HashMap<String, Object>();
+        request.put("action", "Create account");
+        request.put("keys", newKeys());
+        request.put("mode", "2");
+        request.put("sponsor", sponsor.baseAddress());
+        var plan = map(service.prepare(request));
+        var costs = map(plan.get("costs"));
+        assertEquals(5, costs.get("referenceCount"));
+        assertTrue(new BigInteger((String) costs.get("referenceCapital")).compareTo(BigInteger.valueOf(400_000_000)) < 0);
+        assertTrue(new BigInteger((String) costs.get("stateReserve")).compareTo(BigInteger.valueOf(12_000_000)) < 0);
+        String locator = (String) plan.get("locator");
+        while (true) {
+            if (plan.containsKey("publication")) {
+                var publication = map(plan.get("publication"));
+                var tx = Transaction.deserialize(HexUtil.decodeHexString((String) plan.get("transaction")));
+                var hosted = tx.getBody().getOutputs().stream().filter(o -> o.getScriptRef() != null).findFirst().orElseThrow();
+                assertEquals(publication.get("hostingAddress"), hosted.getAddress());
+                assertNotEquals(sponsor.baseAddress(), hosted.getAddress());
+                assertEquals(new BigInteger((String) publication.get("capital")), hosted.getValue().getCoin());
+            }
+            plan = execute(plan);
+            if (Integer.valueOf(1).equals(plan.get("setupStep"))) {
+                var publication = map(plan.get("publication"));
+                var published = Transaction.deserialize(HexUtil.decodeHexString((String) plan.get("transaction")));
+                int index = IntStream.range(0, published.getBody().getOutputs().size())
+                        .filter(i -> published.getBody().getOutputs().get(i).getScriptRef() != null).findFirst().orElseThrow();
+                // Preparation must work before the account state NFT exists. Do not reclaim this setup's input.
+                var orphanReview = map(service.prepare(Map.of("action", "reclaim-reference", "locator", locator,
+                        "sponsor", sponsor.baseAddress(), "transactionHash", plan.get("txHash"), "outputIndex", index,
+                        "scriptHash", publication.get("scriptHash"), "acknowledge", true)));
+                assertTrue(orphanReview.containsKey("reclamation"));
+            }
+            if (!Boolean.TRUE.equals(plan.get("canAdvance"))) break;
+            plan = map(service.update((String) plan.get("id"), "advance", Map.of()));
+        }
+        var before = map(service.restore(locator));
+        String accountAddress = (String) before.get("address");
+        var state = AccountLocator.parse(locator)
+                .restore(AccountLocator.provider(backend)).state();
+        String assetHash = HexUtil.encodeHexString(state.coreBinding().assetValidator());
+        var refView = ((List<?>) before.get("references")).stream().map(DemoServiceDevkitTest::map)
+                .filter(r -> assetHash.equals(r.get("scriptHash"))).findFirst().orElseThrow();
+        assertEquals("vault", refView.get("hosting"));
+        var reclaimRequest = new HashMap<String, Object>(Map.of("action", "reclaim-reference", "locator", locator,
+                "sponsor", sponsor.baseAddress(), "transactionHash", refView.get("transactionHash"),
+                "outputIndex", refView.get("outputIndex"), "scriptHash", assetHash, "acknowledge", true));
+        var outsider = new Account(new Network(0, 42));
+        reclaimRequest.put("sponsor", outsider.baseAddress());
+        assertTrue(assertThrows(IllegalArgumentException.class, () -> service.prepare(reclaimRequest)).getMessage().contains("not this vault's publisher"));
+        reclaimRequest.put("sponsor", sponsor.baseAddress());
+        reclaimRequest.put("acknowledge", false);
+        assertThrows(IllegalArgumentException.class, () -> service.prepare(reclaimRequest));
+        reclaimRequest.put("acknowledge", true);
+        reclaimRequest.put("scriptHash", "00".repeat(28));
+        assertThrows(IllegalArgumentException.class, () -> service.prepare(reclaimRequest));
+        reclaimRequest.put("scriptHash", assetHash);
+        reclaimRequest.put("outputIndex", Integer.MAX_VALUE);
+        assertThrows(IllegalArgumentException.class, () -> service.prepare(reclaimRequest));
+        reclaimRequest.put("outputIndex", refView.get("outputIndex"));
+        var reclaim = map(service.prepare(reclaimRequest));
+        var reclaimTx = Transaction.deserialize(HexUtil.decodeHexString((String) reclaim.get("transaction")));
+        // The node must reject an otherwise complete body without the configured publisher witness.
+        var missingOwner = Transaction.deserialize(reclaimTx.serialize());
+        missingOwner.getBody().setRequiredSigners(List.of(new Address(outsider.baseAddress()).getPaymentCredentialHash().orElseThrow()));
+        var rejectedScript = backend.getTransactionService().evaluateTx(missingOwner.serialize());
+        assertFalse(rejectedScript.isSuccessful(), "Vault must reject a context whose required signer is another publisher");
+        assertTrue(rejectedScript.getResponse().contains("EvaluationFailure") && rejectedScript.getResponse().contains("spent budget"), rejectedScript.getResponse());
+        var wrongPublisher = outsider.sign(Transaction.deserialize(reclaimTx.serialize()));
+        var rejected = backend.getTransactionService().submitTransaction(wrongPublisher.serialize());
+        assertFalse(rejected.isSuccessful(), "Wrong publisher must not reclaim a vault output");
+        assertTrue(rejected.getResponse().contains("MissingVKeyWitnesses"), rejected.getResponse());
+        var reclaimed = execute(reclaim);
+        var exactScript = new ReferenceHosting(Path.of("dashboard-app/backend/data/profiles/references"))
+                .script(assetHash).orElseThrow();
+        var feeBreakdown = ReferenceVaultFeeEvidence.analyze(sponsor.sign(Transaction.deserialize(reclaimTx.serialize())),
+                backend.getEpochService().getProtocolParameters().getValue(), List.of(exactScript));
+        assertEquals(BigInteger.ZERO, feeBreakdown.get("paidMinusCalculatedLovelace"));
+        assertTrue(reclaimTx.getBody().getReferenceInputs() == null || reclaimTx.getBody().getReferenceInputs().isEmpty());
+        assertEquals(new BigInteger((String) refView.get("capital")), reclaimTx.getBody().getOutputs().getFirst().getValue().getCoin());
+        assertEquals(sponsor.baseAddress(), reclaimTx.getBody().getOutputs().getFirst().getAddress());
+        assertThrows(IllegalArgumentException.class, () -> service.prepare(reclaimRequest));
+        var funding = fundingBuilder().compose(new Tx().payToAddress(accountAddress, Amount.ada(10)).from(sponsor.baseAddress()))
+                .withSigner(SignerProviders.signerFrom(sponsor)).complete();
+        assertTrue(funding.isSuccessful(), funding.toString());
+        await(funding.getValue());
+        service = new DemoService();
+        var unavailable = map(service.restore(locator));
+        assertTrue(((List<?>) unavailable.get("references")).stream().map(DemoServiceDevkitTest::map)
+                .anyMatch(r -> assetHash.equals(r.get("scriptHash")) && Boolean.FALSE.equals(r.get("available"))));
+        var replacement = new Account(new Network(0, 42));
+        topUp(replacement, 120); topUp(replacement, 20);
+        Thread.sleep(2000);
+        var repair = map(service.prepare(Map.of("action", "repair-reference", "locator", locator,
+                "scriptHash", assetHash, "sponsor", replacement.baseAddress())));
+        assertTrue(((List<?>) repair.get("payloads")).isEmpty());
+        execute(repair, replacement);
+        assertEquals(accountAddress, map(service.restore(locator)).get("address"));
+        var transfer = map(service.prepare(Map.of("action", "Send assets", "locator", locator,
+                "sponsor", replacement.baseAddress(), "recipient", sponsor.baseAddress(), "amount", "2")));
+        var completed = execute(transfer, replacement);
+        var evidence = Path.of(System.getProperty("kavach.dashboardEvidenceDirectory", "build/enhancements/adr-012"), "reference-vault.json");
+        Files.createDirectories(evidence.getParent());
+        new ObjectMapper().writeValue(evidence.toFile(), Map.of("account", accountAddress, "repairedScript", assetHash,
+                "publisher", replacement.baseAddress(), "transfer", completed.get("txHash"),
+                "paidTransferFeeLovelace", completed.get("fee"), "paidReclaimFeeLovelace", reclaimed.get("fee"), "costs", costs,
+                "reclamation", Map.of("review", reclaim.get("reclamation"), "feeBreakdown", feeBreakdown, "wrongWitnessLedgerRejection", rejected.getResponse(), "wrongPublisherEvaluationRejection", rejectedScript.getResponse()),
+                "scope", "Disposable DevKit reference custody/repair and same-address transfer; not a production qualification"));
+    }
+
+    @Test
+    void unaffordableSetupRejectsBeforeAnyPublication() throws Exception {
+        topUp(40); topUp(10); topUp(5);
+        Thread.sleep(2000);
+        var request = Map.<String, Object>of("action", "Create account", "keys", newKeys(),
+                "mode", "2", "sponsor", sponsor.baseAddress());
+        var failure = assertThrows(IllegalArgumentException.class, () -> service.prepare(request));
+        assertTrue(failure.getMessage().startsWith("Insufficient setup funding:"), failure.getMessage());
+        var outputs = backend.getUtxoService().getUtxos(sponsor.baseAddress(), 100, 1,
+                OrderEnum.asc).getValue();
+        assertEquals(3, outputs.size());
+        assertTrue(outputs.stream().allMatch(u -> u.getReferenceScriptHash() == null));
+    }
 
     @Test
     void creationSignerBoundsRejectBeforeFunding() throws Exception {
@@ -145,7 +274,7 @@ class DemoServiceDevkitTest {
         assertEquals(false, account.get("setupPending"));
         assertEquals(3, account.get("signingMode"));
         assertEquals(true, account.get("budgetCore"));
-        var funding = new QuickTxBuilder(backend).compose(new Tx().payToAddress((String) account.get("address"), Amount.ada(40)).from(sponsor.baseAddress()))
+        var funding = fundingBuilder().compose(new Tx().payToAddress((String) account.get("address"), Amount.ada(40)).from(sponsor.baseAddress()))
                 .feePayer(sponsor.baseAddress()).withSigner(SignerProviders.signerFrom(sponsor)).completeAndWait();
         assertTrue(funding.isSuccessful(), funding.toString());
         request.put("action", "Send assets");
@@ -167,7 +296,7 @@ class DemoServiceDevkitTest {
             assertEquals(oldAddress, updated.get("address"));
             assertEquals("30000000", updated.get("smallPaymentLimit"));
             for (var key : (List<?>) updated.get("keys")) assertEquals(2, map(key).get("method"));
-            var more = new QuickTxBuilder(backend).compose(new Tx().payToAddress((String) oldAddress, Amount.ada(60)).from(sponsor.baseAddress()))
+            var more = fundingBuilder().compose(new Tx().payToAddress((String) oldAddress, Amount.ada(60)).from(sponsor.baseAddress()))
                     .feePayer(sponsor.baseAddress()).withSigner(SignerProviders.signerFrom(sponsor)).completeAndWait();
             assertTrue(more.isSuccessful(), more.toString());
             request.put("action", "Send assets");
@@ -242,7 +371,7 @@ class DemoServiceDevkitTest {
         }
         var account = map(service.restore(locator));
         assertEquals(profile, account.get("signingMode"));
-        var funding = new QuickTxBuilder(backend).compose(new Tx().payToAddress(
+        var funding = fundingBuilder().compose(new Tx().payToAddress(
                         (String) account.get("address"), Amount.ada(80)).from(sponsor.baseAddress())).feePayer(sponsor.baseAddress())
                 .withSigner(SignerProviders.signerFrom(sponsor)).completeAndWait();
         assertTrue(funding.isSuccessful(), funding.toString());
@@ -299,7 +428,7 @@ class DemoServiceDevkitTest {
             assertEquals("20000000", weekly.get("spent"));
             assertEquals("25000000", map(service.restore(locator)).get("balance"));
             // Two different account inputs still contend on the same shared counter.
-            var extra = new QuickTxBuilder(backend).compose(new Tx().payToAddress(
+            var extra = fundingBuilder().compose(new Tx().payToAddress(
                             (String) account.get("address"), Amount.ada(5)).from(sponsor.baseAddress()))
                     .withSigner(SignerProviders.signerFrom(sponsor)).completeAndWait();
             assertTrue(extra.isSuccessful(), extra.toString());
@@ -357,7 +486,7 @@ class DemoServiceDevkitTest {
                 tokenPolicy.getPolicyId()
                         + HexUtil.encodeHexString("KavachDemo".getBytes(StandardCharsets.UTF_8));
         var funding =
-                new QuickTxBuilder(backend)
+                fundingBuilder()
                         .compose(
                                 new Tx()
                                         .mintAssets(
@@ -457,6 +586,10 @@ class DemoServiceDevkitTest {
     }
 
     private Map<String, Object> execute(Map<String, Object> plan) throws Exception {
+        return execute(plan, sponsor);
+    }
+
+    private Map<String, Object> execute(Map<String, Object> plan, Account feeAccount) throws Exception {
         String id = (String) plan.get("id");
         while (plan.get("transaction") == null) {
             var requests = (List<?>) plan.get("payloads");
@@ -481,7 +614,7 @@ class DemoServiceDevkitTest {
                 var envelope = map(exported.get("request"));
                 var body = new ObjectMapper().readTree(Base64.getDecoder().decode((String) envelope.get("body")));
                 if (captureMixedCreation) {
-                    var evidence = Path.of("build/mixed-creation/companion");
+                    var evidence = Path.of(System.getProperty("kavach.dashboardEvidenceDirectory", "build"), "mixed-creation/companion");
                     Files.createDirectories(evidence);
                     new ObjectMapper().writeValue(evidence.resolve(body.get("id").asText() + ".json").toFile(),
                             Map.of("request", envelope, "qr", exported.get("qr"), "digest", proof.get("payload")));
@@ -489,7 +622,7 @@ class DemoServiceDevkitTest {
                 if (body.get("profile").asText().equals("kavach-cose-policy-v1")) {
                     assertEquals(proof.get("purpose"), body.get("proofPurpose").asText());
                     assertTrue(((String) exported.get("qr")).length() <= 2953, "Policy request must fit the dashboard low-correction QR");
-                    var evidence = Path.of("build/policy/companion");
+                    var evidence = Path.of(System.getProperty("kavach.dashboardEvidenceDirectory", "build"), "policy/companion");
                     Files.createDirectories(evidence);
                     new ObjectMapper().writeValue(evidence.resolve(body.get("id").asText() + ".json").toFile(),
                             Map.of("request", envelope, "qr", exported.get("qr"), "digest", proof.get("payload")));
@@ -521,7 +654,7 @@ class DemoServiceDevkitTest {
         var changed = Transaction.deserialize(tx.serialize());
         changed.getBody().setFee(changed.getBody().getFee().add(BigInteger.ONE));
         var wrongSet = new TransactionWitnessSet();
-        wrongSet.setVkeyWitnesses(sponsor.sign(changed).getWitnessSet().getVkeyWitnesses());
+        wrongSet.setVkeyWitnesses(feeAccount.sign(changed).getWitnessSet().getVkeyWitnesses());
         var wrongBytes = new ByteArrayOutputStream();
         new CborEncoder(wrongBytes).encode(wrongSet.serialize());
         assertThrows(
@@ -534,7 +667,7 @@ class DemoServiceDevkitTest {
                                         "witnesses",
                                         HexUtil.encodeHexString(wrongBytes.toByteArray()))));
         assertTrue(((List<?>) map(service.plan(id)).get("approvals")).isEmpty());
-        var signed = sponsor.sign(tx);
+        var signed = feeAccount.sign(tx);
         byte[] digest = HexUtil.decodeHexString(TransactionUtil.getTxHash(tx));
         var witnesses = new ArrayList<>(signed.getWitnessSet().getVkeyWitnesses());
         for (Object required : (List<?>) plan.get("requiredSigners"))
@@ -599,7 +732,14 @@ class DemoServiceDevkitTest {
         fail("Unconfirmed transaction " + hash);
     }
 
-    private void topUp(long amount) throws Exception {
+    /** Ordinary fixture funding must not reclaim publisher-owned script outputs accidentally. */
+    private QuickTxBuilder fundingBuilder() {
+        return new QuickTxBuilder(backend, new PlainFundingSupplier(new QuickTxBuilder(backend).getUtxoSupplier()));
+    }
+
+    private void topUp(long amount) throws Exception { topUp(sponsor, amount); }
+
+    private void topUp(Account receiver, long amount) throws Exception {
         var request =
                 HttpRequest.newBuilder(
                                 URI.create(
@@ -608,7 +748,7 @@ class DemoServiceDevkitTest {
                         .POST(
                                 HttpRequest.BodyPublishers.ofString(
                                         "{\"address\":\""
-                                                + sponsor.baseAddress()
+                                                + receiver.baseAddress()
                                                 + "\",\"adaAmount\":"
                                                 + amount
                                                 + "}"))

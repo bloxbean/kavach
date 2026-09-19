@@ -1,0 +1,9 @@
+{
+  "component": "cardano-client-function",
+  "version": "0.8.0-pre5",
+  "jarSha256": "352296cb56d0ff52bc76d75c97098e8962fe34c898ff969d1a6b39d1d76b93aa",
+  "method": "FeeCalculators.execute",
+  "verification": "Inspected resolved pre5 javap bytecode and matching local upstream source",
+  "finding": "Consumed-input reference script sizes are included only when transaction body scriptDataHash is non-null. Vault ScriptTx with a spending redeemer meets this gate; plain key-only reclaim did not. No reference inputs are needed for vault reclamation when its validator is attached as a witness.",
+  "qualification": "Source/bytecode finding only; node-paid fee decomposition is a separate required gate."
+}
