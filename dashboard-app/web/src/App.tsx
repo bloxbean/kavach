@@ -1,12 +1,16 @@
-import {ApprovalWizard} from "./ApprovalWizard";
-import {policiesAfterSignerRemoval} from "./signerPolicies";
-import {CreationSigners, emptyCreationSigners} from "./CreationSigners";
-import {walletProof} from "./walletProof";
-import {CompanionPairing} from "./CompanionPanel";
-import {useEffect, useRef, useState} from "react";
-import {savedAccounts, rememberAccount, forgetAccount, legacyCandidates} from "./accounts";
-import {useCardano} from "@cardano-foundation/cardano-connect-with-wallet";
-import {NetworkType} from "@cardano-foundation/cardano-connect-with-wallet-core";
+import { RewardSinks } from "./RewardSinks";
+import { requestAction } from "./requestAction";
+import { referenceReclaim } from "./referenceReclaim";
+import { ReferenceAvailability } from "./ReferenceAvailability";
+import { ApprovalWizard } from "./ApprovalWizard";
+import { policiesAfterSignerRemoval } from "./signerPolicies";
+import { CreationSigners, emptyCreationSigners } from "./CreationSigners";
+import { walletProof } from "./walletProof";
+import { CompanionPairing } from "./CompanionPanel";
+import { useEffect, useRef, useState } from "react";
+import { savedAccounts, rememberAccount, forgetAccount, legacyCandidates } from "./accounts";
+import { useCardano } from "@cardano-foundation/cardano-connect-with-wallet";
+import { NetworkType } from "@cardano-foundation/cardano-connect-with-wallet-core";
 import {
     ArrowDownLeft,
     ArrowUpRight,
@@ -35,19 +39,14 @@ import {
     CheckCircle2,
     Clock3,
 } from "lucide-react";
-import {
-    api,
-    ada,
-    short,
-    type AccountView,
-    type Plan,
-    type WalletApi,
-} from "./api";
+import { api, ada, short, type AccountView, type ReferenceView, type Plan, type WalletApi } from "./api";
 
 type Page = "Overview" | "Activity" | "Security" | "Recovery";
 type Action =
     | "Create account"
     | "Finish account setup"
+    | "Repair reference"
+    | "Reclaim reference"
     | "Restore account"
     | "Send assets"
     | "Receive"
@@ -59,30 +58,29 @@ type Action =
     | "Cancel recovery"
     | "Complete recovery"
     | "Republish references"
-    | "Reclaim references"
     | "Connect wallet";
 const pages = [
-    {label: "Overview" as Page, Icon: LayoutDashboard},
-    {label: "Activity" as Page, Icon: Layers3},
-    {label: "Security" as Page, Icon: ShieldCheck},
-    {label: "Recovery" as Page, Icon: LifeBuoy},
+    { label: "Overview" as Page, Icon: LayoutDashboard },
+    { label: "Activity" as Page, Icon: Layers3 },
+    { label: "Security" as Page, Icon: ShieldCheck },
+    { label: "Recovery" as Page, Icon: LifeBuoy },
 ];
 
 type Policy = { role: string; threshold: number; members: number[] };
 const defaultPolicies: Policy[] = [
-    {role: "Spend", threshold: 1, members: [0]},
-    {role: "Admin", threshold: 2, members: [0, 1]},
-    {role: "Freeze", threshold: 1, members: [1]},
-    {role: "Unfreeze", threshold: 1, members: [2]},
-    {role: "Recovery", threshold: 1, members: [1]},
-    {role: "Cancel", threshold: 1, members: [2]},
+    { role: "Spend", threshold: 1, members: [0] },
+    { role: "Admin", threshold: 2, members: [0, 1] },
+    { role: "Freeze", threshold: 1, members: [1] },
+    { role: "Unfreeze", threshold: 1, members: [2] },
+    { role: "Recovery", threshold: 1, members: [1] },
+    { role: "Cancel", threshold: 1, members: [2] },
 ];
 
 function PolicyEditor({
-                          policies,
-                          onChange,
-                          signerCount = 3,
-                      }: {
+    policies,
+    onChange,
+    signerCount = 3,
+}: {
     signerCount?: number;
     policies: Policy[];
     onChange: (policies: Policy[]) => void;
@@ -91,14 +89,14 @@ function PolicyEditor({
         <details className="policy-editor">
             <summary>Customize the six authority policies</summary>
             <p className="field-note">
-                Key numbers correspond to the registered signers above. Select up to eight per policy. Recovery and
-                defensive policies must remain independent.
+                Key numbers correspond to the registered signers above. Select up to eight per policy.
+                Recovery and defensive policies must remain independent.
             </p>
             {policies.map((policy, index) => (
                 <fieldset key={policy.role}>
                     <legend>{policy.role}</legend>
                     <div className="policy-members">
-                        {Array.from({length: signerCount}, (_, id) => id).map((id) => (
+                        {Array.from({ length: signerCount }, (_, id) => id).map((id) => (
                             <label key={id}>
                                 <input
                                     type="checkbox"
@@ -109,11 +107,11 @@ function PolicyEditor({
                                             policies.map((p, i) =>
                                                 i === index
                                                     ? {
-                                                        ...p,
-                                                        members: e.target.checked
-                                                            ? [...p.members, id].sort((a, b) => a - b)
-                                                            : p.members.filter((m) => m !== id),
-                                                    }
+                                                          ...p,
+                                                          members: e.target.checked
+                                                              ? [...p.members, id].sort((a, b) => a - b)
+                                                              : p.members.filter((m) => m !== id),
+                                                      }
                                                     : p,
                                             ),
                                         )
@@ -133,9 +131,7 @@ function PolicyEditor({
                             onChange={(e) =>
                                 onChange(
                                     policies.map((p, i) =>
-                                        i === index
-                                            ? {...p, threshold: Number(e.target.value)}
-                                            : p,
+                                        i === index ? { ...p, threshold: Number(e.target.value) } : p,
                                     ),
                                 )
                             }
@@ -149,7 +145,7 @@ function PolicyEditor({
 
 export default function App() {
     // CF Connect defaults to Mainnet unless the network restriction is explicit.
-    const connector = useCardano({limitNetwork: NetworkType.TESTNET});
+    const connector = useCardano({ limitNetwork: NetworkType.TESTNET });
     const [creationSigners, setCreationSigners] = useState(emptyCreationSigners);
     const [policies, setPolicies] = useState<Policy[]>(defaultPolicies);
     const [now, setNow] = useState(Date.now());
@@ -159,12 +155,10 @@ export default function App() {
     }, []);
     const [page, setPage] = useState<Page>("Overview");
     useEffect(() => {
-        window.scrollTo({top: 0, behavior: "instant"});
+        window.scrollTo({ top: 0, behavior: "instant" });
     }, [page]);
     const [account, setAccount] = useState<AccountView | null>(null);
-    const [savedLocator, setSavedLocator] = useState(
-        () => localStorage.getItem("kavach.locator") || "",
-    );
+    const [savedLocator, setSavedLocator] = useState(() => localStorage.getItem("kavach.locator") || "");
     const [accountError, setAccountError] = useState("");
     const [accounts, setAccounts] = useState(() => savedAccounts(localStorage));
     const [workspaceOpen, setWorkspaceOpen] = useState(false);
@@ -184,10 +178,13 @@ export default function App() {
         signing: string[];
     } | null>(null);
     const [plans, setPlans] = useState<Plan[]>([]);
+    const [reclaim, setReclaim] = useState<ReferenceView | null>(null);
+    const [reclaimAcknowledged, setReclaimAcknowledged] = useState(false);
     const [plan, setPlan] = useState<Plan | null>(null);
     const [form, setForm] = useState({
         locator: savedLocator,
         recipient: "",
+        scriptHash: "",
         amount: "",
         asset: "",
         quantity: "",
@@ -209,7 +206,6 @@ export default function App() {
         budgetAda: "100",
         coreSink: "",
         moduleSink: "",
-        force: false,
     });
     const dialog = useRef<HTMLDialogElement>(null);
     useEffect(() => {
@@ -220,10 +216,11 @@ export default function App() {
             for (const locator of legacyCandidates(localStorage)) {
                 if (!active) return;
                 try {
-                    const result = await api<AccountView>("/accounts/restore", {locator});
+                    const result = await api<AccountView>("/accounts/restore", { locator });
                     if (active && legacyCandidates(localStorage).includes(locator))
                         setAccounts(rememberAccount(localStorage, result));
-                } catch { /* An unfinished setup is not a saved active account. */
+                } catch {
+                    /* An unfinished setup is not a saved active account. */
                 }
             }
         })();
@@ -242,14 +239,14 @@ export default function App() {
             if (pending) return;
             pending = true;
             try {
-                const result = await api<AccountView>("/accounts/restore", {locator: pendingCreation});
+                const result = await api<AccountView>("/accounts/restore", { locator: pendingCreation });
                 if (!active) return;
                 setAccounts(rememberAccount(localStorage, result));
                 setAccount(null);
                 localStorage.setItem("kavach.locator", pendingCreation);
                 localStorage.removeItem("kavach.pendingCreation");
                 setSavedLocator(pendingCreation);
-                setForm((f) => ({...f, locator: pendingCreation}));
+                setForm((f) => ({ ...f, locator: pendingCreation }));
                 setPendingCreation("");
             } catch {
                 // The genesis may still await submission/confirmation. Preserve the
@@ -349,18 +346,17 @@ export default function App() {
                 .slice(0, 100)
                 .filter((id) => typeof id === "string" && /^[0-9a-f-]{36}$/.test(id))
                 .map((id) => api<Plan>(`/plans/${id}`)),
-        ).then((results) =>
-            setPlans(
-                results.flatMap((r) => (r.status === "fulfilled" ? [r.value] : [])),
-            ),
-        );
+        ).then((results) => setPlans(results.flatMap((r) => (r.status === "fulfilled" ? [r.value] : []))));
     }, []);
     const accountName = account
         ? localStorage.getItem("kavach.name." + account.locator) || "My Kavach"
-        : savedLocator ? "Saved account" : "Personal account";
-    const pendingSetup = plans.find((p) =>
-        !p.confirmed && (p.title.startsWith("Create account") ||
-            p.title === "Register authorization checkpoints"),
+        : savedLocator
+          ? "Saved account"
+          : "Personal account";
+    const pendingSetup = plans.find(
+        (p) =>
+            !p.confirmed &&
+            (p.title.startsWith("Create account") || p.title === "Register authorization checkpoints"),
     );
     const run = async (work: () => Promise<void>) => {
         setBusy(true);
@@ -368,36 +364,38 @@ export default function App() {
         try {
             await work();
         } catch (e) {
-            const walletError = e && typeof e === "object" ? e as { info?: unknown; message?: unknown } : null;
-            setNotice(e instanceof Error ? e.message
-                : typeof walletError?.info === "string" ? walletError.info
-                    : typeof walletError?.message === "string" ? walletError.message
-                        : walletError ? "The wallet could not approve this request. Check that the selected authority belongs to this wallet account; use the companion panel for an iPhone key."
-                            : String(e));
+            const walletError =
+                e && typeof e === "object" ? (e as { info?: unknown; message?: unknown }) : null;
+            setNotice(
+                e instanceof Error
+                    ? e.message
+                    : typeof walletError?.info === "string"
+                      ? walletError.info
+                      : typeof walletError?.message === "string"
+                        ? walletError.message
+                        : walletError
+                          ? "The wallet could not approve this request. Check that the selected authority belongs to this wallet account; use the companion panel for an iPhone key."
+                          : String(e),
+            );
         } finally {
             setBusy(false);
         }
     };
     const wallet = async (): Promise<WalletApi> => {
-        if (!connector.enabledWallet)
-            throw new Error("Connect a browser wallet to continue.");
+        if (!connector.enabledWallet) throw new Error("Connect a browser wallet to continue.");
         const extension = window.cardano?.[connector.enabledWallet];
         if (!extension)
-            throw new Error(
-                "This dashboard currently requires an injected CIP-30 browser wallet.",
-            );
+            throw new Error("This dashboard currently requires an injected CIP-30 browser wallet.");
         const connected = await extension.enable();
         if ((await connected.getNetworkId()) !== 0)
-            throw new Error(
-                "Switch your wallet to the configured test network. Mainnet is disabled.",
-            );
+            throw new Error("Switch your wallet to the configured test network. Mainnet is disabled.");
         return connected;
     };
     const restore = async (locator = form.locator) => {
-        const result = await api<AccountView>("/accounts/restore", {locator});
+        const result = await api<AccountView>("/accounts/restore", { locator });
         setAccounts(rememberAccount(localStorage, result));
         setAccount(result);
-        setForm((f) => ({...f, locator}));
+        setForm((f) => ({ ...f, locator }));
         localStorage.setItem("kavach.locator", locator);
         setSavedLocator(locator);
         setAccountError("");
@@ -408,7 +406,7 @@ export default function App() {
         setAccount(null);
         setAccountError("");
         setSavedLocator(locator);
-        setForm((f) => ({...f, locator}));
+        setForm((f) => ({ ...f, locator }));
         setWorkspaceOpen(false);
     };
     const forgetSavedAccount = (locator: string) => {
@@ -417,29 +415,25 @@ export default function App() {
             const next = localStorage.getItem("kavach.locator") || "";
             setAccount(null);
             setSavedLocator(next);
-            setForm((f) => ({...f, locator: next}));
+            setForm((f) => ({ ...f, locator: next }));
             setAccountError("");
         }
-        setNotice("Account forgotten in this browser. Its on-chain account and funds are unchanged; restore its locator to add it again.");
+        setNotice(
+            "Account forgotten in this browser. Its on-chain account and funds are unchanged; restore its locator to add it again.",
+        );
     };
     const savePlan = (value: Plan) => {
         setNotice("");
-        if (value.locator && value.title.startsWith("Create account") &&
-            !localStorage.getItem("kavach.name." + value.locator))
-            localStorage.setItem(
-                "kavach.name." + value.locator,
-                form.name.trim() || "My Kavach",
-            );
+        if (
+            value.locator &&
+            value.title.startsWith("Create account") &&
+            !localStorage.getItem("kavach.name." + value.locator)
+        )
+            localStorage.setItem("kavach.name." + value.locator, form.name.trim() || "My Kavach");
         setPlan(value);
         setPlans((old) => {
-            const next = [value, ...old.filter((p) => p.id !== value.id)].slice(
-                0,
-                100,
-            );
-            localStorage.setItem(
-                "kavach.requestIds",
-                JSON.stringify(next.map((p) => p.id)),
-            );
+            const next = [value, ...old.filter((p) => p.id !== value.id)].slice(0, 100);
+            localStorage.setItem("kavach.requestIds", JSON.stringify(next.map((p) => p.id)));
             return next;
         });
         setModal(null);
@@ -447,24 +441,48 @@ export default function App() {
     const prepare = async () => {
         if (modal === "Create account") {
             const unsupported = creationSigners.flatMap((key, id) => {
-                const roles = policies.filter(p => ["Freeze", "Unfreeze", "Recovery", "Cancel"].includes(p.role) && p.members.includes(id)).map(p => p.role);
-                return key.source === "companion" && roles.length ? [`iPhone Key ${id}: ${roles.join(", ")}`] : [];
+                const roles = policies
+                    .filter(
+                        (p) =>
+                            ["Freeze", "Unfreeze", "Recovery", "Cancel"].includes(p.role) &&
+                            p.members.includes(id),
+                    )
+                    .map((p) => p.role);
+                return key.source === "companion" && roles.length
+                    ? [`iPhone Key ${id}: ${roles.join(", ")}`]
+                    : [];
             });
-            if (unsupported.length) throw new Error(`Change these authority policies before continuing: ${unsupported.join("; ")}. Uncheck the iPhone key in those policies and select a wallet key instead. Companion currently supports spending, enrollment and admin policy changes.`);
+            if (unsupported.length)
+                throw new Error(
+                    `Change these authority policies before continuing: ${unsupported.join("; ")}. Uncheck the iPhone key in those policies and select a wallet key instead. Companion currently supports spending, enrollment and admin policy changes.`,
+                );
         }
         const connected = await wallet();
         const sponsor = await connected.getChangeAddress();
+        const reclaimFields =
+            modal === "Reclaim reference" ? referenceReclaim(reclaim, sponsor, reclaimAcknowledged) : {};
         const value = await api<Plan>("/plans", {
             ...form,
-            smallMembers: form.smallMembers.split(",").map(v => v.trim()).filter(Boolean).map(Number),
-            coseIds: form.coseIds.split(",").map(v => v.trim()).filter(Boolean).map(Number),
-            ...(modal === "Create account" ? {
-                mode: "3",
-                keys: creationSigners.map(k => k.publicKey).join("\n"),
-                coseIds: creationSigners.flatMap((k, id) => k.method === "2" ? [id] : []),
-            } : {}),
+            smallMembers: form.smallMembers
+                .split(",")
+                .map((v) => v.trim())
+                .filter(Boolean)
+                .map(Number),
+            coseIds: form.coseIds
+                .split(",")
+                .map((v) => v.trim())
+                .filter(Boolean)
+                .map(Number),
+            ...(modal === "Create account"
+                ? {
+                      mode: "3",
+                      keys: creationSigners.map((k) => k.publicKey).join("\n"),
+                      coseIds: creationSigners.flatMap((k, id) => (k.method === "2" ? [id] : [])),
+                  }
+                : {}),
             policies,
-            action: modal,
+            ...reclaimFields,
+            action: requestAction(modal),
             locator: account?.locator || form.locator,
             sponsor,
         });
@@ -480,15 +498,12 @@ export default function App() {
             if (plan.status === "Ready")
                 throw new Error("All required signatures are collected. Submit the transaction next.");
             const witnesses = await connected.signTx(plan.transaction, true);
-            const updated = await api<Plan>(`/plans/${plan.id}/witnesses`, {witnesses});
+            const updated = await api<Plan>(`/plans/${plan.id}/witnesses`, { witnesses });
             savePlan(updated);
             if (submitWhenReady && updated.status === "Ready") await submit(updated);
         } else {
-            const addresses = [
-                ...(await connected.getUsedAddresses()),
-                await connected.getChangeAddress(),
-            ];
-            const {proof: payload, address} = walletProof(plan, addresses, authority);
+            const addresses = [...(await connected.getUsedAddresses()), await connected.getChangeAddress()];
+            const { proof: payload, address } = walletProof(plan, addresses, authority);
             const signed = await connected.signData(address, payload.payload);
             savePlan(
                 await api<Plan>(`/plans/${plan.id}/proofs`, {
@@ -503,9 +518,7 @@ export default function App() {
         setVerifiedKey(null);
         const walletName = connector.enabledWallet || "connected wallet";
         const connected = await wallet();
-        const address =
-            (await connected.getUsedAddresses())[0] ||
-            (await connected.getChangeAddress());
+        const address = (await connected.getUsedAddresses())[0] || (await connected.getChangeAddress());
         const digest = new Uint8Array(
             await crypto.subtle.digest(
                 "SHA-256",
@@ -516,13 +529,10 @@ export default function App() {
             address,
             Array.from(digest, (b) => b.toString(16).padStart(2, "0")).join(""),
         );
-        const result = await api<{ publicKey: string }>(
-            "/wallet/enrollment",
-            signed,
-        );
+        const result = await api<{ publicKey: string }>("/wallet/enrollment", signed);
         // Wallet approval can leave the document unfocused. Display the verified result;
         // copying is a separate user gesture after returning to this window.
-        setVerifiedKey({publicKey: result.publicKey, walletName});
+        setVerifiedKey({ publicKey: result.publicKey, walletName });
         setNotice("Public key verified. Copy it below when you return from your wallet.");
     };
     const submit = async (submission = plan) => {
@@ -540,6 +550,8 @@ export default function App() {
         setNotice("Copied to clipboard.");
     };
     const open = (action: Action) => {
+        setReclaim(null);
+        setReclaimAcknowledged(false);
         const role = (
             {
                 "Send assets": "Spend",
@@ -554,9 +566,12 @@ export default function App() {
         const policy = account?.policies.find((p) => p.role === role);
         setForm((f) => ({
             ...f,
-            approvers: action === "Send assets" && (account?.signingMode ?? 0) >= 3 ? "" : policy
-                ? policy.members.slice(0, policy.threshold).join(", ")
-                : "",
+            approvers:
+                action === "Send assets" && (account?.signingMode ?? 0) >= 3
+                    ? ""
+                    : policy
+                      ? policy.members.slice(0, policy.threshold).join(", ")
+                      : "",
         }));
         if (action === "Create account") setPolicies(defaultPolicies);
         else if (account) {
@@ -568,11 +583,19 @@ export default function App() {
                 budgetCore: !!account.budgetCore,
                 budgetEnabled: !!account.budget?.enabled,
                 budgetPeriod: account.budget?.period ?? "daily",
-                budgetAda: account.budget?.limit && account.budget.limit !== "0" ? `${BigInt(account.budget.limit) / 1000000n}.${(BigInt(account.budget.limit) % 1000000n).toString().padStart(6, "0")}` : "100",
-                smallPaymentAda: account.smallPaymentLimit ? `${BigInt(account.smallPaymentLimit) / 1000000n}.${(BigInt(account.smallPaymentLimit) % 1000000n).toString().padStart(6, "0")}` : "10",
+                budgetAda:
+                    account.budget?.limit && account.budget.limit !== "0"
+                        ? `${BigInt(account.budget.limit) / 1000000n}.${(BigInt(account.budget.limit) % 1000000n).toString().padStart(6, "0")}`
+                        : "100",
+                smallPaymentAda: account.smallPaymentLimit
+                    ? `${BigInt(account.smallPaymentLimit) / 1000000n}.${(BigInt(account.smallPaymentLimit) % 1000000n).toString().padStart(6, "0")}`
+                    : "10",
                 smallThreshold: String(account.smallSpend?.threshold ?? 1),
                 smallMembers: (account.smallSpend?.members ?? [0]).join(", "),
-                coseIds: account.keys.filter(k => (k.method ?? account.signingMode) === 2).map(k => k.id).join(", "),
+                coseIds: account.keys
+                    .filter((k) => (k.method ?? account.signingMode) === 2)
+                    .map((k) => k.id)
+                    .join(", "),
             }));
         }
         setPlan(null);
@@ -580,7 +603,7 @@ export default function App() {
         setModal(action);
     };
     const update = (key: keyof typeof form, value: string) =>
-        setForm((previous) => ({...previous, [key]: value}));
+        setForm((previous) => ({ ...previous, [key]: value }));
     const isNormal = account?.mode === "Normal" && !account.setupPending;
 
     return (
@@ -594,9 +617,9 @@ export default function App() {
                         setPage("Overview");
                     }}
                 >
-          <span className="brand-mark">
-            <Shield size={23} strokeWidth={2.2}/>
-          </span>
+                    <span className="brand-mark">
+                        <Shield size={23} strokeWidth={2.2} />
+                    </span>
                     kavach<span className="brand-dot">.</span>
                 </a>
                 <div className="workspace-label">YOUR WORKSPACE</div>
@@ -608,84 +631,105 @@ export default function App() {
                 >
                     <span className="account-avatar">K</span>
                     <span>
-            {accountName}
+                        {accountName}
                         <small>
-              {account
-                  ? short(account.accountId, 6)
-                  : savedLocator ? "Open saved account" : "Create your first account"}
-            </small>
-          </span>
-                    <ChevronDown size={14}/>
+                            {account
+                                ? short(account.accountId, 6)
+                                : savedLocator
+                                  ? "Open saved account"
+                                  : "Create your first account"}
+                        </small>
+                    </span>
+                    <ChevronDown size={14} />
                 </button>
                 {workspaceOpen && (
-                    <section id="workspace-accounts" className="workspace-accounts" aria-label="Saved accounts">
+                    <section
+                        id="workspace-accounts"
+                        className="workspace-accounts"
+                        aria-label="Saved accounts"
+                    >
                         <p>Accounts saved in this browser ({accounts.length})</p>
                         {accounts.map((entry) => (
                             <div className="workspace-account" key={entry.locator}>
                                 <button
                                     className="workspace-select"
                                     aria-current={entry.locator === savedLocator ? "true" : undefined}
-                                    onClick={() => entry.locator === savedLocator ? setWorkspaceOpen(false) : selectAccount(entry.locator)}
+                                    onClick={() =>
+                                        entry.locator === savedLocator
+                                            ? setWorkspaceOpen(false)
+                                            : selectAccount(entry.locator)
+                                    }
                                 >
-                                    <strong>{localStorage.getItem("kavach.name." + entry.locator) || "My Kavach"}</strong>
-                                    <small>{entry.accountId ? short(entry.accountId, 6) : "Saved account"}</small>
+                                    <strong>
+                                        {localStorage.getItem("kavach.name." + entry.locator) || "My Kavach"}
+                                    </strong>
+                                    <small>
+                                        {entry.accountId ? short(entry.accountId, 6) : "Saved account"}
+                                    </small>
                                     {entry.locator === savedLocator && <small>Selected</small>}
                                 </button>
                                 <div className="workspace-account-actions">
-                                    <button title="Copy locator backup" onClick={() => run(() => copy(entry.locator))}>
-                                        <Copy size={13}/><span>Locator</span></button>
+                                    <button
+                                        title="Copy locator backup"
+                                        onClick={() => run(() => copy(entry.locator))}
+                                    >
+                                        <Copy size={13} />
+                                        <span>Locator</span>
+                                    </button>
                                     <button onClick={() => forgetSavedAccount(entry.locator)}>Forget</button>
                                 </div>
                             </div>
                         ))}
                         <p>Keep a locator backup before forgetting. This removes only the browser entry.</p>
-                        <button className="text-button" onClick={() => {
-                            setWorkspaceOpen(false);
-                            open("Create account");
-                        }}>Create account
+                        <button
+                            className="text-button"
+                            onClick={() => {
+                                setWorkspaceOpen(false);
+                                open("Create account");
+                            }}
+                        >
+                            Create account
                         </button>
-                        <button className="text-button" onClick={() => {
-                            setWorkspaceOpen(false);
-                            open("Restore account");
-                        }}>Restore account
+                        <button
+                            className="text-button"
+                            onClick={() => {
+                                setWorkspaceOpen(false);
+                                open("Restore account");
+                            }}
+                        >
+                            Restore account
                         </button>
                     </section>
                 )}
                 <nav aria-label="Main navigation">
-                    {pages.map(({label, Icon}) => (
+                    {pages.map(({ label, Icon }) => (
                         <button
                             key={label}
                             className={page === label ? "nav-item active" : "nav-item"}
                             onClick={() => setPage(label)}
                         >
-                            <Icon size={19}/>
+                            <Icon size={19} />
                             {label}
-                            {label === "Recovery" && account?.recovery && (
-                                <span className="nav-dot"/>
-                            )}
+                            {label === "Recovery" && account?.recovery && <span className="nav-dot" />}
                         </button>
                     ))}
                 </nav>
                 <div className="sidebar-bottom">
                     <div className="network-label">
-                        <span className={status?.online ? "dot green" : "dot amber"}/>
+                        <span className={status?.online ? "dot green" : "dot amber"} />
                         {status?.network || "Backend offline"}
                         <span className="tag">TESTNET</span>
                     </div>
                     <div className="demo-note">
-                        <ShieldCheck size={16}/>
+                        <ShieldCheck size={16} />
                         <span>
-              Development preview
-              <br/>
-              <small>Use test assets only</small>
-            </span>
+                            Development preview
+                            <br />
+                            <small>Use test assets only</small>
+                        </span>
                     </div>
-                    <a
-                        href="https://github.com/bloxbean/kavach"
-                        target="_blank"
-                        rel="noreferrer"
-                    >
-                        <LifeBuoy size={16}/> Documentation <ArrowUpRight size={14}/>
+                    <a href="https://github.com/bloxbean/kavach" target="_blank" rel="noreferrer">
+                        <LifeBuoy size={16} /> Documentation <ArrowUpRight size={14} />
                     </a>
                 </div>
             </aside>
@@ -695,31 +739,32 @@ export default function App() {
                         Workspace <span>/</span> <strong>{page}</strong>
                     </div>
                     <div className="topbar-right">
-            <span className="connection-status">
-              <span className={status?.online ? "dot green" : "dot amber"}/>
-                {status?.online ? "Connected to ledger" : "Waiting for backend"}
-            </span>
-                        <button
-                            className="button wallet-button"
-                            onClick={() => open("Connect wallet")}
-                        >
-                            <Wallet size={17}/>
+                        <span className="connection-status">
+                            <span className={status?.online ? "dot green" : "dot amber"} />
+                            {status?.online ? "Connected to ledger" : "Waiting for backend"}
+                        </span>
+                        <button className="button wallet-button" onClick={() => open("Connect wallet")}>
+                            <Wallet size={17} />
                             {connector.isConnected
                                 ? short(connector.enabledWallet || "Connected", 10)
                                 : "Connect wallet"}
-                            <ChevronDown size={13}/>
+                            <ChevronDown size={13} />
                         </button>
                     </div>
                 </header>
                 <main>
-                    {account?.setupPending &&
-                        <section className="creation-summary" role="status"><h2>Finish setting up this account</h2>
-                            <p>Your keys are enrolled, but spending is blocked until the selected signing policy is
-                                activated. Resume the remaining setup steps.</p>
-                            <button className="button primary" onClick={() => open("Finish account setup")}>Finish
-                                account setup
+                    {account?.setupPending && (
+                        <section className="creation-summary" role="status">
+                            <h2>Finish setting up this account</h2>
+                            <p>
+                                Your keys are enrolled, but spending is blocked until the selected signing
+                                policy is activated. Resume the remaining setup steps.
+                            </p>
+                            <button className="button primary" onClick={() => open("Finish account setup")}>
+                                Finish account setup
                             </button>
-                        </section>}
+                        </section>
+                    )}
                     <div className="page-heading">
                         <div className="eyebrow">YOUR ACCOUNT. YOUR RULES.</div>
                         <div className="heading-row">
@@ -728,19 +773,19 @@ export default function App() {
                                     {page === "Overview"
                                         ? "A little more peace of mind."
                                         : page === "Security"
-                                            ? "Protection, on your terms."
-                                            : page === "Recovery"
-                                                ? "A way back, built in."
-                                                : "Your requests, in one place."}
+                                          ? "Protection, on your terms."
+                                          : page === "Recovery"
+                                            ? "A way back, built in."
+                                            : "Your requests, in one place."}
                                 </h1>
                                 <p>
                                     {page === "Overview"
                                         ? "Your assets, protected by an account that can grow with you."
                                         : page === "Security"
-                                            ? "Decide who can act, what they can do, and how many approvals it takes."
-                                            : page === "Recovery"
-                                                ? "Independent guardians help you regain access without changing your account."
-                                                : "Review requests, collect approvals, and follow confirmations on the ledger."}
+                                          ? "Decide who can act, what they can do, and how many approvals it takes."
+                                          : page === "Recovery"
+                                            ? "Independent guardians help you regain access without changing your account."
+                                            : "Review requests, collect approvals, and follow confirmations on the ledger."}
                                 </p>
                             </div>
                             {account && (
@@ -749,7 +794,7 @@ export default function App() {
                                     title="Refresh account"
                                     onClick={() => run(() => restore(account.locator))}
                                 >
-                                    <RefreshCw size={18}/>
+                                    <RefreshCw size={18} />
                                 </button>
                             )}
                         </div>
@@ -764,7 +809,7 @@ export default function App() {
                                     setAccountError("");
                                 }}
                             >
-                                <X size={15}/>
+                                <X size={15} />
                             </button>
                         </div>
                     )}
@@ -773,15 +818,21 @@ export default function App() {
                             <div className="overview-grid">
                                 <section className="balance-card">
                                     <div className="balance-top">
-                    <span>
-                      <span className="dot pale"/>
-                        {account
-                            ? account.mode === "Normal"
-                                ? account.setupPending ? "Activation pending" : "Account active"
-                                : account.mode
-                            : savedLocator ? accountError ? "Saved account unavailable" : "Reopening saved account" : "Your smart account"}
-                    </span>
-                                        <ShieldCheck size={25}/>
+                                        <span>
+                                            <span className="dot pale" />
+                                            {account
+                                                ? account.mode === "Normal"
+                                                    ? account.setupPending
+                                                        ? "Activation pending"
+                                                        : "Account active"
+                                                    : account.mode
+                                                : savedLocator
+                                                  ? accountError
+                                                      ? "Saved account unavailable"
+                                                      : "Reopening saved account"
+                                                  : "Your smart account"}
+                                        </span>
+                                        <ShieldCheck size={25} />
                                     </div>
                                     <div className="balance-label">Available balance</div>
                                     <div className="balance">
@@ -795,14 +846,15 @@ export default function App() {
                                                     title="Copy account address"
                                                     onClick={() => run(() => copy(account.address))}
                                                 >
-                                                    <Copy size={13}/>
+                                                    <Copy size={13} />
                                                 </button>
                                             </>
+                                        ) : savedLocator ? (
+                                            "Your public locator is saved on this device."
+                                        ) : pendingSetup ? (
+                                            "Account setup is unfinished. Resume your saved request below."
                                         ) : (
-                                            savedLocator
-                                                ? "Your public locator is saved on this device."
-                                                : pendingSetup ? "Account setup is unfinished. Resume your saved request below."
-                                                    : "No account saved for this site address. Restore an existing account or create one."
+                                            "No account saved for this site address. Restore an existing account or create one."
                                         )}
                                     </div>
                                     <div className="balance-actions">
@@ -813,25 +865,27 @@ export default function App() {
                                                     disabled={!isNormal}
                                                     onClick={() => open("Send assets")}
                                                 >
-                                                    <ArrowUpRight size={17}/>
+                                                    <ArrowUpRight size={17} />
                                                     Send
                                                 </button>
                                                 <button
                                                     className="button ghost"
                                                     onClick={() => open("Receive")}
                                                 >
-                                                    <ArrowDownLeft size={17}/>
+                                                    <ArrowDownLeft size={17} />
                                                     Receive
                                                 </button>
                                             </>
                                         ) : (
                                             <button
                                                 className="button light"
-                                                onClick={() => open(savedLocator ? "Restore account" : "Create account")}
+                                                onClick={() =>
+                                                    open(savedLocator ? "Restore account" : "Create account")
+                                                }
                                             >
-                                                <Plus size={17}/>
+                                                <Plus size={17} />
                                                 {savedLocator ? "Open saved account" : "Create account"}
-                                                <ArrowRight size={16}/>
+                                                <ArrowRight size={16} />
                                             </button>
                                         )}
                                     </div>
@@ -841,7 +895,10 @@ export default function App() {
                                                 ? "New account setup is pending; it is not an active account yet. "
                                                 : "Waiting for the new account to appear on the ledger. Its locator is saved. "}
                                             {pendingSetup && (
-                                                <button className="text-button" onClick={() => savePlan(pendingSetup)}>
+                                                <button
+                                                    className="text-button"
+                                                    onClick={() => savePlan(pendingSetup)}
+                                                >
                                                     Resume account setup
                                                 </button>
                                             )}
@@ -849,28 +906,28 @@ export default function App() {
                                     )}
                                     {account && (
                                         <p className="balance-refresh-note">
-                                            {accountError ? "Balance refresh failed. Use Refresh account to retry." : "Balance refreshes every 15 seconds while this page is visible."}
+                                            {accountError
+                                                ? "Balance refresh failed. Use Refresh account to retry."
+                                                : "Balance refreshes every 15 seconds while this page is visible."}
                                         </p>
                                     )}
-                                    <div className="balance-orbit orbit-one"/>
-                                    <div className="balance-orbit orbit-two"/>
+                                    <div className="balance-orbit orbit-one" />
+                                    <div className="balance-orbit orbit-two" />
                                 </section>
                                 <section className="protection-card">
                                     <div className="card-header">
                                         <h2>Protection at a glance</h2>
                                         <span className="mini-icon">
-                      <Shield size={17}/>
-                    </span>
+                                            <Shield size={17} />
+                                        </span>
                                     </div>
                                     <div className="protection-status">
-                    <span className="protection-shield">
-                      <ShieldCheck size={26}/>
-                    </span>
+                                        <span className="protection-shield">
+                                            <ShieldCheck size={26} />
+                                        </span>
                                         <div>
                                             <strong>
-                                                {account
-                                                    ? "Your rules are on-chain"
-                                                    : "Ready when you are"}
+                                                {account ? "Your rules are on-chain" : "Ready when you are"}
                                             </strong>
                                             <p>
                                                 {account
@@ -880,25 +937,27 @@ export default function App() {
                                         </div>
                                     </div>
                                     <div className="protection-row">
-                    <span>
-                      <Fingerprint size={16}/>
-                      Signing method
-                    </span>
+                                        <span>
+                                            <Fingerprint size={16} />
+                                            Signing method
+                                        </span>
                                         <strong>
                                             {account
                                                 ? account.signingMode === 1
                                                     ? "Wallet transaction"
-                                                    : account.signingMode >= 3 ? "Mixed signatures + amount tiers" : account.signingMode === 2
+                                                    : account.signingMode >= 3
+                                                      ? "Mixed signatures + amount tiers"
+                                                      : account.signingMode === 2
                                                         ? "CIP-8 / COSE"
                                                         : "Raw Ed25519"
                                                 : "Your choice"}
                                         </strong>
                                     </div>
                                     <div className="protection-row">
-                    <span>
-                      <KeyRound size={16}/>
-                      Registered keys
-                    </span>
+                                        <span>
+                                            <KeyRound size={16} />
+                                            Registered keys
+                                        </span>
                                         <strong>
                                             {account
                                                 ? `${account.keys.length} authorities`
@@ -906,37 +965,31 @@ export default function App() {
                                         </strong>
                                     </div>
                                     <div className="protection-row">
-                    <span>
-                      <Clock3 size={16}/>
-                      Recovery delay
-                    </span>
+                                        <span>
+                                            <Clock3 size={16} />
+                                            Recovery delay
+                                        </span>
                                         <strong>At least 24 hours</strong>
                                     </div>
-                                    <button
-                                        className="text-button"
-                                        onClick={() => setPage("Security")}
-                                    >
-                                        Explore account security <ArrowRight size={15}/>
+                                    <button className="text-button" onClick={() => setPage("Security")}>
+                                        Explore account security <ArrowRight size={15} />
                                     </button>
                                 </section>
                             </div>
                             {!account && (
                                 <section className="setup-strip">
                                     <div className="setup-icon">
-                                        <Sparkles size={21}/>
+                                        <Sparkles size={21} />
                                     </div>
                                     <div>
                                         <strong>Same account. Even when life changes.</strong>
                                         <p>
-                                            Replace a key, switch your signer, or recover access. Keep
-                                            your account.
+                                            Replace a key, switch your signer, or recover access. Keep your
+                                            account.
                                         </p>
                                     </div>
-                                    <button
-                                        className="text-button"
-                                        onClick={() => open("Restore account")}
-                                    >
-                                        Already have an account? <ArrowRight size={16}/>
+                                    <button className="text-button" onClick={() => open("Restore account")}>
+                                        Already have an account? <ArrowRight size={16} />
                                     </button>
                                 </section>
                             )}
@@ -974,31 +1027,24 @@ export default function App() {
                                         color: "lilac",
                                     },
                                 ].map((item) => (
-                                    <button
-                                        key={item.title}
-                                        className="quick-card"
-                                        onClick={item.action}
-                                    >
-                    <span className={`quick-icon ${item.color}`}>
-                      <item.Icon size={23}/>
-                    </span>
+                                    <button key={item.title} className="quick-card" onClick={item.action}>
+                                        <span className={`quick-icon ${item.color}`}>
+                                            <item.Icon size={23} />
+                                        </span>
                                         <h3>{item.title}</h3>
                                         <p>{item.text}</p>
                                         <span className="quick-link">
-                      {item.label}
-                                            <ArrowUpRight size={16}/>
-                    </span>
+                                            {item.label}
+                                            <ArrowUpRight size={16} />
+                                        </span>
                                     </button>
                                 ))}
                             </div>
                             <section className="activity-card">
                                 <div className="card-header">
                                     <h2>Requests on this device</h2>
-                                    <button
-                                        className="text-button"
-                                        onClick={() => setPage("Activity")}
-                                    >
-                                        View all <ArrowRight size={15}/>
+                                    <button className="text-button" onClick={() => setPage("Activity")}>
+                                        View all <ArrowRight size={15} />
                                     </button>
                                 </div>
                                 {plans.length ? (
@@ -1008,23 +1054,23 @@ export default function App() {
                                             key={item.id}
                                             onClick={() => savePlan(item)}
                                         >
-                      <span className="mini-icon">
-                        <Layers3 size={18}/>
-                      </span>
+                                            <span className="mini-icon">
+                                                <Layers3 size={18} />
+                                            </span>
                                             <span>
-                        <strong>{item.title}</strong>
-                        <small>{short(item.id)}</small>
-                      </span>
+                                                <strong>{item.title}</strong>
+                                                <small>{short(item.id)}</small>
+                                            </span>
                                             <span className="status-pill">
-                        {item.confirmed ? "Confirmed" : item.status}
-                      </span>
+                                                {item.confirmed ? "Confirmed" : item.status}
+                                            </span>
                                         </button>
                                     ))
                                 ) : (
                                     <div className="empty-activity">
-                    <span className="empty-icon">
-                      <Layers3 size={23}/>
-                    </span>
+                                        <span className="empty-icon">
+                                            <Layers3 size={23} />
+                                        </span>
                                         <div>
                                             <strong>
                                                 {account
@@ -1032,8 +1078,8 @@ export default function App() {
                                                     : "A fresh start."}
                                             </strong>
                                             <p>
-                                                Requests created here will appear in this list. This is
-                                                not a complete on-chain history.
+                                                Requests created here will appear in this list. This is not a
+                                                complete on-chain history.
                                             </p>
                                         </div>
                                     </div>
@@ -1043,21 +1089,26 @@ export default function App() {
                     )}
                     {page === "Security" && (
                         <>
-                            {account && <section className="creation-summary">
-                                <h2>Reference script deposits</h2>
-                                <p>This account’s reference scripts are published at an address your fee wallet
-                                    controls, so their deposits are recoverable. Reclaiming them blocks every further
-                                    transaction for this account until they are republished; republishing restores the
-                                    identical script hashes and changes nothing about identity, funds or authority.</p>
-                                <div className="button-row">
-                                    <button className="button"
-                                            onClick={() => open("Republish references")}>Republish missing references
+                            {account && (
+                                <section className="creation-summary">
+                                    <h2>Restore missing reference scripts</h2>
+                                    <p>
+                                        Republish missing operational scripts from their exact retained bytes
+                                        into the connected publisher’s vault. Review each deposit and fee
+                                        before signing. This preserves the account address and authority; it
+                                        does not recover capital from historical publications. Existing locked
+                                        references stay locked, and historical key-hosted outputs retain their
+                                        original ownership.
+                                    </p>
+                                    <button
+                                        className="button"
+                                        disabled={busy}
+                                        onClick={() => open("Republish references")}
+                                    >
+                                        Republish missing references
                                     </button>
-                                    <button className="button"
-                                            onClick={() => open("Reclaim references")}>Reclaim deposits
-                                    </button>
-                                </div>
-                            </section>}
+                                </section>
+                            )}
                             <div className="section-heading">
                                 <h2>Who can do what</h2>
                                 <span>Authority is always explicit</span>
@@ -1065,29 +1116,24 @@ export default function App() {
                             <div className="policy-grid">
                                 {(
                                     account?.policies ||
-                                    [
-                                        "Spend",
-                                        "Admin",
-                                        "Freeze",
-                                        "Unfreeze",
-                                        "Recovery",
-                                        "Cancel",
-                                    ].map((role) => ({
-                                        role,
-                                        threshold: 0,
-                                        members: [] as number[],
-                                    }))
+                                    ["Spend", "Admin", "Freeze", "Unfreeze", "Recovery", "Cancel"].map(
+                                        (role) => ({
+                                            role,
+                                            threshold: 0,
+                                            members: [] as number[],
+                                        }),
+                                    )
                                 ).map((policy) => (
                                     <section className="policy-card" key={policy.role}>
                                         <div className="card-header">
-                      <span className="mini-icon">
-                        <KeyRound size={18}/>
-                      </span>
+                                            <span className="mini-icon">
+                                                <KeyRound size={18} />
+                                            </span>
                                             <span className="status-pill">
-                        {account
-                            ? `${policy.threshold} of ${policy.members.length}`
-                            : "Not configured"}
-                      </span>
+                                                {account
+                                                    ? `${policy.threshold} of ${policy.members.length}`
+                                                    : "Not configured"}
+                                            </span>
                                         </div>
                                         <h3>{policy.role}</h3>
                                         <p>
@@ -1102,40 +1148,92 @@ export default function App() {
                                 <section className="action-panel">
                                     <div>
                                         <h2>Amount-based mixed approval</h2>
-                                        <p>Up to {ada(account.smallPaymentLimit || "0")} ADA including the maximum
-                                            account fee: {account.smallSpend.threshold} of
-                                            keys {account.smallSpend.members.join(", ")}. Larger payments, native tokens
-                                            and whole transfers use Spend above.</p>
-                                        <p>{account.keys.map(k => `Key ${k.id}: ${k.method === 2 ? "COSE" : "transaction witness"}`).join(" · ")}</p>
+                                        <p>
+                                            Up to {ada(account.smallPaymentLimit || "0")} ADA including the
+                                            maximum account fee: {account.smallSpend.threshold} of keys{" "}
+                                            {account.smallSpend.members.join(", ")}. Larger payments, native
+                                            tokens and whole transfers use Spend above.
+                                        </p>
+                                        <p>
+                                            {account.keys
+                                                .map(
+                                                    (k) =>
+                                                        `Key ${k.id}: ${k.method === 2 ? "COSE" : "transaction witness"}`,
+                                                )
+                                                .join(" · ")}
+                                        </p>
                                     </div>
                                 </section>
                             )}
-                            {account && !account.budgetCore &&
-                                <p className="field-note">Mixed approval can be installed on this account. Shared
-                                    daily/weekly budgets require a new account created with budget support.</p>}
-                            {account?.budgetCore && <section className="action-panel">
-                                <div>
-                                    <h2>Shared periodic ADA budget</h2>
-                                    {account.budget?.enabled ? <><p>{ada(account.budget.remaining || "0")} ADA remaining
-                                            of {ada(account.budget.limit || "0")} ADA {account.budget.period}.</p>
-                                            <p>Resets {new Date(Number(account.budget.resetsAt)).toISOString().replace("T", " ").replace(".000Z", " UTC")}.
-                                                Budgeted spends share one counter.</p></> :
-                                        <p>Disabled. Enable it through the budget-aware module; ordinary spending
-                                            remains concurrent.</p>}
-                                </div>
-                                <button className="button" disabled={!isNormal} onClick={() => {
-                                    open(account.signingMode === 4 ? "Rotate keys" : "Replace module");
-                                    update("mode", "4");
-                                }}>Configure budget
-                                </button>
-                            </section>}
+                            {account && !account.budgetCore && (
+                                <p className="field-note">
+                                    Mixed approval can be installed on this account. Shared daily/weekly
+                                    budgets require a new account created with budget support.
+                                </p>
+                            )}
+                            {account?.budgetCore && (
+                                <section className="action-panel">
+                                    <div>
+                                        <h2>Shared periodic ADA budget</h2>
+                                        {account.budget?.enabled ? (
+                                            <>
+                                                <p>
+                                                    {ada(account.budget.remaining || "0")} ADA remaining of{" "}
+                                                    {ada(account.budget.limit || "0")} ADA{" "}
+                                                    {account.budget.period}.
+                                                </p>
+                                                <p>
+                                                    Resets{" "}
+                                                    {new Date(Number(account.budget.resetsAt))
+                                                        .toISOString()
+                                                        .replace("T", " ")
+                                                        .replace(".000Z", " UTC")}
+                                                    . Budgeted spends share one counter.
+                                                </p>
+                                            </>
+                                        ) : (
+                                            <p>
+                                                Disabled. Enable it through the budget-aware module; ordinary
+                                                spending remains concurrent.
+                                            </p>
+                                        )}
+                                    </div>
+                                    <button
+                                        className="button"
+                                        disabled={!isNormal}
+                                        onClick={() => {
+                                            open(
+                                                account.signingMode === 4 ? "Rotate keys" : "Replace module",
+                                            );
+                                            update("mode", "4");
+                                        }}
+                                    >
+                                        Configure budget
+                                    </button>
+                                </section>
+                            )}
+                            {account?.references && (
+                                <ReferenceAvailability
+                                    references={account.references}
+                                    busy={busy}
+                                    onRepair={(scriptHash) => {
+                                        open("Repair reference");
+                                        update("scriptHash", scriptHash);
+                                    }}
+                                    onReclaim={(reference) => {
+                                        open("Reclaim reference");
+                                        setReclaim(reference);
+                                    }}
+                                />
+                            )}
                             <section className="action-panel">
                                 <div>
                                     <h2>Change your keys. Keep your account.</h2>
                                     <p>
-                                        Configuration changes require your existing administration
-                                        policy
-                                        and {account && account.signingMode >= 3 ? "possession proofs from every destination key." : "new-key possession."}
+                                        Configuration changes require your existing administration policy and{" "}
+                                        {account && account.signingMode >= 3
+                                            ? "possession proofs from every destination key."
+                                            : "new-key possession."}
                                     </p>
                                 </div>
                                 <button
@@ -1143,7 +1241,7 @@ export default function App() {
                                     disabled={!isNormal}
                                     onClick={() => open("Rotate keys")}
                                 >
-                                    Rotate keys <ArrowUpRight size={16}/>
+                                    Rotate keys <ArrowUpRight size={16} />
                                 </button>
                                 <button
                                     className="button"
@@ -1157,18 +1255,16 @@ export default function App() {
                                 <div>
                                     <h2>Emergency controls</h2>
                                     <p>
-                                        Freezing stops future spending once confirmed. It cannot
-                                        undo a confirmed transfer.
+                                        Freezing stops future spending once confirmed. It cannot undo a
+                                        confirmed transfer.
                                     </p>
                                 </div>
                                 <button
                                     className="button"
                                     disabled={!account || account.mode === "RecoveryPending"}
-                                    onClick={() =>
-                                        open(isNormal ? "Freeze account" : "Unfreeze account")
-                                    }
+                                    onClick={() => open(isNormal ? "Freeze account" : "Unfreeze account")}
                                 >
-                                    <Snowflake size={16}/>
+                                    <Snowflake size={16} />
                                     {isNormal ? "Freeze account" : "Unfreeze account"}
                                 </button>
                             </section>
@@ -1177,9 +1273,9 @@ export default function App() {
                     {page === "Recovery" && (
                         <>
                             <section className="recovery-hero">
-                <span className="quick-icon mint">
-                  <LifeBuoy size={30}/>
-                </span>
+                                <span className="quick-icon mint">
+                                    <LifeBuoy size={30} />
+                                </span>
                                 <div>
                                     <h2>
                                         {account?.recovery
@@ -1198,8 +1294,8 @@ export default function App() {
                                     <div>
                                         <h2>Committed recovery keys</h2>
                                         <p>
-                                            These are the target keys recorded on-chain. Completion
-                                            cannot substitute another configuration.
+                                            These are the target keys recorded on-chain. Completion cannot
+                                            substitute another configuration.
                                         </p>
                                         {account.recovery.targetKeys.map((key) => (
                                             <div className="proof-request" key={key.id}>
@@ -1227,8 +1323,8 @@ export default function App() {
                                 <div>
                                     <h2>Account locator</h2>
                                     <p>
-                                        A public backup that identifies your account. Keep it
-                                        somewhere you can find after device loss.
+                                        A public backup that identifies your account. Keep it somewhere you
+                                        can find after device loss.
                                     </p>
                                 </div>
                                 <button
@@ -1236,13 +1332,10 @@ export default function App() {
                                     disabled={!account}
                                     onClick={() => account && run(() => copy(account.locator))}
                                 >
-                                    <Copy size={16}/>
+                                    <Copy size={16} />
                                     Copy locator
                                 </button>
-                                <button
-                                    className="button"
-                                    onClick={() => open("Restore account")}
-                                >
+                                <button className="button" onClick={() => open("Restore account")}>
                                     Restore account
                                 </button>
                             </section>
@@ -1250,16 +1343,13 @@ export default function App() {
                                 <div>
                                     <h2>Recovery actions</h2>
                                     <p>
-                                        Recovery preserves your address and assets. The existing
-                                        module stays installed.
+                                        Recovery preserves your address and assets. The existing module stays
+                                        installed.
                                     </p>
                                 </div>
                                 {account?.recovery ? (
                                     <>
-                                        <button
-                                            className="button"
-                                            onClick={() => open("Cancel recovery")}
-                                        >
+                                        <button className="button" onClick={() => open("Cancel recovery")}>
                                             Cancel recovery
                                         </button>
                                         <button
@@ -1276,7 +1366,7 @@ export default function App() {
                                         disabled={!account}
                                         onClick={() => open("Start recovery")}
                                     >
-                                        Start recovery <ArrowRight size={16}/>
+                                        Start recovery <ArrowRight size={16} />
                                     </button>
                                 )}
                             </section>
@@ -1288,8 +1378,8 @@ export default function App() {
                                 <div>
                                     <h2>Bring your approval</h2>
                                     <p>
-                                        Open a shared request to review it and add a signature from
-                                        another authority.
+                                        Open a shared request to review it and add a signature from another
+                                        authority.
                                     </p>
                                 </div>
                                 <input
@@ -1303,9 +1393,7 @@ export default function App() {
                                     onClick={() =>
                                         run(async () =>
                                             savePlan(
-                                                await api<Plan>(
-                                                    `/plans/${encodeURIComponent(form.planId)}`,
-                                                ),
+                                                await api<Plan>(`/plans/${encodeURIComponent(form.planId)}`),
                                             ),
                                         )
                                     }
@@ -1321,21 +1409,21 @@ export default function App() {
                                             key={item.id}
                                             onClick={() => savePlan(item)}
                                         >
-                      <span className="mini-icon">
-                        <Layers3 size={18}/>
-                      </span>
+                                            <span className="mini-icon">
+                                                <Layers3 size={18} />
+                                            </span>
                                             <span>
-                        <strong>{item.title}</strong>
-                        <small>{short(item.id)}</small>
-                      </span>
+                                                <strong>{item.title}</strong>
+                                                <small>{short(item.id)}</small>
+                                            </span>
                                             <span className="status-pill">
-                        {item.confirmed ? "Confirmed" : item.status}
-                      </span>
+                                                {item.confirmed ? "Confirmed" : item.status}
+                                            </span>
                                         </button>
                                     ))
                                 ) : (
                                     <div className="empty-activity">
-                                        <Layers3 size={28}/>
+                                        <Layers3 size={28} />
                                         <div>
                                             <strong>No requests yet</strong>
                                             <p>Create or restore an account to get started.</p>
@@ -1346,10 +1434,10 @@ export default function App() {
                         </>
                     )}
                     <footer>
-            <span>
-              <Shield size={14}/>
-              Kavach · Programmable protection on Cardano
-            </span>
+                        <span>
+                            <Shield size={14} />
+                            Kavach · Programmable protection on Cardano
+                        </span>
                         <span>Development preview · No production qualification</span>
                     </footer>
                 </main>
@@ -1363,9 +1451,7 @@ export default function App() {
                 }}
             >
                 <div className="dialog-top">
-          <span className="eyebrow">
-            {plan ? "REVIEW & APPROVE" : "YOUR ACCOUNT. YOUR RULES."}
-          </span>
+                    <span className="eyebrow">{plan ? "REVIEW & APPROVE" : "YOUR ACCOUNT. YOUR RULES."}</span>
                     <button
                         className="icon-button"
                         aria-label="Close dialog"
@@ -1375,10 +1461,15 @@ export default function App() {
                             setPlan(null);
                         }}
                     >
-                        <X size={20}/>
+                        <X size={20} />
                     </button>
                 </div>
-                <h2>{plan?.title || (modal === "Rotate keys" && ["3", "4"].includes(form.mode) ? "Update keys and policies" : modal)}</h2>
+                <h2>
+                    {plan?.title ||
+                        (modal === "Rotate keys" && ["3", "4"].includes(form.mode)
+                            ? "Update keys and policies"
+                            : modal)}
+                </h2>
                 {notice && (modal === "Connect wallet" || modal === "Receive") && (
                     <div className="notice" role="alert">
                         {notice}
@@ -1386,10 +1477,7 @@ export default function App() {
                 )}
                 {modal === "Connect wallet" ? (
                     <>
-                        <p>
-                            Connect your Cardano wallet to sign requests. Your keys stay in
-                            your wallet.
-                        </p>
+                        <p>Connect your Cardano wallet to sign requests. Your keys stay in your wallet.</p>
                         <div className="wallet-options">
                             {connector.installedExtensions.map((name) => (
                                 <button
@@ -1406,16 +1494,16 @@ export default function App() {
                                         })
                                     }
                                 >
-                                    <Wallet size={19}/>
+                                    <Wallet size={19} />
                                     {name}
-                                    <ArrowRight size={16}/>
+                                    <ArrowRight size={16} />
                                 </button>
                             ))}
                         </div>
                         {!connector.installedExtensions.length && (
                             <div className="inline-help">
-                                No browser wallet detected. Install a CIP-30 wallet and
-                                configure it for this dashboard’s network.
+                                No browser wallet detected. Install a CIP-30 wallet and configure it for this
+                                dashboard’s network.
                             </div>
                         )}
                         {connector.isConnected && (
@@ -1427,7 +1515,7 @@ export default function App() {
                                     setModal(null);
                                 }}
                             >
-                                <Unplug size={16}/>
+                                <Unplug size={16} />
                                 Disconnect wallet
                             </button>
                         )}
@@ -1436,7 +1524,7 @@ export default function App() {
                             disabled={busy || !connector.isConnected}
                             onClick={() => run(exportKey)}
                         >
-                            <KeyRound size={16}/>
+                            <KeyRound size={16} />
                             Verify & show public key
                         </button>
                         {verifiedKey && (
@@ -1458,61 +1546,76 @@ export default function App() {
                                 <button
                                     className="button"
                                     type="button"
-                                    onClick={() => run(async () => {
-                                        try {
-                                            await navigator.clipboard.writeText(verifiedKey.publicKey);
-                                            setNotice("Verified public key copied.");
-                                        } catch {
-                                            setNotice("Clipboard unavailable. Select the public key below and use Copy or Ctrl/Cmd+C.");
-                                        }
-                                    })}
+                                    onClick={() =>
+                                        run(async () => {
+                                            try {
+                                                await navigator.clipboard.writeText(verifiedKey.publicKey);
+                                                setNotice("Verified public key copied.");
+                                            } catch {
+                                                setNotice(
+                                                    "Clipboard unavailable. Select the public key below and use Copy or Ctrl/Cmd+C.",
+                                                );
+                                            }
+                                        })
+                                    }
                                 >
-                                    <Copy size={16}/>
+                                    <Copy size={16} />
                                     Copy public key
                                 </button>
                                 <p id="verified-key-help" className="field-note">
-                                    This is a public key, not a private key or seed phrase. Copying it
-                                    does not grant signing authority. Sharing it can link your accounts.
-                                    You can also select the field and copy it manually.
+                                    This is a public key, not a private key or seed phrase. Copying it does
+                                    not grant signing authority. Sharing it can link your accounts. You can
+                                    also select the field and copy it manually.
                                 </p>
                             </section>
                         )}
                         <p className="field-note">
-                            Public-key export requires wallet signData support.
-                            Transaction-only wallets can supply their payment public key from
-                            their own trusted export.
+                            Public-key export requires wallet signData support. Transaction-only wallets can
+                            supply their payment public key from their own trusted export.
                         </p>
                         <div className="connector-credit">
                             Connection powered by Cardano Foundation · CF Connect
                         </div>
                     </>
                 ) : plan ? (
-                    <ApprovalWizard key={plan.id} plan={plan} busy={busy} connected={connector.isConnected}
-                                    notice={notice}
-                                    devices={Object.fromEntries(creationSigners.filter(k => k.publicKey).map(k => [k.publicKey, k.source]))}
-                                    onPlan={savePlan}
-                                    onWallet={(authority, submitWhenReady) => run(() => approve(authority, submitWhenReady))}
-                                    onSubmit={() => run(() => submit())}
-                                    onAdvance={() => run(async () => savePlan(await api<Plan>(`/plans/${plan.id}/advance`, {})))}
-                                    onRefresh={() => run(async () => savePlan(await api<Plan>(`/plans/${plan.id}`)))}
-                                    onOpen={() => run(async () => {
-                                        if (plan.locator) await restore(plan.locator);
-                                        setPlan(null);
-                                    })}
+                    <ApprovalWizard
+                        key={plan.id}
+                        plan={plan}
+                        busy={busy}
+                        connected={connector.isConnected}
+                        notice={notice}
+                        devices={Object.fromEntries(
+                            creationSigners.filter((k) => k.publicKey).map((k) => [k.publicKey, k.source]),
+                        )}
+                        onPlan={savePlan}
+                        onWallet={(authority, submitWhenReady) =>
+                            run(() => approve(authority, submitWhenReady))
+                        }
+                        onSubmit={() => run(() => submit())}
+                        onAdvance={() =>
+                            run(async () => savePlan(await api<Plan>(`/plans/${plan.id}/advance`, {})))
+                        }
+                        onRefresh={() => run(async () => savePlan(await api<Plan>(`/plans/${plan.id}`)))}
+                        onOpen={() =>
+                            run(async () => {
+                                if (plan.locator) await restore(plan.locator);
+                                setPlan(null);
+                            })
+                        }
                     />
                 ) : modal === "Receive" ? (
                     <>
                         <p>
-                            Send ADA or ordinary Cardano native tokens to your account
-                            address. After ledger confirmation, the balance refreshes automatically
-                            while the dashboard is visible. You can also use Refresh account.
+                            Send ADA or ordinary Cardano native tokens to your account address. After ledger
+                            confirmation, the balance refreshes automatically while the dashboard is visible.
+                            You can also use Refresh account.
                         </p>
                         <code className="address-box">{account?.address}</code>
                         <button
                             className="button primary"
                             onClick={() => account && run(() => copy(account.address))}
                         >
-                            <Copy size={16}/>
+                            <Copy size={16} />
                             Copy address
                         </button>
                     </>
@@ -1526,13 +1629,13 @@ export default function App() {
                         {modal === "Restore account" ? (
                             <>
                                 <p>
-                                    Paste the public locator saved when your account was created.
-                                    You don’t need the original device.
+                                    Paste the public locator saved when your account was created. You don’t
+                                    need the original device.
                                 </p>
                                 <p className="field-note">
-                                    This browser saves accounts separately for localhost and 127.0.0.1,
-                                    and for each port. After changing the site address, restore your
-                                    locator once here. Your on-chain account and funds are unchanged.
+                                    This browser saves accounts separately for localhost and 127.0.0.1, and
+                                    for each port. After changing the site address, restore your locator once
+                                    here. Your on-chain account and funds are unchanged.
                                 </p>
                                 <div className="dialog-actions">
                                     <button
@@ -1567,56 +1670,109 @@ export default function App() {
                             </>
                         ) : modal === "Create account" ? (
                             <>
-                                <p className="creation-intro">Build your account around the devices you trust. Choose
-                                    how each key signs; the account is ready when every setup step is confirmed.</p>
-                                <div className="creation-section-heading"><span>01</span><h3>Name your account</h3>
+                                <p className="creation-intro">
+                                    Build your account around the devices you trust. Choose how each key
+                                    signs; the account is ready when every setup step is confirmed.
+                                </p>
+                                <div className="creation-section-heading">
+                                    <span>01</span>
+                                    <h3>Name your account</h3>
                                 </div>
-                                <label>Account name<input value={form.name}
-                                                          onChange={e => update("name", e.target.value)}/></label>
-                                <CreationSigners signers={creationSigners} onChange={setCreationSigners}
-                                                 assigned={policies.flatMap(p => p.members)}
-                                                 onRemove={id => {
-                                                     if (creationSigners.length <= 3 || policies.some(p => p.members.includes(id))) return;
-                                                     setCreationSigners(creationSigners.filter((_, i) => i !== id));
-                                                     setPolicies(policiesAfterSignerRemoval(policies, id));
-                                                 }}/>
-                                {creationSigners.some(k => k.source === "companion") && <>
-                                    <CompanionPairing/>
-                                    <p className="field-note">Use the updated Companion app with mixed-key enrollment
-                                        support. Keep recovery and emergency roles on wallet keys; the phone does not
-                                        yet support those actions.</p>
-                                </>}
-                                <div className="creation-section-heading"><span>03</span><h3>Choose optional
-                                    protection</h3></div>
-                                <label className="checkbox-field"><input type="checkbox" checked={form.budgetCore}
-                                                                         onChange={e => setForm(f => ({
-                                                                             ...f,
-                                                                             budgetCore: e.target.checked
-                                                                         }))}/><span>Support optional daily/weekly budgets</span></label>
-                                <p className="field-note">Choose this now to support a shared spending budget. Enable
-                                    its limit later in Security. Without an enabled budget, spending remains
-                                    concurrent.</p>
+                                <label>
+                                    Account name
+                                    <input
+                                        value={form.name}
+                                        onChange={(e) => update("name", e.target.value)}
+                                    />
+                                </label>
+                                <CreationSigners
+                                    signers={creationSigners}
+                                    onChange={setCreationSigners}
+                                    assigned={policies.flatMap((p) => p.members)}
+                                    onRemove={(id) => {
+                                        if (
+                                            creationSigners.length <= 3 ||
+                                            policies.some((p) => p.members.includes(id))
+                                        )
+                                            return;
+                                        setCreationSigners(creationSigners.filter((_, i) => i !== id));
+                                        setPolicies(policiesAfterSignerRemoval(policies, id));
+                                    }}
+                                />
+                                {creationSigners.some((k) => k.source === "companion") && (
+                                    <>
+                                        <CompanionPairing />
+                                        <p className="field-note">
+                                            Use the updated Companion app with mixed-key enrollment support.
+                                            Keep recovery and emergency roles on wallet keys; the phone does
+                                            not yet support those actions.
+                                        </p>
+                                    </>
+                                )}
+                                <div className="creation-section-heading">
+                                    <span>03</span>
+                                    <h3>Choose optional protection</h3>
+                                </div>
+                                <label className="checkbox-field">
+                                    <input
+                                        type="checkbox"
+                                        checked={form.budgetCore}
+                                        onChange={(e) =>
+                                            setForm((f) => ({
+                                                ...f,
+                                                budgetCore: e.target.checked,
+                                            }))
+                                        }
+                                    />
+                                    <span>Support optional daily/weekly budgets</span>
+                                </label>
+                                <p className="field-note">
+                                    Choose this now to support a shared spending budget. Enable its limit
+                                    later in Security. Without an enabled budget, spending remains concurrent.
+                                </p>
                                 <section className="creation-summary" aria-label="Creation summary">
                                     <h3>Your signing setup</h3>
-                                    {creationSigners.map((key, id) => <p
-                                        key={id}>Key {id}: {key.source === "companion" ? "iPhone Companion" : "Cardano wallet"} · {key.method === "2" ? "COSE" : "Transaction signature"}</p>)}
-                                    <p>All keys prove possession and your admin signers approve activation. COSE keys
-                                        authorize intents; a separate fee-paying wallet signs each transaction. Advanced
-                                        transaction-witness keys also authorize through that transaction.</p>
-                                    <p>DevKit setup reserves the ledger minimum in each of six reference scripts (about
-                                        220 ADA for the five core references). These are held at an address your fee
-                                        wallet controls and can be reclaimed from Security when the account no longer
-                                        needs them. Only the account state output (its own ledger minimum, a few ADA)
-                                        and the stake-registration deposits stay locked permanently. Spending remains
-                                        blocked until activation; an unfinished confirmed account can resume setup
-                                        after refresh or backend restart.</p>
+                                    {creationSigners.map((key, id) => (
+                                        <p key={id}>
+                                            Key {id}:{" "}
+                                            {key.source === "companion"
+                                                ? "iPhone Companion"
+                                                : "Cardano wallet"}{" "}
+                                            · {key.method === "2" ? "COSE" : "Transaction signature"}
+                                        </p>
+                                    ))}
+                                    <p>
+                                        All keys prove possession and your admin signers approve activation.
+                                        COSE keys authorize intents; a separate fee-paying wallet signs each
+                                        transaction. Advanced transaction-witness keys also authorize through
+                                        that transaction.
+                                    </p>
+                                    <p>
+                                        Review the complete funding estimate before publishing: reference
+                                        capital is held at a separate publisher-controlled script address; the
+                                        account state reserve stays permanently locked. Registration
+                                        withdrawals are unsupported. Fees are separate and collateral is
+                                        reserved, not charged for a successful transaction.
+                                    </p>
+                                    <p>
+                                        Explicitly reclaiming an active reference can interrupt account
+                                        operations until an identical script is republished. New vault outputs
+                                        are isolated from ordinary wallet coin selection. Kavach recovery does
+                                        not recover a lost publisher wallet key. Historical locked references
+                                        remain locked.
+                                    </p>
+                                    <p>
+                                        Keep this backend running until genesis confirms. Pre-genesis progress
+                                        is not restart-safe; paid fees and published capital remain if setup
+                                        stops. Spending stays blocked until activation. After genesis, save
+                                        the locator; an unfinished confirmed account can resume activation.
+                                    </p>
                                 </section>
                             </>
                         ) : modal === "Send assets" ? (
                             <>
                                 <p>
-                                    The recipient and amount are part of your authenticated
-                                    account request.
+                                    The recipient and amount are part of your authenticated account request.
                                 </p>
                                 <div className="transfer-options">
                                     <label>
@@ -1700,20 +1856,84 @@ export default function App() {
                                     </>
                                 )}
                                 <p className="field-note">
-                                    Network fees come from your connected wallet. Every remaining
-                                    asset stays in Kavach. The dashboard handles up to 16 ordinary
-                                    account outputs.
+                                    Network fees come from your connected wallet. Every remaining asset stays
+                                    in Kavach. Ordinary payments and consolidation support at most 8 account
+                                    inputs per transaction. If your balance is fragmented, use a separately
+                                    qualified SDK batch workflow; this dashboard does not automatically split
+                                    a payment. Send all assets is also bounded and is not a guaranteed rescue
+                                    for oversized native-asset deposits.
                                 </p>
                             </>
                         ) : (
                             <>
                                 <p>
-                                    {modal === "Freeze account"
-                                        ? "Once confirmed, ordinary spending is disabled. Your independent unfreeze authority can restore access."
-                                        : modal === "Cancel recovery"
-                                            ? "Cancellation leaves the account frozen. Unfreezing requires its independent authority."
-                                            : "The current policy determines which authorities must approve this action."}
+                                    {modal === "Reclaim reference"
+                                        ? "Reclaim one selected publisher-vault output. Connect its publisher wallet. This returns hosted capital and does not change account authority. Fees and collateral come from separate plain wallet funds."
+                                        : modal === "Repair reference"
+                                          ? "Publish an identical missing script using the connected fee wallet. This does not change the account address or authority. Review capital and fees before signing; then refresh your account and prepare a fresh operation."
+                                          : modal === "Freeze account"
+                                            ? "Once confirmed, ordinary spending is disabled. Your independent unfreeze authority can restore access."
+                                            : modal === "Cancel recovery"
+                                              ? "Cancellation leaves the account frozen. Unfreezing requires its independent authority."
+                                              : "The current policy determines which authorities must approve this action."}
                                 </p>
+                                {modal === "Reclaim reference" && reclaim && (
+                                    <section
+                                        className="workflow-setup"
+                                        aria-label="Confirm reference removal"
+                                    >
+                                        <p>
+                                            Selected output:{" "}
+                                            <code className="workflow-key">
+                                                {reclaim.transactionHash}#{reclaim.outputIndex}
+                                            </code>
+                                        </p>
+                                        <p>
+                                            Hosted script:{" "}
+                                            <code className="workflow-key">{reclaim.scriptHash}</code>
+                                        </p>
+                                        <p>
+                                            Vault:{" "}
+                                            <code className="workflow-key">{reclaim.hostingAddress}</code>
+                                        </p>
+                                        <p>
+                                            Publisher:{" "}
+                                            <code className="workflow-key">{reclaim.publisherAddress}</code>
+                                        </p>
+                                        {reclaim.capital && (
+                                            <p>
+                                                Capital to return: {ada(reclaim.capital)} ADA. Review the
+                                                exact return destination and final fee in the next step.
+                                            </p>
+                                        )}
+                                        <p>
+                                            {reclaim.activeRequired === false
+                                                ? "This is an optional genesis-only copy; supported post-genesis operations do not require it. Keep its exact script bytes backed up."
+                                                : "Removing this active reference may stop account operations until an identical script is republished. Other copies may also become unavailable."}
+                                        </p>
+                                        <p>
+                                            Account recovery does not restore the publisher wallet key.
+                                            Nothing is republished automatically.
+                                        </p>
+                                        <label className="checkbox-field">
+                                            <input
+                                                type="checkbox"
+                                                checked={reclaimAcknowledged}
+                                                onChange={(e) => setReclaimAcknowledged(e.target.checked)}
+                                            />
+                                            <span>
+                                                I understand this removes the selected reference copy and that
+                                                removing an active copy may stop account operations.
+                                            </span>
+                                        </label>
+                                    </section>
+                                )}
+                                {modal === "Repair reference" && (
+                                    <p>
+                                        Expected script:{" "}
+                                        <code className="workflow-key">{form.scriptHash}</code>
+                                    </p>
+                                )}
                                 {["Rotate keys", "Start recovery"].includes(modal || "") && (
                                     <label>
                                         Target authority public keys
@@ -1735,110 +1955,183 @@ export default function App() {
                                             <option value="1">Wallet transaction · CIP-30</option>
                                             <option value="2">Intent signature · CIP-8 / COSE</option>
                                             <option value="3">Mixed signatures + amount tiers</option>
-                                            {account?.budgetCore &&
-                                                <option value="4">Mixed signatures + optional periodic budget</option>}
+                                            {account?.budgetCore && (
+                                                <option value="4">
+                                                    Mixed signatures + optional periodic budget
+                                                </option>
+                                            )}
                                         </select>
                                     </label>
                                 )}
                             </>
                         )}
-                        {["Create account", "Rotate keys", "Start recovery", "Replace module"].includes(modal || "") && (
-                            <PolicyEditor policies={policies} onChange={setPolicies}
-                                          signerCount={modal === "Create account" ? creationSigners.length : form.target.trim() ? form.target.trim().split(/[\s,]+/).length : 3}/>
+                        {["Create account", "Rotate keys", "Start recovery", "Replace module"].includes(
+                            modal || "",
+                        ) && (
+                            <PolicyEditor
+                                policies={policies}
+                                onChange={setPolicies}
+                                signerCount={
+                                    modal === "Create account"
+                                        ? creationSigners.length
+                                        : form.target.trim()
+                                          ? form.target.trim().split(/[\s,]+/).length
+                                          : 3
+                                }
+                            />
                         )}
-                        {["3", "4"].includes(form.mode) && ["Replace module", "Rotate keys", "Start recovery"].includes(modal || "") && (
-                            <>
-                                <p className="field-note">Spend above is the strong approval policy. Small ADA payments
-                                    use the policy below; native-token and whole-UTxO transfers always use strong
-                                    approval. Admin must include authority outside the strong spending keys.</p>
-                                <label>Small-payment threshold (ADA, inclusive)
-                                    <input type="number" min="0" step="0.000001" required value={form.smallPaymentAda}
-                                           onChange={e => update("smallPaymentAda", e.target.value)}/>
-                                </label>
-                                <p className="field-note">Includes recipient ADA plus the signed maximum account fee.
-                                    This selects required approvals; it is not a cumulative spending cap.</p>
-                                <label>Small-payment key IDs (comma separated)
-                                    <input required value={form.smallMembers}
-                                           onChange={e => update("smallMembers", e.target.value)}/>
-                                </label>
-                                <label>Small-payment signatures required
-                                    <input type="number" min="1" max="8" required value={form.smallThreshold}
-                                           onChange={e => update("smallThreshold", e.target.value)}/>
-                                </label>
-                                <p className="field-note">Recommended: all account keys sign COSE intents. The
-                                    fee-paying wallet then signs the transaction separately. Updating this setting
-                                    requires current-admin approval and possession proofs.</p>
-                                <button type="button" className="button"
-                                        onClick={() => update("coseIds", (form.target.trim() ? form.target.trim().split(/[\s,]+/).map((_, id) => id) : account?.keys.map(k => k.id) || []).join(", "))}>Use
-                                    COSE for all account keys
-                                </button>
-                                <label>COSE key IDs (comma separated; blank means all transaction witnesses)
-                                    <input value={form.coseIds} onChange={e => update("coseIds", e.target.value)}/>
-                                </label>
-                                <p className="field-note">Other registered keys sign the Cardano transaction. Every
-                                    destination key must prove possession when this configuration is installed or
-                                    changed.</p>
-                            </>
+                        {["3", "4"].includes(form.mode) &&
+                            ["Replace module", "Rotate keys", "Start recovery"].includes(modal || "") && (
+                                <>
+                                    <p className="field-note">
+                                        Spend above is the strong approval policy. Small ADA payments use the
+                                        policy below; native-token and whole-UTxO transfers always use strong
+                                        approval. Admin must include authority outside the strong spending
+                                        keys.
+                                    </p>
+                                    <label>
+                                        Small-payment threshold (ADA, inclusive)
+                                        <input
+                                            type="number"
+                                            min="0"
+                                            step="0.000001"
+                                            required
+                                            value={form.smallPaymentAda}
+                                            onChange={(e) => update("smallPaymentAda", e.target.value)}
+                                        />
+                                    </label>
+                                    <p className="field-note">
+                                        Includes recipient ADA plus the signed maximum account fee. This
+                                        selects required approvals; it is not a cumulative spending cap.
+                                    </p>
+                                    <label>
+                                        Small-payment key IDs (comma separated)
+                                        <input
+                                            required
+                                            value={form.smallMembers}
+                                            onChange={(e) => update("smallMembers", e.target.value)}
+                                        />
+                                    </label>
+                                    <label>
+                                        Small-payment signatures required
+                                        <input
+                                            type="number"
+                                            min="1"
+                                            max="8"
+                                            required
+                                            value={form.smallThreshold}
+                                            onChange={(e) => update("smallThreshold", e.target.value)}
+                                        />
+                                    </label>
+                                    <p className="field-note">
+                                        Recommended: all account keys sign COSE intents. The fee-paying wallet
+                                        then signs the transaction separately. Updating this setting requires
+                                        current-admin approval and possession proofs.
+                                    </p>
+                                    <button
+                                        type="button"
+                                        className="button"
+                                        onClick={() =>
+                                            update(
+                                                "coseIds",
+                                                (form.target.trim()
+                                                    ? form.target
+                                                          .trim()
+                                                          .split(/[\s,]+/)
+                                                          .map((_, id) => id)
+                                                    : account?.keys.map((k) => k.id) || []
+                                                ).join(", "),
+                                            )
+                                        }
+                                    >
+                                        Use COSE for all account keys
+                                    </button>
+                                    <label>
+                                        COSE key IDs (comma separated; blank means all transaction witnesses)
+                                        <input
+                                            value={form.coseIds}
+                                            onChange={(e) => update("coseIds", e.target.value)}
+                                        />
+                                    </label>
+                                    <p className="field-note">
+                                        Other registered keys sign the Cardano transaction. Every destination
+                                        key must prove possession when this configuration is installed or
+                                        changed.
+                                    </p>
+                                </>
+                            )}
+                        {form.mode === "4" &&
+                            ["Replace module", "Rotate keys", "Start recovery"].includes(modal || "") && (
+                                <>
+                                    <label className="checkbox-field">
+                                        <input
+                                            type="checkbox"
+                                            checked={form.budgetEnabled}
+                                            onChange={(e) =>
+                                                setForm((f) => ({
+                                                    ...f,
+                                                    budgetEnabled: e.target.checked,
+                                                }))
+                                            }
+                                        />
+                                        <span>Enable shared periodic ADA budget</span>
+                                    </label>
+                                    <label>
+                                        Budget period
+                                        <select
+                                            value={form.budgetPeriod}
+                                            onChange={(e) => update("budgetPeriod", e.target.value)}
+                                        >
+                                            <option value="daily">Daily · midnight UTC</option>
+                                            <option value="weekly">Weekly · Monday midnight UTC</option>
+                                        </select>
+                                    </label>
+                                    {form.budgetEnabled && (
+                                        <label>
+                                            ADA per period
+                                            <input
+                                                type="number"
+                                                min="0.000001"
+                                                step="0.000001"
+                                                required
+                                                value={form.budgetAda}
+                                                onChange={(e) => update("budgetAda", e.target.value)}
+                                            />
+                                        </label>
+                                    )}
+                                    <p className="field-note">
+                                        This is a hard cumulative ADA cap, including actual account-paid fees.
+                                        All budgeted spends share one on-chain counter and may conflict.
+                                        Native tokens have no ADA price assigned.
+                                    </p>
+                                    <p className="field-note">
+                                        Changing the limit preserves usage. Changing daily ↔ weekly starts a
+                                        fresh period counter on the next spend. Disabling retains the counter;
+                                        re-enabling the same period preserves that period’s recorded usage.
+                                        Creating a counter locks a 3 ADA development deposit.
+                                    </p>
+                                </>
+                            )}
+                        {modal === "Replace module" && account?.budget?.enabled && form.mode !== "4" && (
+                            <p className="field-note">
+                                Installing this module removes the active periodic budget. Your existing admin
+                                authority must approve that removal.
+                            </p>
                         )}
-                        {form.mode === "4" && ["Replace module", "Rotate keys", "Start recovery"].includes(modal || "") && (
-                            <>
-                                <label className="checkbox-field"><input type="checkbox" checked={form.budgetEnabled}
-                                                                         onChange={e => setForm(f => ({
-                                                                             ...f,
-                                                                             budgetEnabled: e.target.checked
-                                                                         }))}/><span>Enable shared periodic ADA budget</span></label>
-                                <label>Budget period<select value={form.budgetPeriod}
-                                                            onChange={e => update("budgetPeriod", e.target.value)}>
-                                    <option value="daily">Daily · midnight UTC</option>
-                                    <option value="weekly">Weekly · Monday midnight UTC</option>
-                                </select></label>
-                                {form.budgetEnabled &&
-                                    <label>ADA per period<input type="number" min="0.000001" step="0.000001" required
-                                                                value={form.budgetAda}
-                                                                onChange={e => update("budgetAda", e.target.value)}/></label>}
-                                <p className="field-note">This is a hard cumulative ADA cap, including actual
-                                    account-paid fees. All budgeted spends share one on-chain counter and may conflict.
-                                    Native tokens have no ADA price assigned.</p>
-                                <p className="field-note">Changing the limit preserves usage. Changing daily ↔ weekly
-                                    starts a fresh period counter on the next spend. Disabling retains the counter;
-                                    re-enabling the same period preserves that period’s recorded usage. Creating a
-                                    counter locks a 3 ADA development deposit.</p>
-                            </>
+                        {modal === "Republish references" && (
+                            <p className="field-note">
+                                Publishes missing operational scripts into the connected publisher’s vault,
+                                one reviewed transaction per script at the current ledger minimum. Optional
+                                genesis-only copies need no repair. Exact public artifacts must remain
+                                available.
+                            </p>
                         )}
-                        {modal === "Replace module" && account?.budget?.enabled && form.mode !== "4" &&
-                            <p className="field-note">Installing this module removes the active periodic budget. Your
-                                existing admin authority must approve that removal.</p>}
-                        {modal === "Reclaim references" && (
-                            <>
-                                <label className="checkbox-field">
-                                    <input type="checkbox" checked={form.force}
-                                           onChange={e => setForm({...form, force: e.target.checked})}/>
-                                    I understand this account cannot transact until its references are republished
-                                </label>
-                                <p className="field-note">Reclaiming spends this account’s reference publications
-                                    back to your fee wallet. It touches no validator, no account state and no
-                                    account-held value. Republish from this page to restore them; the script hashes are
-                                    unchanged, so the account keeps working afterwards.</p>
-                            </>
-                        )}
-                        {modal === "Republish references" &&
-                            <p className="field-note">Publishes any reference script this account needs that is not
-                                currently available, one transaction per script, at the ledger minimum deposit.</p>}
                         {modal === "Create account" && (
-                            <>
-                                <label>Core reward sink (optional)
-                                    <input value={form.coreSink}
-                                           onChange={e => setForm({...form, coreSink: e.target.value})}
-                                           placeholder="Defaults to this fee wallet"/></label>
-                                <label>Module reward sink (optional)
-                                    <input value={form.moduleSink}
-                                           onChange={e => setForm({...form, moduleSink: e.target.value})}
-                                           placeholder="Defaults to this fee wallet"/></label>
-                                <p className="field-note">Reward sinks are immutable and fixed at creation. A distinct
-                                    address per account keeps that account’s staking rewards attributable; leaving
-                                    both blank pools every account created by this wallet into one address. Use only an
-                                    address whose key you control — rewards sent there can never be redirected.</p>
-                            </>
+                            <RewardSinks
+                                coreSink={form.coreSink}
+                                moduleSink={form.moduleSink}
+                                onChange={(field, value) => update(field, value)}
+                            />
                         )}
                         {account &&
                             [
@@ -1858,55 +2151,76 @@ export default function App() {
                                         placeholder="For example: 0, 1"
                                     />
                                     <span className="field-note">
-                    Leave blank for automatic selection, or choose a sufficient subset of the current policy. Each
-                    selected key must approve this request.
-                  </span>
+                                        Leave blank for automatic selection, or choose a sufficient subset of
+                                        the current policy. Each selected key must approve this request.
+                                    </span>
                                 </label>
                             )}
-                        {notice && <div className="notice" role="alert">{notice}</div>}
+                        {notice && (
+                            <div className="notice" role="alert">
+                                {notice}
+                            </div>
+                        )}
                         {modal !== "Restore account" && !connector.isConnected && (
                             <section className="inline-help" aria-label="Connect fee-paying wallet">
-                                <p>Connect a Cardano wallet to enable Review request. Entering signer public keys does
-                                    not connect a wallet. This wallet pays the transaction fees and setup deposits.</p>
+                                <p>
+                                    Connect a Cardano wallet to enable Review request. Entering signer public
+                                    keys does not connect a wallet. This wallet pays the transaction fees and
+                                    setup deposits.
+                                </p>
                                 <div className="wallet-options">
-                                    {connector.installedExtensions.map(name => (
-                                        <button type="button" className="button" key={name} disabled={busy}
-                                                onClick={() => run(async () => {
+                                    {connector.installedExtensions.map((name) => (
+                                        <button
+                                            type="button"
+                                            className="button"
+                                            key={name}
+                                            disabled={busy}
+                                            onClick={() =>
+                                                run(async () => {
                                                     setVerifiedKey(null);
-                                                    await connector.connect(name, () => setNotice("Wallet connected. Your form entries are preserved."), error => setNotice(error.message));
-                                                })}>
-                                            <Wallet size={19}/> Connect {name}
+                                                    await connector.connect(
+                                                        name,
+                                                        () =>
+                                                            setNotice(
+                                                                "Wallet connected. Your form entries are preserved.",
+                                                            ),
+                                                        (error) => setNotice(error.message),
+                                                    );
+                                                })
+                                            }
+                                        >
+                                            <Wallet size={19} /> Connect {name}
                                         </button>
                                     ))}
                                 </div>
-                                {!connector.installedExtensions.length &&
-                                    <p>No Cardano wallet detected in this browser profile. Enable Yano here and
-                                        configure it for Yaci DevKit.</p>}
+                                {!connector.installedExtensions.length && (
+                                    <p>
+                                        No Cardano wallet detected in this browser profile. Enable Yano here
+                                        and configure it for Yaci DevKit.
+                                    </p>
+                                )}
                             </section>
                         )}
                         <div className="dialog-actions">
-                            <button
-                                type="button"
-                                className="button"
-                                onClick={() => setModal(null)}
-                            >
+                            <button type="button" className="button" onClick={() => setModal(null)}>
                                 Cancel
                             </button>
                             <button
                                 className="button primary"
                                 disabled={
                                     busy ||
-                                    (modal !== "Restore account" && !connector.isConnected)
+                                    (modal !== "Restore account" && !connector.isConnected) ||
+                                    (modal === "Reclaim reference" && !reclaimAcknowledged)
                                 }
                             >
                                 {busy ? (
-                                    <LoaderCircle size={16} className="spin"/>
+                                    <LoaderCircle size={16} className="spin" />
                                 ) : modal === "Restore account" ? (
                                     "Find my account"
                                 ) : (
                                     "Review request"
                                 )}
-                                <ArrowRight size={16}/>
+                                <ArrowRight size={16} />
                             </button>
                         </div>
                     </form>

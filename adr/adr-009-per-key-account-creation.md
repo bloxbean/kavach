@@ -3,6 +3,11 @@
 Status: Proposed development candidate. Qualification is recorded in the
 [policy ledger](../docs/policy/completion-checklist.md); not production approval.
 
+> Economics update: [ADR-013](adr-013-economics-extensibility-and-wallet-safety.md)
+> replaces fixed permanently locked reference funding for new dashboard publications
+> with minimum-ADA publisher-owned hosting. The fixed 80/480 ADA figures below describe
+> the historical implementation; existing locked outputs remain locked.
+
 Related: [ADR-001](adr-001-kavach-programmable-smart-account-architecture.md),
 [ADR-005](adr-005-browser-wallet-authentication-and-demo.md),
 [ADR-007](adr-007-tiered-mixed-authorization.md).

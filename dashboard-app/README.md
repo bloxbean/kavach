@@ -8,7 +8,6 @@ React, TypeScript and Cardano Foundation Connect with Wallet.
 
 Use the repository's pinned Java 25 / JuLC toolchain and a running Yaci DevKit with network
 magic **42**, Blockfrost-compatible API at `http://localhost:8080/api/v1/`, and faucet on port
-
 10000. Do not reset the ledger while the separate delayed-recovery worker is running.
 
 From the repository root, start the Java API:
@@ -41,7 +40,7 @@ operational design, independently verified deployment manifests and wallet quali
    `signData` response before exporting the public key. A wallet without `signData` needs its
    own trusted public-key export. Never enter a private key or seed phrase.
 3. Fund the connected wallet's **change address** on DevKit. The setup needs separate outputs
-   for the identity seed, fees and collateral. The automated test uses faucet outputs of
+   for the identity seed, setup funding and a reserved collateral output of at least 5 ADA. The automated test uses faucet outputs of
    1,000 + 20 + 20 test ADA. These amounts are test funding, not transfer fees.
 4. Create an account and choose a device, signing method and public key for each signer.
    Wallet keys support transaction signing or COSE; Companion keys require COSE. The
@@ -50,10 +49,11 @@ operational design, independently verified deployment manifests and wallet quali
    allows up to eight members. Remove signer requires clearing its policy assignments first and keeps at least three
    keys.
 5. Review and approve each setup transaction, including final policy activation. The default
-   per-key flow publishes six reference scripts, each locking **only the ledger minimum for its own script size**
-   (**about 220 ADA total** for the five core references), creates a **12 ADA state output**, and
-   pays stake-registration deposits and network fees. Reference publication is deliberately
-   conservative and is not an optimized production onboarding cost. Continue only after
+   per-key flow publishes six scripts at their current calculated minimum ADA, hosted at a dedicated script vault controlled by the
+   publishing fee wallet. The account state reserve remains permanently locked; registration
+   withdrawal is unsupported. The review shows reference capital, state and registration
+   reserves, estimated fee allowance and collateral separately, with each actual transaction
+   fee visible before signing. Collateral is not a charge for a successful transaction. Continue only after
    ledger confirmation. Save the public account locator before proceeding.
 6. Connect the appropriate authority wallet(s) and use the shared request ID to collect
    approvals. All signers must access the same running backend. Transaction witnesses apply
@@ -98,6 +98,58 @@ Approval counts and the transaction signer checklist show what remains. Once all
 are collected, Submit transaction is the next action. Switch active wallet accounts as needed.
 See [ADR-009](../adr/adr-009-per-key-account-creation.md) for the restricted setup checkpoint.
 
+## Reference capital and availability
+
+New references use a dedicated publisher-controlled script vault, bound to the full account
+identity and reference-hosting purpose. Capital is a separate script-address reserve and
+cannot be selected as ordinary key-wallet funds. The dashboard displays its vault holding
+address separately from the publisher wallet. Losing that publisher key can strand this
+capital even if the Kavach account is recovered. Vault hosting grants no account authority;
+ordinary account operations do not require the publisher's signature.
+
+Security distinguishes publisher vaults, historical key-hosted outputs and permanently
+locked historical outputs. Existing deposits are not moved by this update. Historical locked
+references remain unreclaimable. Historical key-hosted references retain their old ownership
+and ordinary wallet-selection risk; the new vault reclamation action does not spend them.
+
+For an available vault output choose **Reclaim reference**, connect its publisher wallet and
+acknowledge removal of the selected copy. Review the exact transaction hash/output index,
+hosted script, vault address, full returned capital, publisher return address and final fee.
+The dashboard returns the selected capital separately from fees, funded using plain wallet
+outputs with separate collateral. Reclamation requires the publisher's signature and pays
+applicable network, execution and reference-script charges. Real-wallet compatibility remains
+unqualified. Account state reserves stay permanently locked; reclamation does not close or
+recover the account. Active references can be intentionally reclaimed, but this may stop
+account operations. No automatic reclamation, migration or replacement occurs. The current UI lists vault
+outputs for a restored account only. Reclaiming an orphaned publication from interrupted
+pre-genesis setup is not exposed through this screen; preserve its public deployment
+artifacts, locator and output reference for the [exact-outpoint API/SDK flow](../protocol/reference-vault/specification.md#development-dashboard-api), which does not require live account state.
+
+**Repair reference** republishes a missing active script from its retained exact bytes into
+the connected publisher's vault; this publisher may differ from the original. Review its
+capital and fee, sign and wait for confirmation, then refresh the account and prepare a fresh
+operation. This does not change the account address or recover the previous publisher's
+capital. Changed transaction bodies require fresh wallet witnesses. The NFT minting-policy
+reference is optional after genesis: supported post-genesis operations neither mint nor burn
+the identity NFT, so a missing copy does not trigger repair. It may still be explicitly
+reclaimed from a vault. Keep its exact script bytes backed up.
+
+Back up the public profile and exact script artifacts under
+`dashboard-app/backend/data/profiles/`, including its `references/` directory and unfinished
+setup `.candidate`/`.setup` records, alongside the account locator. A locator alone cannot
+restore exact script bytes when both local artifacts and provider history are unavailable.
+Portable UI artifact export/import is not implemented. See
+[ADR-014](../adr/adr-014-publisher-protected-reference-vault.md).
+
+Before the first setup signature, review the complete setup funding estimate. It includes
+the final mixed module and the selected collateral output, but excludes the reserved identity
+seed; every transaction still needs its own final fee review. Setup requires three separate
+plain ADA outputs: the seed, collateral of at least 5 ADA, and setup funding. A funding
+preflight cannot reserve UTxOs or guarantee future fees. Keep the backend alive through
+genesis: pre-genesis progress is not restart-safe, and a restart cannot refund already paid
+fees or undo publications. Save the locator once genesis confirms. Confirmed mixed accounts
+can resume their remaining activation steps.
+
 ## Available flows
 
 - Create and restore an account from its locator; inspect balance, assets, mode and six roles.
@@ -114,10 +166,11 @@ See [ADR-009](../adr/adr-009-per-key-account-creation.md) for the restricted set
 ## Scope and limitations
 
 This is a development preview, not an audited wallet or a general dApp connector. The UI
-starts with a three-key reference setup, allows up to 8 keys, and supports up to 16 ordinary account inputs per
-transfer,
-with one recipient. The protocol/SDK expose broader shapes that need separate UI work and
-budget qualification. Recipient support is currently key-payment enterprise/base addresses.
+starts with a three-key reference setup, allows up to 8 keys, and supports at most eight ordinary account inputs per payment or consolidation,
+with one recipient. Fragmented balances beyond this bound require a separately qualified SDK batch workflow;
+the dashboard does not automatically split payments. Send all assets is bounded too and
+is not a guaranteed rescue for oversized unsolicited native-asset deposits. The protocol/SDK
+expose broader shapes that need separate UI work and budget qualification. Recipient support is currently key-payment enterprise/base addresses.
 CIP-113 transfers, staking, governance and session keys are not implemented here.
 
 COSE support is the exact [bounded profile](../protocol/browser/specification.md), including
@@ -272,3 +325,23 @@ When moving an existing checkout, move the ignored backend data directory too: i
 trusted deployment records and the Companion pairing identity. A temporary ignored `demo`
 symlink can keep an already-running backend working during the move. Remove that symlink
 after the backend is next started using `:dashboard-app:backend:run`.
+
+Setup seed/collateral reservations apply to each plan, not across all requests or external
+wallet activity. Finish one setup at a time per fee wallet. Concurrent requests using that
+wallet can invalidate a pending setup even when each individual transaction is safe.
+
+### Integration with earlier reference hosting
+
+Existing hash-keyed `.ref` publication hints from the earlier key-hosting implementation
+remain discovery hints, subject to live output/hash/address verification. New publication
+and republishing use publisher vaults. The former bulk key-address reclaim action is
+disabled: use explicit per-output vault reclamation, or a separately qualified
+reference-aware wallet for historical key-address outputs. Historical locked copies remain
+unspendable. Optional immutable core/module reward sinks are retained at creation; they
+are distinct from the publisher vault and require addresses the operator controls.
+
+New mixed setup records retain the exact immutable module reward sink across restart.
+Historical plain `.setup` records with the default sponsor sink remain supported. Earlier
+custom-sink setups that incorrectly recorded the sponsor may need their original public sink
+metadata restored; resume fails the committed-module identity check rather than substituting
+a different module. Keep the original public deployment records.

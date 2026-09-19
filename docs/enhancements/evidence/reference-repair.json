@@ -1,0 +1,21 @@
+{
+  "paidTransferFeeLovelace": "1152553",
+  "repairedScript": "ebe38ac938f424a98a8ebb9e3eaebefa87c7066d690c88363cf4242c",
+  "costs": {
+    "referenceCapital": "223895880",
+    "stateReserve": "2762710",
+    "registrationReserve": "4000000",
+    "feeAllowance": "14000000",
+    "collateralReserve": "20000000",
+    "publisherAddress": "addr_test1qqkts5q5p3wjq9l52cw0dv8ujwhd4eakmyuluuplleqsuyhle0dwfuzqe68k6q3ukehrl0prg5kpc5vc0jprzlxdwfnqskg2c5",
+    "referenceCount": 5,
+    "setupTransactions": 7,
+    "totalFundingEstimate": "264658590",
+    "coinsPerUtxoByte": "4310"
+  },
+  "scope": "Disposable DevKit reference custody/repair and same-address transfer; not a production qualification",
+  "reclaimFixtureFeeLovelace": "1000000",
+  "account": "addr_test1wr478zkf8r6zf2v236aeu04whmag03cxd45sezpk8n6zgtq2rp0up",
+  "publisher": "addr_test1qzww0tvgfzasfp9nmehakjnqky2fzw96wuws2mqdl557crv9wv2s6tkcym82sygrghnqagfnfkmgtwxdnqrezmvcs67qh26hq7",
+  "transfer": "83f14ae9e52ed2c700143f52efb2995382de649a81b949900654186c9dc6a286"
+}

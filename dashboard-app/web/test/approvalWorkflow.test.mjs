@@ -21,3 +21,9 @@ test('funding identity is not inferred to be an account authority', () => {
   assert.equal(isFeePayerOnly({}), false);
   assert.equal(transactionRole({}, 'unknown'), 'Required wallet signer');
 });
+
+
+test('vault publisher signature is never labeled account authority', () => {
+  assert.equal(transactionRole({ feePayer: {paymentKeyHash: 'publisher'}, reclamation: {},
+    transactionAuthoritySigners: ['publisher'] }, 'publisher'), 'Reference publisher + fee payer');
+});

@@ -1,0 +1,32 @@
+{
+  "root": {
+    "tests": 572,
+    "failures": 0,
+    "errors": 0,
+    "skipped": 0
+  },
+  "backend": {
+    "tests": 11,
+    "failures": 0,
+    "errors": 0,
+    "skipped": 0
+  },
+  "toolchain": {
+    "tests": 1,
+    "failures": 0,
+    "errors": 0,
+    "skipped": 0
+  },
+  "frontendTests": 26,
+  "live": {
+    "tests": "2",
+    "failures": "0",
+    "errors": "0",
+    "skipped": "0",
+    "cases": [
+      "customRewardSinksSurviveMixedSetupRestart()",
+      "publisherReferenceRemovalRestartAndIndependentSponsorRepair()"
+    ]
+  },
+  "baseCommit": "cc1b782bd1baaec6803a37c82915fdf345a62305"
+}

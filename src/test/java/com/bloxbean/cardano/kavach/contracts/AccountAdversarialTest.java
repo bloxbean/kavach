@@ -107,7 +107,7 @@ class AccountAdversarialTest {
     }
 
     @ParameterizedTest
-    @ValueSource(strings = {"missing-nft", "wrong-policy", "wrong-state-address", "frozen", "state-extra-field", "state-wrong-tag", "module-hash"})
+    @ValueSource(strings = {"missing-nft", "wrong-policy", "wrong-nft-name", "double-nft", "duplicate-state", "state-reference-script", "wrong-state-address", "frozen", "state-extra-field", "state-wrong-tag", "module-hash"})
     void authenticatedStateRejectsLookalikes(String attack) throws Exception {
         var intent = f.spend(0);
         var auth = f.authorization(intent);
@@ -119,6 +119,16 @@ class AccountAdversarialTest {
                         field(context, Value.lovelace(BigInteger.valueOf(10000000)).toPlutusData(), 0, 1, 0, 1, 1);
                 case "wrong-policy" ->
                         field(context, Value.lovelace(BigInteger.valueOf(10000000)).merge(Value.singleton(new PolicyId(new byte[28]), TokenName.EMPTY, BigInteger.ONE)).toPlutusData(), 0, 1, 0, 1, 1);
+                case "wrong-nft-name" ->
+                        field(context, Value.lovelace(BigInteger.valueOf(10000000)).merge(Value.singleton(
+                                new PolicyId(f.state.accountId().policy()), new TokenName(new byte[]{1}), BigInteger.ONE)).toPlutusData(), 0, 1, 0, 1, 1);
+                case "double-nft" ->
+                        field(context, Value.lovelace(BigInteger.valueOf(10000000)).merge(Value.singleton(
+                                new PolicyId(f.state.accountId().policy()), TokenName.EMPTY, BigInteger.TWO)).toPlutusData(), 0, 1, 0, 1, 1);
+                case "duplicate-state" -> f.context(role, intent, auth)
+                        .referenceInput(new TxInInfo(AccountFixtures.ref(21), f.stateInput().resolved())).buildPlutusData();
+                case "state-reference-script" -> field(context,
+                        AccountCodec.data(Optional.of(new ScriptHash(new byte[28]))), 0, 1, 0, 1, 3);
                 case "wrong-state-address" -> field(context, f.sink.toPlutusData(), 0, 1, 0, 1, 0);
                 case "frozen" -> field(context, field(state, PlutusData.constr(1), 11), 0, 1, 0, 1, 2, 0);
                 case "state-extra-field" -> {

@@ -1,3 +1,17 @@
+export type ReferenceView = {
+    scriptHash: string;
+    available: boolean;
+    hosting: "vault" | "publisher" | "legacy" | "missing";
+    activeRequired: boolean;
+    requiredFor: string;
+    transactionHash?: string;
+    outputIndex?: number;
+    hostingAddress?: string;
+    publisherAddress?: string;
+    publisherKeyHash?: string;
+    capital?: string;
+    reclaimable?: boolean;
+};
 export type AccountView = {
     locator: string;
     address: string;
@@ -15,7 +29,7 @@ export type AccountView = {
         spent?: string;
         remaining?: string;
         resetsAt?: string;
-        counter?: string
+        counter?: string;
     };
     keys: { id: number; publicKey: string; method?: number }[];
     smallPaymentLimit?: string;
@@ -27,6 +41,19 @@ export type AccountView = {
         targetKeys: { id: number; publicKey: string }[];
     };
     assets: { unit: string; quantity: string }[];
+    references?: ReferenceView[];
+};
+export type SetupCosts = {
+    referenceCapital: string;
+    stateReserve: string;
+    registrationReserve: string;
+    feeAllowance: string;
+    collateralReserve: string;
+    totalFundingEstimate: string;
+    publisherAddress: string;
+    hostingAddress?: string;
+    referenceCount: number;
+    setupTransactions: number;
 };
 export type Plan = {
     id: string;
@@ -34,6 +61,25 @@ export type Plan = {
     review: string;
     transaction?: string;
     fee?: string;
+    costs?: SetupCosts;
+    publication?: {
+        scriptHash: string;
+        publisherAddress: string;
+        capital: string;
+        hostingAddress?: string;
+        hosting?: "vault";
+    };
+    reclamation?: {
+        transactionHash: string;
+        outputIndex: number;
+        scriptHash: string;
+        hostingAddress: string;
+        publisherAddress: string;
+        returnedCapital: string;
+        activeRequired: boolean;
+        returnedAssets?: { unit: string; quantity: string }[];
+    };
+    stateFunding?: { previousReserve: string; nextReserve: string; topUp: string };
     requiredSigners: string[];
     feePayer?: { address: string; paymentKeyHash: string };
     transactionAuthoritySigners?: string[];
@@ -43,7 +89,7 @@ export type Plan = {
         publicKey: string;
         paymentKeyHash: string;
         method: number;
-        approved: boolean
+        approved: boolean;
     }[];
     signerKeys?: { id: number; publicKey: string; paymentKeyHash: string }[];
     approvals: string[];
@@ -67,20 +113,21 @@ export type Plan = {
 export async function api<T>(path: string, body?: unknown): Promise<T> {
     const response = await fetch("/api" + path, {
         method: body === undefined ? "GET" : "POST",
-        headers: {"Content-Type": "application/json"},
-        ...(body === undefined ? {} : {body: JSON.stringify(body)}),
+        headers: { "Content-Type": "application/json" },
+        ...(body === undefined ? {} : { body: JSON.stringify(body) }),
     });
     const text = await response.text();
     let data;
     try {
         data = JSON.parse(text);
     } catch {
-        throw new Error(response.status >= 500
-            ? "The Kavach backend is unavailable. Your form entries are preserved. Check the backend and try again."
-            : "The backend returned an unreadable response. Refresh request status before retrying a submission.");
+        throw new Error(
+            response.status >= 500
+                ? "The Kavach backend is unavailable. Your form entries are preserved. Check the backend and try again."
+                : "The backend returned an unreadable response. Refresh request status before retrying a submission.",
+        );
     }
-    if (!response.ok)
-        throw new Error(data?.error || `Request failed (${response.status})`);
+    if (!response.ok) throw new Error(data?.error || `Request failed (${response.status})`);
     return data;
 }
 
@@ -95,10 +142,7 @@ export interface WalletApi {
 
     signTx(tx: string, partial: boolean): Promise<string>;
 
-    signData(
-        address: string,
-        payload: string,
-    ): Promise<{ signature: string; key: string }>;
+    signData(address: string, payload: string): Promise<{ signature: string; key: string }>;
 }
 
 declare global {
@@ -107,9 +151,7 @@ declare global {
     }
 }
 export const short = (value: string, size = 8) =>
-    value.length > size * 2 + 3
-        ? `${value.slice(0, size)}…${value.slice(-size)}`
-        : value;
+    value.length > size * 2 + 3 ? `${value.slice(0, size)}…${value.slice(-size)}` : value;
 export const ada = (lovelace: string) => {
     const amount = BigInt(lovelace);
     return `${(amount / 1000000n).toLocaleString()}.${(amount % 1000000n).toString().padStart(6, "0").replace(/0+$/, "") || "00"}`;

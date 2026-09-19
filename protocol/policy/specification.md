@@ -123,3 +123,7 @@ Creation includes this explicit activation step in one guided sequence. It does 
 users to create all keys under one signing method, and it never asks a transaction-only key
 to produce a COSE proof. The backend marks confirmed-but-unactivated accounts `setupPending`
 and can resume from their locator plus independently checked public setup deployment record.
+
+Reference hosting and setup economics follow the [browser deployment specification](../browser/deployment-economics.md).
+This changes distribution/funding, not policy encoding or permission to bypass cumulative
+state. General external policy composition remains outside this candidate ABI.

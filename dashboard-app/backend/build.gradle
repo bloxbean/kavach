@@ -38,6 +38,7 @@ tasks.register('dashboardIntegrationTest', Test) {
     testClassesDirs = sourceSets.test.output.classesDirs
     classpath = sourceSets.test.runtimeClasspath
     useJUnitPlatform { includeTags 'demoDevkit' }
+    systemProperty 'kavach.dashboardEvidenceDirectory', providers.gradleProperty('dashboardEvidenceDirectory').getOrElse('build')
     workingDir = rootProject.projectDir
     outputs.upToDateWhen { false }
     testLogging { showStandardStreams = true; exceptionFormat = 'full' }
