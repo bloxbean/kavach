@@ -5,6 +5,7 @@ import co.nstant.in.cbor.CborDecoder;
 import com.bloxbean.cardano.client.address.AddressProvider;
 import com.bloxbean.cardano.client.api.common.OrderEnum;
 import com.bloxbean.cardano.client.api.model.Amount;
+import com.bloxbean.cardano.client.api.model.Result;
 import com.bloxbean.cardano.client.api.model.Utxo;
 import com.bloxbean.cardano.client.backend.api.BackendService;
 import com.bloxbean.cardano.client.backend.api.DefaultProtocolParamsSupplier;
@@ -165,6 +166,7 @@ final class DemoService {
         int setupTotal;
         String txHash;
         String locator;
+        String publishedScript;
         Map<String, Object> costs;
         Map<String, Object> publication;
         Map<String, Object> reclamation;
@@ -189,6 +191,7 @@ final class DemoService {
         int mode;
         PlutusV3Script finalModule;
         BigInteger stateReserve;
+        String publishedScript;
         Map<String, Object> costs;
     }
 
@@ -422,15 +425,18 @@ final class DemoService {
             new SecureRandom().nextBytes(discriminator);
             var domain =
                     new DeploymentDomain(BigInteger.ZERO, BigInteger.valueOf(42), discriminator);
-            var sink = ledgerAddress(sponsor);
+            String moduleSinkAddress = optionalAddress(body, "moduleSink", sponsor);
+            var coreSink = ledgerAddress(optionalAddress(body, "coreSink", sponsor));
+            var moduleSink = ledgerAddress(moduleSinkAddress);
             var scripts =
-                    AccountDeployment.derive(domain, ref(setup.seed), payment(sponsor), sink, sink);
+                    AccountDeployment.derive(domain, ref(setup.seed), payment(sponsor), coreSink, moduleSink);
             if (Boolean.TRUE.equals(body.get("budgetCore"))) scripts = PeriodicBudgetDeployment.derive(scripts, domain);
-            var module = browser(scripts, domain, sink, mode);
+            var module = browser(scripts, domain, moduleSink, mode);
             if (mode == 3) {
                 setup.finalModule = module;
-                module = mixedSetup(scripts, domain, sink, module);
-                ReferenceHosting.writePublicRecord(PROFILES.resolve(hex(module.getScriptHash()) + ".setup"), setup.sponsor);
+                module = mixedSetup(scripts, domain, moduleSink, module);
+                ReferenceHosting.writePublicRecord(PROFILES.resolve(hex(module.getScriptHash()) + ".setup"),
+                        new ObjectMapper().writeValueAsString(Map.of("version", 1, "moduleSink", moduleSinkAddress)));
                 hosting.remember(setup.finalModule, null);
                 hosting.remember(module, null);
                 ReferenceHosting.writePublicRecord(PROFILES.resolve(hex(module.getScriptHash()) + ".candidate"), hex(setup.finalModule.getScriptHash()));
@@ -458,12 +464,17 @@ final class DemoService {
             var script = scriptList(scripts).stream().filter(v -> hexUnchecked(v).equals(hash)).findFirst()
                     .orElseThrow(() -> new IllegalArgumentException("Reference is not part of this account's current script graph"));
             String holder = AddressProvider.getEntAddress(scripts.state(), NETWORK).toBech32();
-            require(reference(holder, script).isEmpty(), "An exact reference is already available; refresh and prepare a fresh request");
+            require(reference(holder, script, sponsor).isEmpty(), "An exact reference is already available; refresh and prepare a fresh request");
             var repair = plainPlan("Repair reference availability", sponsor, state.accountId(), script, null);
             repair.locator = locator;
             return view(repair);
         }
         if (action.equals("Finish account setup")) return view(finishMixedSetup(locator, sponsor));
+        if (action.equals("Republish references")) return view(republishReferences(state, scripts, sponsor, locator));
+        if (action.equals("Reclaim references"))
+            throw new IllegalArgumentException("Bulk legacy key-reference reclamation is not supported safely by this builder. "
+                    + "Use the original publisher wallet and a reference-fee-aware transaction builder for legacy key outputs. "
+                    + "For publisher vaults, select one exact reference and use Reclaim reference with its publisher wallet.");
         require(!Files.exists(PROFILES.resolve(hex(state.authModule().scriptHash()) + ".setup")),
                 "Finish account setup before changing policies or spending");
         require(
@@ -736,7 +747,13 @@ final class DemoService {
         var scripts = restoreScripts(state);
         var record = PROFILES.resolve(hex(state.authModule().scriptHash()) + ".setup");
         require(Files.exists(record), "This account has no unfinished mixed setup");
-        var sink = ledgerAddress(address(Files.readString(record)));
+        String resume = Files.readString(record).trim();
+        if (resume.startsWith("{")) {
+            var saved = new ObjectMapper().readTree(resume);
+            require(saved.path("version").asInt(-1) == 1 && saved.path("moduleSink").isTextual(), "Unsupported mixed setup record");
+            resume = saved.get("moduleSink").asText();
+        }
+        var sink = ledgerAddress(address(resume));
         var candidateRecord = PROFILES.resolve(hex(state.authModule().scriptHash()) + ".candidate");
         // The candidate hint is not authority: reconstruct the precommitment and require its exact
         // currently installed hash below. Retained candidate bytes survive a changed PolicyModule build.
@@ -746,7 +763,7 @@ final class DemoService {
         var expected = mixedSetup(scripts, state.deploymentDomain(), sink, candidate);
         require(Arrays.equals(expected.getScriptHash(), state.authModule().scriptHash()), "Setup deployment record does not match its immutable checkpoint");
         String holder = AddressProvider.getEntAddress(scripts.state(), NETWORK).toBech32();
-        if (reference(holder, candidate).isEmpty()) {
+        if (reference(holder, candidate, sponsor).isEmpty()) {
             var publication = plainPlan("Create account · publish final signing module", sponsor, state.accountId(), candidate, null);
             publication.locator = locator;
             publication.next = () -> finishMixedSetup(locator, sponsor);
@@ -821,10 +838,33 @@ final class DemoService {
         var tx = new Tx().collectFrom(List.of(feeInput(sponsor, reserved, capital.add(BigInteger.valueOf(2_000_000)), collateral)))
                 .payToAddress(vault.address(), new Amount("lovelace", capital), script);
         p.transaction = setupTransaction(tx, sponsor, reserved, collateral);
+        p.publishedScript = hex(script.getScriptHash());
         require(p.transaction.getBody().getOutputs().stream().anyMatch(o -> vault.address().equals(o.getAddress())
                 && Arrays.equals(o.getScriptRef(), output.getScriptRef()) && o.getValue().getCoin().equals(capital)),
                 "Reference publication changed during balancing");
         return finish(p);
+    }
+
+    /** Permissionless repair of missing operational references; genesis-only NFT copies are optional after creation. */
+    private Plan republishReferences(AccountState state, AccountDeployment.Scripts scripts, String sponsor, String locator) throws Exception {
+        String holder = AddressProvider.getEntAddress(scripts.state(), NETWORK).toBech32();
+        var missing = new ArrayList<PlutusV3Script>();
+        for (var script : scriptList(scripts)) {
+            if (Arrays.equals(script.getScriptHash(), state.accountId().policy())) continue;
+            if (reference(holder, script, sponsor).isEmpty()) missing.add(script);
+        }
+        require(!missing.isEmpty(), "Every operational reference is already published and confirmed");
+        return republishMissing(state.accountId(), holder, missing, sponsor, locator);
+    }
+
+    private Plan republishMissing(AccountId account, String holder, List<PlutusV3Script> missing, String sponsor, String locator) throws Exception {
+        var remaining = new ArrayList<PlutusV3Script>();
+        for (var script : missing) if (reference(holder, script, sponsor).isEmpty()) remaining.add(script);
+        require(!remaining.isEmpty(), "References became available; refresh the account before continuing");
+        var plan = plainPlan("Republish reference script", sponsor, account, remaining.getFirst(), null);
+        plan.locator = locator;
+        if (remaining.size() > 1) plan.next = () -> republishMissing(account, holder, remaining.subList(1, remaining.size()), sponsor, locator);
+        return plan;
     }
 
     /** Explicit single-output custody spend, separate from all account authority operations. */
@@ -1351,7 +1391,7 @@ final class DemoService {
             }
         for (var script : scripts) {
             hosting.remember(script, null);
-            tx.readFrom(reference(holder, script).orElseThrow(() -> new IllegalArgumentException(
+            tx.readFrom(reference(holder, script, sponsor).orElseThrow(() -> new IllegalArgumentException(
                     "Reference script unavailable: " + hexUnchecked(script) + ". Repair it from the account screen, then prepare a fresh request.")));
         }
         var parameters = backend.getEpochService().getProtocolParameters();
@@ -1528,6 +1568,7 @@ final class DemoService {
                             result.isSuccessful(),
                             "Ledger rejected transaction: " + result.getResponse());
                     p.txHash = result.getValue();
+                    if (p.publishedScript != null) recordReference(p.publishedScript, tx, p.txHash);
                 }
                 case "advance" -> {
                     require(p.txHash != null && p.next != null, "No next setup step");
@@ -1754,6 +1795,14 @@ final class DemoService {
                         HexUtil.decodeHexString(value));
         require((a.getBytes()[0] & 15) == 0, "Use a testnet address");
         return a.toBech32();
+    }
+
+    /** Explicit immutable reward sinks must be testnet key addresses; ownership remains the caller's responsibility. */
+    private static String optionalAddress(Map<String, Object> body, String field, String fallback) {
+        var value = body.get(field);
+        String selected = value instanceof String text && !text.isBlank() ? address(text) : fallback;
+        payment(selected);
+        return selected;
     }
 
     private static byte[] payment(String address) {
@@ -2054,33 +2103,102 @@ final class DemoService {
         return script;
     }
 
-    private Optional<Utxo> reference(String legacyHolder, PlutusV3Script script) throws Exception {
-        return referenceByHash(legacyHolder, hex(script.getScriptHash()));
+    private Optional<Utxo> reference(String legacyHolder, PlutusV3Script script, String sponsor) throws Exception {
+        return referenceByHash(legacyHolder, hex(script.getScriptHash()), sponsor);
     }
 
-    /** Addresses are untrusted discovery hints; confirmed UTxOs must match the expected script hash. */
-    private Optional<Utxo> referenceByHash(String legacyHolder, String expectedHash) throws Exception {
-        for (var legacy : utxos(legacyHolder).stream().filter(u -> expectedHash.equals(u.getReferenceScriptHash()))
-                .sorted(Comparator.comparing(Utxo::getTxHash).thenComparingInt(Utxo::getOutputIndex)).toList()) {
-            var live = liveReference(legacy, expectedHash);
-            if (live.isPresent()) return live;
+    /** Previous key-holder versions used a separate enterprise address; discovery never grants spending authority. */
+    private static String legacyReferenceHolder(String sponsor) {
+        return AddressProvider.getEntAddress(com.bloxbean.cardano.client.address.Credential.fromKey(payment(sponsor)), NETWORK).toBech32();
+    }
+
+    private static Path referenceRecord(String hash) {
+        require(hash.matches("[0-9a-f]{56}"), "Invalid reference script hash");
+        return PROFILES.resolve(hash + ".ref");
+    }
+
+    /** Public outpoint hints are compatible with the earlier dashboard and written atomically after submission. */
+    private static void recordReference(String hash, Transaction transaction, String transactionHash) throws Exception {
+        var outputs = transaction.getBody().getOutputs();
+        for (int index = 0; index < outputs.size(); index++) {
+            var bytes = outputs.get(index).getScriptRef();
+            if (bytes == null || !hash.equals(hex(PlutusV3Script.deserializeScriptRef(bytes).getScriptHash()))) continue;
+            ReferenceHosting.writePublicRecord(referenceRecord(hash), transactionHash + "#" + index);
+            return;
         }
+        throw new IllegalArgumentException("Published reference output is missing from the submitted transaction");
+    }
+
+    /** Malformed public hints do not prevent fallback discovery; all accepted hints are revalidated live. */
+    static Optional<TransactionInput> referenceHint(String encoded) {
+        if (encoded == null || encoded.length() > 96 || !encoded.trim().matches("[0-9a-f]{64}#[0-9]{1,10}")) return Optional.empty();
+        String[] parts = encoded.trim().split("#");
+        try { return Optional.of(new TransactionInput(parts[0], Integer.parseInt(parts[1]))); }
+        catch (NumberFormatException invalid) { return Optional.empty(); }
+    }
+
+    /** A provider outage must not turn into a missing-reference result and an unnecessary paid republication. */
+    static Optional<Utxo> referenceResponse(Result<Utxo> result, String expectedHash) {
+        if (!result.isSuccessful() && result.code() == 404) return Optional.empty();
+        require(result.isSuccessful() && result.getValue() != null, "DevKit reference query failed; retry before publishing a replacement");
+        var output = result.getValue();
+        address(output.getAddress());
+        return expectedHash.equals(output.getReferenceScriptHash()) ? Optional.of(output) : Optional.empty();
+    }
+
+    private Optional<Utxo> referenceByHash(String legacyHolder, String expectedHash) throws Exception {
+        return referenceByHash(legacyHolder, expectedHash, null);
+    }
+
+    /** Outpoint manifests and addresses are hints; verify exact bytes, expected hash, network and current unspent status. */
+    private Optional<Utxo> referenceByHash(String legacyHolder, String expectedHash, String sponsor) throws Exception {
+        var record = referenceRecord(expectedHash);
+        if (Files.exists(record) && Files.size(record) <= 96) {
+            var hint = referenceHint(Files.readString(record));
+            if (hint.isPresent()) {
+                var result = backend.getUtxoService().getTxOutput(hint.get().getTransactionId(), hint.get().getIndex());
+                var candidate = referenceResponse(result, expectedHash).filter(u ->
+                        hint.get().getTransactionId().equals(u.getTxHash()) && hint.get().getIndex() == u.getOutputIndex());
+                if (candidate.isPresent()) {
+                    var output = candidate.get();
+                    if (utxos(output.getAddress()).stream().anyMatch(u -> ref(u).equals(ref(output)))) {
+                        retainedScript(HexUtil.decodeHexString(expectedHash));
+                        return candidate;
+                    }
+                }
+            }
+        }
+        var addresses = new LinkedHashMap<String, Boolean>();
         for (var publisher : hosting.publishers(expectedHash)) {
             String checked;
             try { checked = address(publisher); if (hosting.vault(checked).isEmpty()) payment(checked); }
             catch (RuntimeException invalidHint) { continue; }
-            for (var found : utxos(checked).stream().filter(u -> expectedHash.equals(u.getReferenceScriptHash()))
+            addresses.put(checked, true);
+        }
+        if (sponsor != null) {
+            addresses.put(legacyReferenceHolder(sponsor), true);
+            addresses.put(address(sponsor), true);
+        }
+        // Historic sealed-state publications remain a last fallback. Do not scan the state address
+        // before a verified manifest or publisher hint can resolve the required copy.
+        addresses.put(legacyHolder, true);
+        for (String location : addresses.keySet()) {
+            for (var found : utxos(location).stream().filter(u -> expectedHash.equals(u.getReferenceScriptHash()))
                     .sorted(Comparator.comparing(Utxo::getTxHash).thenComparingInt(Utxo::getOutputIndex)).toList()) {
                 var live = liveReference(found, expectedHash);
-                if (live.isPresent()) return live;
+                if (live.isPresent()) {
+                    retainedScript(HexUtil.decodeHexString(expectedHash));
+                    ReferenceHosting.writePublicRecord(record, found.getTxHash() + "#" + found.getOutputIndex());
+                    return live;
+                }
             }
         }
         return Optional.empty();
     }
 
-    private Optional<Utxo> liveReference(Utxo hint, String expectedHash) {
-        return builder.getUtxoSupplier().getTxOutput(hint.getTxHash(), hint.getOutputIndex())
-                .filter(u -> expectedHash.equals(u.getReferenceScriptHash()) && hint.getAddress().equals(u.getAddress()));
+    private Optional<Utxo> liveReference(Utxo hint, String expectedHash) throws Exception {
+        return referenceResponse(backend.getUtxoService().getTxOutput(hint.getTxHash(), hint.getOutputIndex()), expectedHash)
+                .filter(u -> hint.getAddress().equals(u.getAddress()) && ref(hint).equals(ref(u)));
     }
 
     private TransactionOutput stateOutput(AccountState state, String holder, BigInteger reserve) {

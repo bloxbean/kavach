@@ -1,10 +1,10 @@
-# ADR-012 publisher reference vault qualification
+# ADR-014 publisher reference vault qualification
 
 Branch: `enhancement/scalability-security-wallet-review`.
 Status: scoped development implementation and targeted qualification complete, 2026-09-19.
 No production approval; remaining boundaries below still apply.
 
-[Decision and implementation plan](../../adr/adr-012-publisher-protected-reference-vault.md),
+[Decision and implementation plan](../../adr/adr-014-publisher-protected-reference-vault.md),
 [vault wire specification](../../protocol/reference-vault/specification.md),
 [deployment behavior](../../protocol/browser/deployment-economics.md).
 
@@ -39,7 +39,7 @@ artifact. Legacy locked/key-address copies remain supported without automatic mi
 
 [Bytecode review](evidence/adr-012/ccl-consumed-reference-fee-review.json) confirms the pinned
 CCL only includes consumed-reference fees when a transaction has a script-data hash. The
-previous ADR-011 plain-key reclaim fixture did not meet that condition. The new vault uses an
+previous ADR-013 plain-key reclaim fixture did not meet that condition. The new vault uses an
 actual script spending redeemer with the custody validator supplied as a witness; it therefore
 meets that code path without adding a reference input. Node-paid fee decomposition is still
 required and must distinguish custody execution, base bytes and the consumed hosted script.
@@ -76,7 +76,7 @@ to remain independent of account-state restoration. It is not account authentica
 applied fixture, 17,573,721 CPU and 61,511 memory. These are measured synthetic-context
 costs, not the final ledger redeemer allowance. All 26 pre-existing contract artifact files
 remain unchanged; [ten account-template CBOR hashes](evidence/adr-012/unchanged-account-templates.json)
-were also independently compared with the ADR-011 baseline and match; only the aggregate manifest includes the new vault.
+were also independently compared with the ADR-013 baseline and match; only the aggregate manifest includes the new vault.
 
 The [UI inspection scope](evidence/adr-012/ui-scope.md) records mocked API data with no wallet
 or ledger action. Desktop and 390px mobile reclaim dialogs were inspected without horizontal

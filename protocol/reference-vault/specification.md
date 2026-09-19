@@ -1,6 +1,6 @@
 # Publisher reference vault, version 1
 
-This standalone Plutus V3 custody protocol implements [ADR-012](../../adr/adr-012-publisher-protected-reference-vault.md).
+This standalone Plutus V3 custody protocol implements [ADR-014](../../adr/adr-014-publisher-protected-reference-vault.md).
 It is outside the sealed Kavach V1 account schema. It does not modify account scripts,
 addresses, authorization modules or account state. This is a development implementation,
 not an independent security audit or production qualification.
@@ -93,7 +93,7 @@ This gate is separate from existing account upgrade rules.
 
 Compiled context tests measure execution and rejection behavior, not full ledger acceptance.
 Ledger qualification and paid publication/reclamation fees are recorded separately in the
-ADR-012 evidence. No fee reduction for ordinary account transfers is promised by custody.
+ADR-014 evidence. No fee reduction for ordinary account transfers is promised by custody.
 
 ## Development dashboard API
 

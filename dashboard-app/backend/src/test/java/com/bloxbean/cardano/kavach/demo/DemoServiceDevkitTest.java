@@ -117,6 +117,8 @@ class DemoServiceDevkitTest {
         var refView = ((List<?>) before.get("references")).stream().map(DemoServiceDevkitTest::map)
                 .filter(r -> assetHash.equals(r.get("scriptHash"))).findFirst().orElseThrow();
         assertEquals("vault", refView.get("hosting"));
+        var manifest = Path.of("dashboard-app/backend/data/profiles", assetHash + ".ref");
+        assertEquals(refView.get("transactionHash") + "#" + refView.get("outputIndex"), Files.readString(manifest));
         var reclaimRequest = new HashMap<String, Object>(Map.of("action", "reclaim-reference", "locator", locator,
                 "sponsor", sponsor.baseAddress(), "transactionHash", refView.get("transactionHash"),
                 "outputIndex", refView.get("outputIndex"), "scriptHash", assetHash, "acknowledge", true));
@@ -169,7 +171,8 @@ class DemoServiceDevkitTest {
         var repair = map(service.prepare(Map.of("action", "repair-reference", "locator", locator,
                 "scriptHash", assetHash, "sponsor", replacement.baseAddress())));
         assertTrue(((List<?>) repair.get("payloads")).isEmpty());
-        execute(repair, replacement);
+        var publishedRepair = execute(repair, replacement);
+        assertTrue(Files.readString(manifest).startsWith(publishedRepair.get("txHash") + "#"));
         assertEquals(accountAddress, map(service.restore(locator)).get("address"));
         var transfer = map(service.prepare(Map.of("action", "Send assets", "locator", locator,
                 "sponsor", replacement.baseAddress(), "recipient", sponsor.baseAddress(), "amount", "2")));
@@ -227,7 +230,16 @@ class DemoServiceDevkitTest {
         creationWithMethods(1, true);
     }
 
+    @Test
+    void customRewardSinksSurviveMixedSetupRestart() throws Exception {
+        creationWithMethods(1, false, true);
+    }
+
     private void creationWithMethods(int coseCount, boolean migrateAllCose) throws Exception {
+        creationWithMethods(coseCount, migrateAllCose, false);
+    }
+
+    private void creationWithMethods(int coseCount, boolean migrateAllCose, boolean customSinks) throws Exception {
         captureMixedCreation = true;
         topUp(1000);
         topUp(20);
@@ -240,6 +252,10 @@ class DemoServiceDevkitTest {
         request.put("keys", newKeys(Math.max(3, coseCount)));
         request.put("budgetCore", true);
         request.put("coseIds", coseCount == 0 ? List.of() : coseCount == 1 ? List.of(1) : IntStream.range(0, coseCount).boxed().toList());
+        if (customSinks) {
+            request.put("coreSink", new Account(new Network(0, 42)).baseAddress());
+            request.put("moduleSink", new Account(new Network(0, 42)).baseAddress());
+        }
         request.put("amountTiers", true);
         request.put("smallPaymentAda", "10");
         request.put("smallThreshold", "1");
@@ -259,6 +275,13 @@ class DemoServiceDevkitTest {
             assertEquals(10, ((Number) plan.get("setupTotal")).intValue());
             if (!Boolean.TRUE.equals(plan.get("canAdvance"))) break;
             if (step >= 7) {
+                if (customSinks) {
+                    var current = AccountLocator.parse(locator).restore(AccountLocator.provider(backend)).state();
+                    var saved = new ObjectMapper().readTree(Files.readString(Path.of("dashboard-app/backend/data/profiles",
+                            HexUtil.encodeHexString(current.authModule().scriptHash()) + ".setup")));
+                    assertEquals(1, saved.get("version").asInt());
+                    assertEquals(request.get("moduleSink"), saved.get("moduleSink").asText());
+                }
                 assertEquals(true, map(service.restore(locator)).get("setupPending"));
                 var blocked = new HashMap<>(request);
                 blocked.put("action", "Send assets");

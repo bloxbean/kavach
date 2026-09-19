@@ -1,11 +1,11 @@
-# ADR-011 enhancement review and qualification
+# ADR-013 enhancement review and qualification
 
 Branch: `enhancement/scalability-security-wallet-review`.
-This records the ADR-011 implementation stage. [ADR-012 qualification](adr-012-review.md)
+This records the ADR-013 implementation stage. [ADR-014 qualification](adr-014-review.md)
 supersedes new-reference custody with a separate publisher vault; figures and unchanged-source
 statements below describe the earlier stage and are retained as historical evidence.
 Status: development enhancements implemented; targeted final ledger regressions passed, 2026-09-19. Not an independent audit
-or production approval. [Decision](../../adr/adr-011-economics-extensibility-and-wallet-safety.md),
+or production approval. [Decision](../../adr/adr-013-economics-extensibility-and-wallet-safety.md),
 [deployment specification](../../protocol/browser/deployment-economics.md).
 
 ## Findings and disposition

@@ -1,10 +1,10 @@
 # Dashboard deployment economics and reference availability
 
-Development profile for [ADR-011](../../adr/adr-011-economics-extensibility-and-wallet-safety.md)
-and [ADR-012](../../adr/adr-012-publisher-protected-reference-vault.md).
+Development profile for [ADR-013](../../adr/adr-013-economics-extensibility-and-wallet-safety.md)
+and [ADR-014](../../adr/adr-014-publisher-protected-reference-vault.md).
 This supplements browser/policy deployment tooling; it does not change V1 CBOR, signing
 preimages, immutable scripts, authority roles or existing account addresses. Qualification
-is recorded in [the enhancement report](../../docs/enhancements/adr-011-review.md).
+is recorded in [the enhancement report](../../docs/enhancements/adr-013-review.md).
 
 ## Capital and quotes
 

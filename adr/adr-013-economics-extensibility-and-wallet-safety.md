@@ -1,8 +1,8 @@
-# ADR-011: Lower-cost deployment, bounded extensibility and wallet safety
+# ADR-013: Lower-cost deployment, bounded extensibility and wallet safety
 
 Status: Accepted implementation direction after three independent reviews (2026-09-19).
 Development qualification only; implementation and release gates remain evidence-based.
-[ADR-012](adr-012-publisher-protected-reference-vault.md) supersedes key-address hosting
+[ADR-014](adr-014-publisher-protected-reference-vault.md) supersedes key-address hosting
 for new publications with publisher-protected script vaults; existing copies remain supported.
 
 Related: [architecture](adr-001-kavach-programmable-smart-account-architecture.md),
@@ -173,7 +173,7 @@ The economics reviewer required automatic selector isolation, final-body asserti
 mixed setup costs and missing-reference/replacement-sponsor tests. The wallet reviewer required
 explicit publisher-key ownership, restart/partial-setup disclosure and truthful quoted costs.
 These requirements are incorporated above; their implementation results and remaining gates
-are tracked in [the enhancement report](../docs/enhancements/adr-011-review.md).
+are tracked in [the enhancement report](../docs/enhancements/adr-013-review.md).
 
 ### Measured optimization disposition
 
@@ -209,3 +209,19 @@ verification, reward-receipt disposition and provider replacement. This can amor
 capital; it does not eliminate per-transaction reference-script fees or make a shared sponsor
 an account authority. Account-specific asset scripts still need an availability strategy.
 No shared factory or general policy engine is introduced by the current implementation.
+
+## Numbering after integration
+
+This decision was originally numbered ADR-011 on the PR #6 branch. It was renumbered when
+integrating the already-published decisions on `main`. Historical evidence filenames retain
+their original branch identifiers; their contents and transaction measurements are unchanged.
+
+## Relationship to the merged shared-core decision
+
+[ADR-012](adr-012-shared-deployment-core-scripts.md) declines shared deployment tiers after
+reclaimable references removed the permanent-loss rationale. Its decision remains in force.
+The shared-domain research milestone above is not implementation authorization; reconsidering
+that decision requires a separate reviewed ADR with operational, registration-race and reward
+attribution evidence. Upstream [ADR-011](adr-011-reference-deposit-reclamation.md) also records
+219.53 ADA for the raw-Ed25519 profile and 223.29 ADA for the browser profile; these explain
+the originally reported cost using a different revision/profile than our initial baseline.

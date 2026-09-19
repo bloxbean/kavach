@@ -32,7 +32,8 @@ operational design, independently verified deployment manifests and wallet quali
 
 1. Configure a **disposable** CIP-30 wallet for this exact local DevKit. Choosing a generic
    “testnet” is insufficient: CIP-30 network ID 0 also covers preview and preprod. The backend
-   verifies genesis magic 42 and resolves funding from that ledger. CF Connect is explicitly restricted to `NetworkType.TESTNET`; its default is Mainnet. It does not change
+   verifies genesis magic 42 and resolves funding from that ledger. CF Connect is explicitly restricted to
+   `NetworkType.TESTNET`; its default is Mainnet. It does not change
    the wallet's chain/provider configuration.
 2. Prepare three independent payment public keys: everyday key 0, guardian key 1, defensive
    backup key 2. In Connect wallet, **Verify & show public key** verifies a domain-separated
@@ -44,7 +45,9 @@ operational design, independently verified deployment manifests and wallet quali
 4. Create an account and choose a device, signing method and public key for each signer.
    Wallet keys support transaction signing or COSE; Companion keys require COSE. The
    initial role profile is editable; invalid defensive-role overlaps and unsafe admin
-   thresholds reject. All registered keys prove possession at creation. Use Add signer for up to 8 keys; each policy allows up to eight members. Remove signer requires clearing its policy assignments first and keeps at least three keys.
+   thresholds reject. All registered keys prove possession at creation. Use Add signer for up to 8 keys; each policy
+   allows up to eight members. Remove signer requires clearing its policy assignments first and keeps at least three
+   keys.
 5. Review and approve each setup transaction, including final policy activation. The default
    per-key flow publishes six scripts at their current calculated minimum ADA, hosted at a dedicated script vault controlled by the
    publishing fee wallet. The account state reserve remains permanently locked; registration
@@ -136,7 +139,7 @@ Back up the public profile and exact script artifacts under
 setup `.candidate`/`.setup` records, alongside the account locator. A locator alone cannot
 restore exact script bytes when both local artifacts and provider history are unavailable.
 Portable UI artifact export/import is not implemented. See
-[ADR-012](../adr/adr-012-publisher-protected-reference-vault.md).
+[ADR-014](../adr/adr-014-publisher-protected-reference-vault.md).
 
 Before the first setup signature, review the complete setup funding estimate. It includes
 the final mixed module and the selected collateral output, but excludes the reserved identity
@@ -171,7 +174,8 @@ expose broader shapes that need separate UI work and budget qualification. Recip
 CIP-113 transfers, staking, governance and session keys are not implemented here.
 
 COSE support is the exact [bounded profile](../protocol/browser/specification.md), including
-payment-key address binding, unhashed 32-byte payloads, and two bounded protected-header forms (with or without an address-valued `kid`). Other
+payment-key address binding, unhashed 32-byte payloads, and two bounded protected-header forms (with or without an
+address-valued `kid`). Other
 valid CIP-8 variants intentionally fail. No particular wallet or hardware-wallet version
 has yet been qualified by actual extension signatures. Automated signers exercise the same
 response shape and real ledger, but do not establish extension compatibility.
@@ -182,7 +186,8 @@ separate trust domain. A wallet showing only a digest cannot detect a compromise
 misleading human description. Inspect wallet transaction details and independently compare
 request digests for meaningful signing assurance.
 
-Existing raw-Ed25519 accounts are not automatically enabled for browser signing; an explicit, qualified module upgrade is required. This demo restores known browser-module deployments.
+Existing raw-Ed25519 accounts are not automatically enabled for browser signing; an explicit, qualified module upgrade
+is required. This demo restores known browser-module deployments.
 
 Only zero-reward checkpoint flows are exposed by this UI slice. Positive checkpoint/module
 balances require the SDK's explicit, disjoint reward-receipt allocation flow; do not reset or
@@ -324,3 +329,19 @@ after the backend is next started using `:dashboard-app:backend:run`.
 Setup seed/collateral reservations apply to each plan, not across all requests or external
 wallet activity. Finish one setup at a time per fee wallet. Concurrent requests using that
 wallet can invalidate a pending setup even when each individual transaction is safe.
+
+### Integration with earlier reference hosting
+
+Existing hash-keyed `.ref` publication hints from the earlier key-hosting implementation
+remain discovery hints, subject to live output/hash/address verification. New publication
+and republishing use publisher vaults. The former bulk key-address reclaim action is
+disabled: use explicit per-output vault reclamation, or a separately qualified
+reference-aware wallet for historical key-address outputs. Historical locked copies remain
+unspendable. Optional immutable core/module reward sinks are retained at creation; they
+are distinct from the publisher vault and require addresses the operator controls.
+
+New mixed setup records retain the exact immutable module reward sink across restart.
+Historical plain `.setup` records with the default sponsor sink remain supported. Earlier
+custom-sink setups that incorrectly recorded the sponsor may need their original public sink
+metadata restored; resume fails the committed-module identity check rather than substituting
+a different module. Keep the original public deployment records.

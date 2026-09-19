@@ -1,16 +1,16 @@
-# ADR-012: Publisher-protected reference-script vault
+# ADR-014: Publisher-protected reference-script vault
 
 Status: Accepted implementation direction after three internal reviews, 2026-09-19.
 Scoped development implementation and targeted qualification complete; no production approval.
-See the [qualification report](../docs/enhancements/adr-012-review.md) for evidence and limitations.
+See the [qualification report](../docs/enhancements/adr-014-review.md) for evidence and limitations.
 
 Related: [architecture](adr-001-kavach-programmable-smart-account-architecture.md),
-[reference economics](adr-011-economics-extensibility-and-wallet-safety.md),
+[reference economics](adr-013-economics-extensibility-and-wallet-safety.md),
 [deployment specification](../protocol/browser/deployment-economics.md).
 
 ## Problem
 
-ADR-011 introduces reclaimable reference outputs at the connected fee wallet's key address.
+ADR-013 introduces reclaimable reference outputs at the connected fee wallet's key address.
 Kavach excludes these outputs from its funding and collateral selection, but other wallet
 software may select them as ordinary funds. Accidental removal interrupts account operations
 until an exact reference copy is available. The publisher should retain intentional reclamation
@@ -67,7 +67,7 @@ rules that would contradict intentional capital recovery.
    publisher key, account identity and holding address. Write public records atomically.
    Discovery hints confer no authority: rederive/verify the vault identity and verify each
    live output's exact address, reference hash and expected shape.
-3. Continue discovering historical permanently locked and ADR-011 key-hosted references.
+3. Continue discovering historical permanently locked and ADR-013 key-hosted references.
    Existing outputs are not moved or made reclaimable by this update. Preserve their records.
 4. Reclamation is a separate API operation, independent of live account-state restoration or
    unrelated account artifacts, bound to one exact transaction-output reference,
@@ -139,7 +139,7 @@ this does not change the account address or recover old publisher capital.
    restart, missing-reference detection, independent repair, same-address transfer, and a mixed
    setup regression. Confirm the node enforces the publisher signature and ledger fee rules.
 6. Record paid fees, exact output capital, script bytes/budgets, failures and final passing
-   results under separate ADR-012 evidence paths. Update specification, guide and this ADR.
+   results under separate ADR-014 evidence paths. Update specification, guide and this ADR.
 
 Independent audit, real-wallet captures and existing Phase 2 recovery/positive-reward release
 gates remain open. Do not reset DevKit or weaken account security to make this hosting work.
@@ -179,3 +179,9 @@ five-reference capital sample is 223.292480 ADA. No ordinary transfer-fee reduct
 Public evidence and unresolved production/UI boundaries are in the qualification report.
 The publisher intentionally retains removal authority; account recovery does not recover
 that key or its capital. Existing permanently locked outputs retain their original rules.
+
+## Numbering after integration
+
+This decision was originally numbered ADR-012 on the PR #6 branch. It was renumbered when
+integrating the already-published decisions on `main`. Historical evidence filenames retain
+their original branch identifiers; their contents and transaction measurements are unchanged.

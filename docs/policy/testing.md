@@ -117,7 +117,9 @@ corresponding recovery/emergency operations. The summary shows all selected meth
 
 Click Review request and complete the ten-step creation sequence. The selected mixed
 policy is activated inside this flow; there is no separate manual module configuration
-required afterward. Reference deposits total 480 ADA in this development flow. Spending
+required afterward. Reference deposits are the ledger minimum for each script. Mixed setup publishes six
+references; review its complete quote rather than using a five-reference estimate. New
+publications use [publisher vaults](../../adr/adr-014-publisher-protected-reference-vault.md). Spending
 is blocked until final activation. If the backend restarts after genesis, restore the account
 and choose Finish account setup; confirmed final publication/registration steps are skipped.
 

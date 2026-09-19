@@ -3,7 +3,7 @@
 Status: Proposed development candidate. Qualification is recorded in the
 [policy ledger](../docs/policy/completion-checklist.md); not production approval.
 
-> Economics update: [ADR-011](adr-011-economics-extensibility-and-wallet-safety.md)
+> Economics update: [ADR-013](adr-013-economics-extensibility-and-wallet-safety.md)
 > replaces fixed permanently locked reference funding for new dashboard publications
 > with minimum-ADA publisher-owned hosting. The fixed 80/480 ADA figures below describe
 > the historical implementation; existing locked outputs remain locked.
@@ -41,8 +41,11 @@ recovery and arbitrary module replacements cannot bypass activation.
 This is an explicitly reviewed creation sequence, not a silent upgrade. Both genesis and
 activation require wallet/phone approval. Ten confirmed steps publish five initial references,
 register checkpoints, initialize state, publish/register the final module and activate it.
-The sixth reference adds 80 ADA to the existing development reference deposits (480 ADA
-total), apart from account state, registration and transaction fees. The account's identity,
+The sixth reference adds its own deposit to the existing development reference deposits,
+apart from account state, registration and transaction fees. Each reference deposit was
+later reduced from a flat 80 ADA to the ledger minimum for that script's serialized size,
+which lowers the five core references from 400 ADA to about 220 ADA; the arrangement and
+its permanence are unchanged. The account's identity,
 asset address, keys and methods stay unchanged across activation. Creation is complete only
 after the final policy is confirmed. No automatic transaction signing or submission occurs.
 

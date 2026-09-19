@@ -1,0 +1,33 @@
+{
+  "scope": "Reference-script publication deposits read back from the Yaci DevKit ledger after the flat 80 ADA reservation was replaced by the builder-computed ledger minimum. DevKit evidence only; not a production deployment or audit claim.",
+  "network": "Yaci DevKit, magic 42",
+  "coinsPerUtxoSize": "4310",
+  "minUtxoFormula": "coinsPerUtxoSize * (serialized output bytes + 160)",
+  "previousReservation": "80 ADA flat per reference, 400 ADA for five",
+  "graphs": {
+    "ed25519Module": {
+      "source": "integrationTest --tests *AccountLifecycleDevkitTest*",
+      "note": "Deposits queried from /api/v1/txs/{hash}/utxos for each publication transaction.",
+      "publications": [
+        {"script": "state", "tx": "141744f7b3be32f9ffcf446ae9341813a68fc1b3e52cae4fd698acef13074e57", "lovelace": "35092020"},
+        {"script": "checkpoint", "tx": "be41968e0a35b3c3522b4723886f656983baca0d2dd07953cb29ea17dea24016", "lovelace": "46642820"},
+        {"script": "module", "tx": "3035411a32414457101aa9acc5d791735af9bd00f12085ed46fc6f68b45ff482", "lovelace": "64533630"},
+        {"script": "nft", "tx": "9963d27d063896ce047c2680e75c055aa5e90acae64a9f876d91190610e797bd", "lovelace": "26170320"},
+        {"script": "asset", "tx": "54df9bd39f59f7a0352b8df23fe2cf8d68e00fed74378031df089a7eda582e56", "lovelace": "47091060"}
+      ],
+      "totalLovelace": "219529850"
+    },
+    "dashboardBrowser": {
+      "source": ":dashboard-app:backend:dashboardIntegrationTest, mode 2",
+      "note": "Same five references under the dashboard's applied parameters; deposits differ because script sizes differ.",
+      "publications": [
+        {"script": "state", "tx": "5b366dbd66f3739dcd77df3a2c6eda68dddc854e1efbd93c37fe0bd45bc4b036", "lovelace": "35092020"},
+        {"script": "checkpoint", "tx": "f314278a12a1ca02654921d4d5ccd6f6ffabaccf3b3c5fbc8c138fedeb13d0a4", "lovelace": "46810910"},
+        {"script": "module", "tx": "bacc229184308f98fa27dd43594ee967d0e5e943307c59e6247c16f2f02f2b3a", "lovelace": "68128170"},
+        {"script": "nft", "tx": "9a47cd32450a21f51750d415eb68ffe8974ad77aceb0322e203a714fa3148f96", "lovelace": "26170320"},
+        {"script": "asset", "tx": "7726aa27261193eeaa9d54c3546e6acf729308bb3f1b21709e3e7ba31b986b74", "lovelace": "47091060"}
+      ],
+      "totalLovelace": "223292480"
+    }
+  }
+}
