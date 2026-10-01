@@ -1,0 +1,52 @@
+[
+  {
+    "name": "AccountStateValidator",
+    "sha256": "86586a8000543911e521e321fbddbd757d4059a0777368a17ee479aef676a322",
+    "matchesAdr011": true
+  },
+  {
+    "name": "AccountAssetValidator",
+    "sha256": "50316d70d5a34c4851a3df3f3a68780ff7bb0ce5e774007c6ff080c738df788b",
+    "matchesAdr011": true
+  },
+  {
+    "name": "CoreCheckpoint",
+    "sha256": "3fa02da4c672480e7b2a1ec05dd22ab8e8af9152978733c831ecac21d9fd66a1",
+    "matchesAdr011": true
+  },
+  {
+    "name": "StateNftPolicy",
+    "sha256": "dae8b49dc81f67d0ecd05b1b37b688ab67458f096d98c3806dfe2572e26f1a56",
+    "matchesAdr011": true
+  },
+  {
+    "name": "Ed25519Module",
+    "sha256": "a0710782cfe4aa6e9e89e5484e5f15854aebce06c2bd4fbe22a66c90676107dc",
+    "matchesAdr011": true
+  },
+  {
+    "name": "BrowserModule",
+    "sha256": "11819b563d73f38fede0e620234044a34f45897e92e956e637a17139719d420a",
+    "matchesAdr011": true
+  },
+  {
+    "name": "PolicyModule",
+    "sha256": "202c51d4d12258be40e79da75c998be7ecab95af5e35acb89aac6838f4317f94",
+    "matchesAdr011": true
+  },
+  {
+    "name": "MixedSetupModule",
+    "sha256": "eeb7d1ffd0b2b33bb1a3b3848746048c89cf7d553b6370b8ab08564870ba77cb",
+    "matchesAdr011": true
+  },
+  {
+    "name": "BudgetAccountAssetValidator",
+    "sha256": "05c0989a40e28f39f74c3a35d06da87a5b2aab66d0230030c15740d7c5f44e70",
+    "matchesAdr011": true
+  },
+  {
+    "name": "BudgetPolicyModule",
+    "sha256": "8aab1150002a7b599b64f6586875efb4d2781ba26fb3c4917ce96acf280b3574",
+    "matchesAdr011": true
+  }
+]

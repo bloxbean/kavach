@@ -22,6 +22,7 @@ import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.ValueSource;
 
 import java.math.BigInteger;
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 
@@ -60,6 +61,32 @@ class AccountTransferPreparationTest {
         var tx = new Tx();
         assertSame(tx, AccountTransfer.attach(tx, scripts, f.state, state(), List.of(input()), intent,
                 f.authorization(intent).operationProof().orElseThrow(), JulcList.empty(), BigInteger.ZERO, BigInteger.ZERO));
+    }
+
+    @Test
+    void eightResolvedInputsPrepareButNinthRejectsBeforeAttachment() throws Exception {
+        var base = f.spend(0);
+        var spend = (Spend) base.action();
+        var refs = new ArrayList<TxOutRef>();
+        var inputs = new ArrayList<Utxo>();
+        String address = input().getAddress();
+        for (int index = 0; index < 8; index++) {
+            var ref = AccountFixtures.ref(30 + index);
+            refs.add(ref);
+            inputs.add(utxo(ref, address, List.of(Amount.ada(10))));
+        }
+        var intent = new IntentEnvelope(base.protocolTag(), base.domain(), base.validity(),
+                new Spend(AccountFixtures.list(refs.toArray(TxOutRef[]::new)), spend.recipients(), spend.maxAccountFee()));
+        var proof = f.authorization(intent).operationProof().orElseThrow();
+        assertNotNull(AccountTransfer.attach(new Tx(), scripts, f.state, state(), inputs, intent,
+                proof, JulcList.empty(), BigInteger.ZERO, BigInteger.ZERO));
+
+        inputs.add(utxo(AccountFixtures.ref(38), address, List.of(Amount.ada(10))));
+        var rejected = assertThrows(IllegalArgumentException.class,
+                () -> AccountTransfer.attach(new Tx(), scripts, f.state, state(), inputs, intent,
+                        proof, JulcList.empty(), BigInteger.ZERO, BigInteger.ZERO));
+        assertEquals("Account input count", rejected.getMessage(),
+                "Reject the unsupported count before checking signatures or attaching any scripts");
     }
 
     @ParameterizedTest

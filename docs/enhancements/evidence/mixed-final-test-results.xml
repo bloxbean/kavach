@@ -1,0 +1,48 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<testsuite name="com.bloxbean.cardano.kavach.demo.DemoServiceDevkitTest" tests="3" skipped="0" failures="0" errors="0" timestamp="2026-09-18T17:53:54.775Z" hostname="MacBook-Pro-3.local" time="168.912">
+  <properties/>
+  <testcase name="[1] 0" classname="com.bloxbean.cardano.kavach.demo.DemoServiceDevkitTest" time="55.434"/>
+  <testcase name="[2] 1" classname="com.bloxbean.cardano.kavach.demo.DemoServiceDevkitTest" time="54.282"/>
+  <testcase name="[3] 3" classname="com.bloxbean.cardano.kavach.demo.DemoServiceDevkitTest" time="59.183"/>
+  <system-out><![CDATA[Create account · publish script 1 of 5 confirmed candidate 746a00fbc387c5bea5b3f0976ca543e94774f86fee892b7d4873221f295399c6
+Create account · publish script 2 of 5 confirmed candidate 8e2bc3cd31b98ca89fc78d44b7a10727a239c06176c786c26f70a32a362461ed
+Create account · publish script 3 of 5 confirmed candidate 8881743cd593503925b34966b6e4d6aff3c28da8e2e59d3cc7fb8e700e918528
+Create account · publish script 4 of 5 confirmed candidate f722d43194c9aaaa233f4030d18bde8f6902e33a54dfddd1d782647e169d52a7
+Create account · publish script 5 of 5 confirmed candidate 03f5d4774e4d1948d6a02450e34b0cf9ba2dc5f765a0d33f0a12c543bc008c3f
+Register authorization checkpoints confirmed candidate 513a27d9a3b8a7577ae8d50031653e1f222b98c2bf905276693b82597a0d51bc
+Create account · approve genesis confirmed candidate 4fa168bb7888b2668e8d05ec6a59977b43435f3f733646871c43aa2226a26171
+Create account · publish final signing module confirmed candidate b8e72874c4ff46413f51bfdb549c30c3b39bc3876627aa2e4a553888df82cb53
+Register authorization checkpoints confirmed candidate fdbc4f1d3be84a13211d070c62aa9314d2e5eb95aa4e304c338bb4653ec2427e
+Create account · activate selected signing methods confirmed candidate 5b5a81165e2e2b2d54b0561ccf1644c3f85693d8277a05417ed429cb62e6579c
+Send assets confirmed candidate 6f36a5869507fdf12da6bdfa74948bcbcf99f5e7e5c258f67b104f6e307eb245
+Send assets confirmed candidate 49dd64451d5a87763f1513ca4e0f7a99fd81d69ea9367b5bf20773102b32e81c
+Create account · publish script 1 of 5 confirmed candidate f466fe21871d1783b895cccc231facdb5ab6e6e6e40466eac08506d30b4bde63
+Create account · publish script 2 of 5 confirmed candidate a982f246c703f29ffc07ac20fca77643c4af189c267d5a1965d9d404556ddd4b
+Create account · publish script 3 of 5 confirmed candidate 8315ddd4b81440ccdfeba5b87384a8d54ad6a4a54010c9eb4fab7d43c34188d7
+Create account · publish script 4 of 5 confirmed candidate e8140409ba445c313e9bfec68bbac053841c3fc327c9cb9c12114b15de2c72af
+Create account · publish script 5 of 5 confirmed candidate 787ba66d2e57fb62c6fc7e81be69162e8fe7e1001b0e78af110824770b724dbf
+Register authorization checkpoints confirmed candidate f4bea92da2da99ce397316bcf736ea094b9962ad4270d584ef1c2f563ec73fa0
+Create account · approve genesis confirmed candidate ad7312997d46d68753920973cf9fcd979a4c65f9862a3852c8a62cad22400c38
+Create account · publish final signing module confirmed candidate cfb67a87b951d16c90cb3c32f2399b46e221d2658a47e17b28bed8152bf9af02
+Register authorization checkpoints confirmed candidate 1ec05c55914fdfdfa12e7e9feb7bd1f33e43ec5743032d70038cc0caa6f3d2ce
+Create account · activate selected signing methods confirmed candidate ec0485f6cee457586a62ebed7dbd900776b204a7e82a9fd7109a1ae18bff5cd2
+Send assets confirmed candidate 096abf8aad755b6fc5b37e275f72f40d0b9beeae7c6624e23659f6939553ea4c
+Send assets confirmed candidate dcf9956d10b8cd86ba9934b123a47bdab0b75be835aa2d5348cd8653573ff691
+Create account · publish script 1 of 5 confirmed candidate 6474e7e69adec97212aa3e6095a10216eaa9501b32014196e35edaeaaca76994
+Create account · publish script 2 of 5 confirmed candidate 1fb053940416f64bfb54e704bdd2ccf23a2d2c6db2f49ef9f9d70ebe6e94bdf5
+Create account · publish script 3 of 5 confirmed candidate 7124d3709be9c8326fd4821fc81d671c770f0f2354064b00bc585a49f4da233f
+Create account · publish script 4 of 5 confirmed candidate c309556d209c9c6d537fc5f4488f55bbd0654e78a1df98266e2c3e4c345948ed
+Create account · publish script 5 of 5 confirmed candidate 48baa05408368f2d49f06348d51658cad3b2aa542fc0544f3909ff0fad18df64
+Register authorization checkpoints confirmed candidate 50c26ef28408ee318742856ff127ebe4277f39d7915c770d952c2d6800c2dec3
+Create account · approve genesis confirmed candidate b24cb8e4754c4fa9596b7633e0b7aa4e4826781237fdc36811bf06808940e6d6
+Create account · publish final signing module confirmed candidate 15c968e97feac0a3f18ae1a139cd545de174b90dc316b904ee6946dbf61c8657
+Register authorization checkpoints confirmed candidate d2a465ea0f94b59fbcab590669c12dca589cfc928f0ce0b89def000e6b75f03b
+Create account · activate selected signing methods confirmed candidate 18902d21937dc90d3f0a2aa51626b3cedcb7ee80b8a11fa0041e6719a7add729
+Send assets confirmed candidate 0cf594462d85f1db5d98ca6ab61dfdace90640222506c024eca939ea2c185afc
+Send assets confirmed candidate 4fb863a8d5ffa5bf6bc5bb362f4eb74bb93545f11243060856f0b03403df3308
+]]></system-out>
+  <system-err><![CDATA[SLF4J(W): No SLF4J providers were found.
+SLF4J(W): Defaulting to no-operation (NOP) logger implementation
+SLF4J(W): See https://www.slf4j.org/codes.html#noProviders for further details.
+]]></system-err>
+</testsuite>

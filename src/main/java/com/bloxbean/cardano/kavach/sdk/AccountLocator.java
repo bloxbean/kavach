@@ -11,6 +11,7 @@ import com.bloxbean.cardano.julc.clientlib.PlutusDataAdapter;
 import com.bloxbean.cardano.julc.core.PlutusData;
 import com.bloxbean.cardano.julc.stdlib.Builtins;
 import com.bloxbean.cardano.kavach.contracts.AccountTypes.AccountState;
+import com.bloxbean.cardano.kavach.contracts.AccountTypes.AccountId;
 import com.bloxbean.cardano.kavach.protocol.WireFormat;
 
 import java.math.BigInteger;
@@ -64,6 +65,18 @@ public final class AccountLocator {
      */
     public String backup() {
         return PREFIX + HexFormat.of().formatHex(Builtins.serialiseData(data));
+    }
+
+    /**
+     * Returns a defensive copy of the full account identity claimed by this canonical locator.
+     * This does not establish account creation or current ledger custody. It can identify
+     * publisher-owned reference vaults even before genesis; vault authorization is separate.
+     *
+     * @return policy and asset-name bytes independent of this locator's stored data
+     */
+    public AccountId accountId() {
+        var account = record(data.fields().get(1), 2);
+        return new AccountId(bytes(account.get(0), 28).clone(), bytes(account.get(1), 0).clone());
     }
 
     /**

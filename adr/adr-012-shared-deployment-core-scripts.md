@@ -1,5 +1,7 @@
 # ADR-012: Shared deployment core scripts
 
+> Integration note: The publisher-vault work in [ADR-014](adr-014-publisher-protected-reference-vault.md) does not reverse this decision: shared deployment Tiers A/B/C remain declined. [ADR-013](adr-013-economics-extensibility-and-wallet-safety.md) retains fee/size research targets, not approval to deploy shared cores.
+
 Status: Analyzed; **Tier A declined**, Tiers B and C remain declined. Not implemented. The tier
 analysis below is retained because it is the reason not to proceed, but it was written before
 [ADR-011](adr-011-reference-deposit-reclamation.md) was implemented and its cost tables described a

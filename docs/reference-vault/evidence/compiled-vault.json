@@ -1,0 +1,49 @@
+{
+  "qualification": "Compiled UPLC synthetic context; no ledger acceptance implied",
+  "toolchain": "0.1.0-pre17-6754861-SNAPSHOT",
+  "parameters": {
+    "publisher": "00000000000000000000000000000000000000000000000000000000",
+    "purpose": "6b61766163682d6163632d726566",
+    "accountPolicy": "00000000000000000000000000000000000000000000000000000000",
+    "accountName": ""
+  },
+  "appliedCborBytes": 697,
+  "scriptHash": "09861de5221bd661fe8b9d8bb7de03876cb52b0b5c1fc4791fd5a30f",
+  "cborHex": "5902b65902b3010100333232232223232329001b52619991149baa0029119191919499499b87007480029432660029001002d2864cc0052004003a509aba300206464600446600400400246004466004004002445266e1c0092000c99b870024800b266e1c0092004c99b870024801a9426466e3c004004dd7000b26ea800645266e1c0092000a509919499803a400c0054a132329330094801800a9426ae8c0046ae88008d5d08008d5d10011aba10011323370e0020026eb4005937540032293370e00490005284c8ca4cc01d2002002a509919499804a40080054a135746002357440046ae840046ae88008d5d08008b4c8ca66666666400694266e1cdc680924070a5099b8f01048810e6b61766163682d6163632d726566005284ccc02c03d2000480114a13370e6e34dd71aba135573c6ea803d20385284cdc49b8d375c6ae84d5d11aab9e375401e90202942666016014900024008a5099b87002480094a13375e00801ea509919180080119191801119801001000918011198010010009149aba300199499b8f375c00202d3003357440054a2357420034a037586ae84d5d11aba2357446ae88d5d11aba2357446ae88d55cf1baa357426aae78dd50048ca4dd5000c8a4cdc38012400193370e004900164cdc38012400993370e004900364cdc38012401193370e00490055a9414a0a505282646464944d5d08009aba200235742002a500d5d09aba2357446aae78dd50041bad0041aba2002357420026ae88008d5d0800888a4cdc39aab9d37540060054a13370e6af64d5ed1aab9e3754006002001003357426ae88004d55cf1baa001375c0026eb80053011e581c00000000000000000000000000000000000000000000000000000000004c010f4e6b61766163682d6163632d726566004c0123d8799f581c0000000000000000000000000000000000000000000000000000000040ff0001",
+  "cpu": 17573721,
+  "memory": 61511,
+  "testMethods": 6,
+  "failures": 0,
+  "unchangedExistingTemplates": [
+    "PolicyModule.plutus.json",
+    "RewardLifecycleProbe.plutus.json",
+    "SealedStateProbe.plutus.json",
+    "PeriodicBudgetNftPolicy.plutus.json",
+    "ConfigurationPossessionProbe.plutus.json",
+    "AccountAssetValidator.plutus.json",
+    "WireDigestProbe.plutus.json",
+    "OwnedAssetFixture.plutus.json",
+    "AccountStateValidator.plutus.json",
+    "ValueAccountingProbe.plutus.json",
+    "StateNftMintProbe.plutus.json",
+    "BudgetPolicyModule.plutus.json",
+    "StateReferenceProbe.plutus.json",
+    "BudgetAccountAssetValidator.plutus.json",
+    "Ed25519Module.plutus.json",
+    "BindingCheckpointProbe.plutus.json",
+    "StateNftPolicy.plutus.json",
+    "WholeUtxoTransferProbe.plutus.json",
+    "CoreCheckpoint.plutus.json",
+    "BrowserModule.plutus.json",
+    "ThresholdWitnessProbe.plutus.json",
+    "DeregistrationFixture.plutus.json",
+    "WithdrawalProbe.plutus.json",
+    "MixedSetupModule.plutus.json",
+    "ValidityWindowProbe.plutus.json",
+    "PeriodicBudgetValidator.plutus.json"
+  ],
+  "aggregateManifest": "plutus.json changed only to add ReferenceVault",
+  "commands": [
+    "./gradlew :test --tests *ReferenceVaultTest :javadoc --console=plain"
+  ]
+}

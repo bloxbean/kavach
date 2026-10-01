@@ -1,0 +1,63 @@
+{
+  "date": "2026-09-19",
+  "scope": "Development qualification. Synthetic wallet signatures with external DevKit ledger validation; no independent audit, actual wallet compatibility or real-delay recovery completion implied.",
+  "local": {
+    "root": {
+      "tests": 568,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0
+    },
+    "backend": {
+      "tests": 9,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0
+    },
+    "toolchain": {
+      "tests": 1,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0
+    }
+  },
+  "frontendTests": 24,
+  "fullCheck": "passed",
+  "finalBackendCheck": "passed",
+  "dashboardWebBuild": "passed",
+  "liveDistinctWorkflows": 7,
+  "liveExecutionsInFinalBatches": 8,
+  "repeatedCase": "publisherReferenceRemovalRestartAndIndependentSponsorRepair",
+  "liveResults": [
+    {
+      "file": "vault-final-five.xml",
+      "tests": "5",
+      "failures": "0",
+      "errors": "0",
+      "skipped": "0",
+      "time": "233.352",
+      "cases": [
+        "[1] 0",
+        "[2] 1",
+        "[3] 3",
+        "unaffordableSetupRejectsBeforeAnyPublication()",
+        "publisherReferenceRemovalRestartAndIndependentSponsorRepair()"
+      ]
+    },
+    {
+      "file": "vault-final-three.xml",
+      "tests": "3",
+      "failures": "0",
+      "errors": "0",
+      "skipped": "0",
+      "time": "286.122",
+      "cases": [
+        "publisherReferenceRemovalRestartAndIndependentSponsorRepair()",
+        "[1] 1",
+        "[2] 2"
+      ]
+    }
+  ],
+  "accountTemplateHashes": "unchanged-account-templates.json",
+  "failedAttempts": "Initial local signer representation and exact full-return guards rejected plans before reclaim submission; local logs vault-live-1.log and vault-live-2.log retained."
+}

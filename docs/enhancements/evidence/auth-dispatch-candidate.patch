@@ -1,0 +1,118 @@
+diff --git a/src/main/java/com/bloxbean/cardano/kavach/auth/browser/BrowserLifecycleLib.java b/src/main/java/com/bloxbean/cardano/kavach/auth/browser/BrowserLifecycleLib.java
+index 25b329f..9c03a01 100644
+--- a/src/main/java/com/bloxbean/cardano/kavach/auth/browser/BrowserLifecycleLib.java
++++ b/src/main/java/com/bloxbean/cardano/kavach/auth/browser/BrowserLifecycleLib.java
+@@ -132,7 +132,8 @@ public class BrowserLifecycleLib {
+     }
+ 
+     /**
+-     * Applies old-module role and target checks; immutable core separately enforces lifecycle.
++     * Applies old-module mutation-role and target checks; immutable core separately enforces lifecycle.
++     * Transfers are validated directly by the module transfer branch and reject here.
+      *
+      * @param invocation canonical invocation at the currently installed module
+      * @param previous   authenticated consumed old state
+@@ -147,8 +148,6 @@ public class BrowserLifecycleLib {
+         };
+         if (!completing && !roleApproval(invocation, config, mode, network, ctx)) return false;
+         return switch (invocation.intent().action()) {
+-            case Spend spend -> invocation.configPossession().isEmpty();
+-            case TransferWholeUtxo whole -> invocation.configPossession().isEmpty();
+             case ReplaceConfig replacement -> {
+                 var target = (Ed25519Config) (Object) replacement.newConfig();
+                 yield Ed25519Lib.configuration(target)
+@@ -187,8 +186,6 @@ public class BrowserLifecycleLib {
+      */
+     static boolean roleApproval(ModuleRedeemer invocation, Ed25519Config currentConfig, BigInteger mode, BigInteger network, ScriptContext ctx) {
+         ThresholdPolicy selected = switch (invocation.intent().action()) {
+-            case Spend spend -> currentConfig.spend();
+-            case TransferWholeUtxo whole -> currentConfig.spend();
+             case ReplaceConfig replacement -> currentConfig.admin();
+             case ReplaceModule replacement -> currentConfig.admin();
+             case Freeze freeze -> currentConfig.freeze();
+diff --git a/src/main/java/com/bloxbean/cardano/kavach/auth/browser/BrowserModule.java b/src/main/java/com/bloxbean/cardano/kavach/auth/browser/BrowserModule.java
+index e131cc3..baf702f 100644
+--- a/src/main/java/com/bloxbean/cardano/kavach/auth/browser/BrowserModule.java
++++ b/src/main/java/com/bloxbean/cardano/kavach/auth/browser/BrowserModule.java
+@@ -87,8 +87,8 @@ public class BrowserModule {
+ 
+     /**
+      * Validates spend-role evidence under the existing authenticated state. The dispatcher
+-     * selects only transfer actions; {@code current} requires present old-role approval and
+-     * empty configuration possession before success.
++     * selects only transfer actions. Full configuration validation, present spend-role approval
++     * and empty configuration possession remain mandatory; mutation dispatch is separate.
+      */
+     static boolean authorize(ModuleRedeemer invocation, ScriptContext ctx) {
+         if (!AccountLib.transactionShape(ctx) || !invocation.abiVersion().equals(BigInteger.ONE) || !AccountLib.envelope(invocation.intent(), ctx)
+@@ -99,7 +99,10 @@ public class BrowserModule {
+                 || !Builtins.equalsByteString(state.coreBinding().checkpoint(), coreCheckpointHash)) return false;
+         var own = AccountLib.script(state.authModule().scriptHash());
+         if (!bound(invocation, state, own, ctx)) return false;
+-        return BrowserLifecycleLib.current(invocation, state, signingMode, deploymentDomain.networkId(), ctx);
++        var config = (Ed25519Config) (Object) state.authConfig();
++        return Ed25519Lib.configuration(config) && invocation.configPossession().isEmpty()
++                && BrowserLifecycleLib.approval(invocation.operationProof(), config, config.spend(),
++                invocation.intent(), signingMode, deploymentDomain.networkId(), ctx);
+     }
+ 
+     /**
+diff --git a/src/main/java/com/bloxbean/cardano/kavach/auth/policy/PolicyLifecycleLib.java b/src/main/java/com/bloxbean/cardano/kavach/auth/policy/PolicyLifecycleLib.java
+index 0dcec5d..b241eb2 100644
+--- a/src/main/java/com/bloxbean/cardano/kavach/auth/policy/PolicyLifecycleLib.java
++++ b/src/main/java/com/bloxbean/cardano/kavach/auth/policy/PolicyLifecycleLib.java
+@@ -112,7 +112,8 @@ public class PolicyLifecycleLib {
+     }
+ 
+     /**
+-     * Applies old-module role and target checks; immutable core separately enforces lifecycle.
++     * Applies old-module mutation-role and target checks; immutable core separately enforces lifecycle.
++     * Transfers are validated directly by the module transfer branch and reject here.
+      *
+      * @param invocation canonical invocation at the currently installed module
+      * @param previous   authenticated consumed old state
+@@ -127,8 +128,6 @@ public class PolicyLifecycleLib {
+         };
+         if (!completing && !roleApproval(invocation, config, network, ctx)) return false;
+         return switch (invocation.intent().action()) {
+-            case Spend spend -> invocation.configPossession().isEmpty();
+-            case TransferWholeUtxo whole -> invocation.configPossession().isEmpty();
+             case ReplaceConfig replacement -> {
+                 var target = (PolicyConfig) (Object) replacement.newConfig();
+                 yield PolicyLib.configuration(target)
+@@ -167,8 +166,6 @@ public class PolicyLifecycleLib {
+      */
+     static boolean roleApproval(ModuleRedeemer invocation, PolicyConfig currentConfig, BigInteger network, ScriptContext ctx) {
+         ThresholdPolicy selected = switch (invocation.intent().action()) {
+-            case Spend spend -> PolicyLib.spendPolicy(currentConfig, invocation.intent().action());
+-            case TransferWholeUtxo whole -> currentConfig.roles().spend();
+             case ReplaceConfig replacement -> currentConfig.roles().admin();
+             case ReplaceModule replacement -> currentConfig.roles().admin();
+             case Freeze freeze -> currentConfig.roles().freeze();
+diff --git a/src/main/java/com/bloxbean/cardano/kavach/auth/policy/PolicyModule.java b/src/main/java/com/bloxbean/cardano/kavach/auth/policy/PolicyModule.java
+index 70555ab..815c8cd 100644
+--- a/src/main/java/com/bloxbean/cardano/kavach/auth/policy/PolicyModule.java
++++ b/src/main/java/com/bloxbean/cardano/kavach/auth/policy/PolicyModule.java
+@@ -83,8 +83,8 @@ public class PolicyModule {
+ 
+     /**
+      * Validates spend-role evidence under the existing authenticated state. The dispatcher
+-     * selects only transfer actions; {@code current} requires present old-role approval and
+-     * empty configuration possession before success.
++     * selects only transfer actions. Full configuration validation, present spend-role approval
++     * and empty configuration possession remain mandatory; mutation dispatch is separate.
+      */
+     static boolean authorize(ModuleRedeemer invocation, ScriptContext ctx) {
+         if (!AccountLib.transactionShape(ctx) || !invocation.abiVersion().equals(BigInteger.ONE) || !AccountLib.envelope(invocation.intent(), ctx)
+@@ -95,7 +95,10 @@ public class PolicyModule {
+                 || !Builtins.equalsByteString(state.coreBinding().checkpoint(), coreCheckpointHash)) return false;
+         var own = AccountLib.script(state.authModule().scriptHash());
+         if (!bound(invocation, state, own, ctx)) return false;
+-        return PolicyLifecycleLib.current(invocation, state, deploymentDomain.networkId(), ctx);
++        var config = (PolicyConfig) (Object) state.authConfig();
++        return PolicyLib.configuration(config) && invocation.configPossession().isEmpty()
++                && PolicyLifecycleLib.approval(invocation.operationProof(), config,
++                PolicyLib.spendPolicy(config, invocation.intent().action()), invocation.intent(), deploymentDomain.networkId(), ctx);
+     }
+ 
+     /**

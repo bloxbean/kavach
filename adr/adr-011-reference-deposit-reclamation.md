@@ -1,5 +1,7 @@
 # ADR-011: Reference deposit reclamation
 
+> Integration note: New dashboard publications now follow [ADR-014](adr-014-publisher-protected-reference-vault.md): publisher-protected script vaults with explicit single-output reclamation. This ADR remains the historical key-hosting decision. Existing locked/key-held copies are not migrated, and the old bulk key-reclaim API is disabled in favor of reviewed vault reclamation or a separately qualified reference-aware wallet workflow.
+
 Status: Accepted; implemented in the dashboard development flow. Not qualified and not approved
 for production. No contract, validator or wire schema changes are involved, which is the point of
 the accepted decision. Gates 1 and 2 are met by the implementation and its DevKit run; gates 3 and

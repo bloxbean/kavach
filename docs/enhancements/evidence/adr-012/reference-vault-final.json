@@ -1,0 +1,60 @@
+{
+  "transfer": "3b190d2e6922f18dfc68d82a476be64a0e4714e150be6a80faf8ed22099a5cb2",
+  "paidTransferFeeLovelace": "1149648",
+  "paidReclaimFeeLovelace": "376944",
+  "publisher": "addr_test1qqx4lgy5uulldaqlr4z42jphkp8thtlk8stc09ulslgmrmh8n30s7h2kh2y90ajt8k22t806lekglzpevgsfws79ym9sun80jz",
+  "reclamation": {
+    "review": {
+      "transactionHash": "3fc0244b5b41db9ab63864a126815f051fbc46de4920144fd1e0ab8e99f1966c",
+      "publisherAddress": "addr_test1qqsytxpujj9ytptwwcsuqfg5x0enrzd0gsjl5al6tflay9a45fvpx9s6hd98kzg65rd0zfmknz6tr5cjuqyvv4n3asesnc8302",
+      "activeRequired": true,
+      "scriptHash": "88dd074e0a1dc0bb7c2c5c3f1b0c541ce1ab197f03156cbbd1903346",
+      "returnedCapital": "47091060",
+      "outputIndex": 0,
+      "hostingAddress": "addr_test1wzektcnsn5phnf4t4vg7qgk759q895f8atzdphjavjmhg4qglakgc",
+      "returnedAssets": []
+    },
+    "wrongPublisherEvaluationRejection": "{\"status_code\":400,\"error\":\"Bad Request\",\"message\":\"{\\n  \\\"type\\\" : \\\"jsonwsp/response\\\",\\n  \\\"version\\\" : \\\"1.0\\\",\\n  \\\"servicename\\\" : \\\"ogmios\\\",\\n  \\\"methodname\\\" : \\\"EvaluateTx\\\",\\n  \\\"result\\\" : {\\n    \\\"EvaluationFailure\\\" : {\\n      \\\"message\\\" : \\\"Error evaluated\\\\nat :1:0 - 1:0\\\\nspent budget: { mem: 0.063453, cpu: 17.868699 }\\\\nlogs: \\\"\\n    }\\n  }\\n}\"}",
+    "wrongWitnessLedgerRejection": "{\"status_code\":400,\"error\":\"400 BAD_REQUEST\",\"message\":\"{\\\"contents\\\":{\\\"contents\\\":{\\\"contents\\\":{\\\"era\\\":\\\"ShelleyBasedEraConway\\\",\\\"error\\\":[\\\"ConwayUtxowFailure (MissingVKeyWitnessesUTXOW (NonEmptySet (fromList [KeyHash {unKeyHash = \\\\\\\"2045983c948a45856e7621c0251433f33189af4425fa77fa5a7fd217\\\\\\\"}])))\\\"],\\\"kind\\\":\\\"ShelleyTxValidationError\\\"},\\\"tag\\\":\\\"TxValidationErrorInCardanoMode\\\"},\\\"tag\\\":\\\"TxCmdTxSubmitValidationError\\\"},\\\"tag\\\":\\\"TxSubmitFail\\\"}\"}",
+    "feeBreakdown": {
+      "transactionBytes": 1266,
+      "baseFeeLovelace": 211085,
+      "executionFeeLovelace": 5044,
+      "referenceScriptFeeLovelace": 160815,
+      "referenceScriptBytes": 10721,
+      "paidFeeLovelace": 376944,
+      "paidMinusCalculatedLovelace": 0,
+      "redeemers": [
+        {
+          "cpu": 18279034,
+          "memory": 64564,
+          "purpose": "Spend",
+          "index": 1,
+          "lovelaceBeforeRounding": 5043.2611514
+        }
+      ],
+      "referenceScripts": [
+        {
+          "chargedBytes": 10721,
+          "hash": "88dd074e0a1dc0bb7c2c5c3f1b0c541ce1ab197f03156cbbd1903346"
+        }
+      ]
+    }
+  },
+  "repairedScript": "88dd074e0a1dc0bb7c2c5c3f1b0c541ce1ab197f03156cbbd1903346",
+  "costs": {
+    "referenceCapital": "223292480",
+    "stateReserve": "2762710",
+    "registrationReserve": "4000000",
+    "feeAllowance": "14000000",
+    "collateralReserve": "20000000",
+    "publisherAddress": "addr_test1qqsytxpujj9ytptwwcsuqfg5x0enrzd0gsjl5al6tflay9a45fvpx9s6hd98kzg65rd0zfmknz6tr5cjuqyvv4n3asesnc8302",
+    "hostingAddress": "addr_test1wzektcnsn5phnf4t4vg7qgk759q895f8atzdphjavjmhg4qglakgc",
+    "referenceCount": 5,
+    "setupTransactions": 7,
+    "totalFundingEstimate": "264055190",
+    "coinsPerUtxoByte": "4310"
+  },
+  "account": "addr_test1wzyd6p6wpgwupwmu93wr7xcv2swwr2ce0up32m9m6xgrx3svactm2",
+  "scope": "Disposable DevKit reference custody/repair and same-address transfer; not a production qualification"
+}

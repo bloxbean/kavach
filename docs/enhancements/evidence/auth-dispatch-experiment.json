@@ -1,0 +1,178 @@
+{
+  "status": "not adopted: compiled candidate; legacy unfinished mixed-setup compatibility and live qualification pending",
+  "baselineCommit": "85e559739f6332ec4bfc2526659c8f93df4b6ff7",
+  "compiler": "0.1.0-pre17-6754861-SNAPSHOT",
+  "ccl": "0.8.0-pre5",
+  "scope": "Full configuration, NFT/domain, purpose, evidence and receipt checks retained. Separate transfer approval from mutation-only lifecycle dispatch. No immutable core changes.",
+  "measurements": {
+    "baseline": [
+      {
+        "mode": 1,
+        "maximumRegistry": false,
+        "moduleCborBytes": 15561,
+        "combinedCpu": 1436233444,
+        "combinedMemory": 2909649
+      },
+      {
+        "mode": 2,
+        "maximumRegistry": false,
+        "moduleCborBytes": 15561,
+        "combinedCpu": 1494369427,
+        "combinedMemory": 2928570
+      },
+      {
+        "mode": 3,
+        "maximumRegistry": false,
+        "moduleCborBytes": 15666,
+        "combinedCpu": 1661768074,
+        "combinedMemory": 3185967
+      },
+      {
+        "mode": 1,
+        "maximumRegistry": true,
+        "moduleCborBytes": 15561,
+        "combinedCpu": 2565793068,
+        "combinedMemory": 5200673
+      },
+      {
+        "mode": 2,
+        "maximumRegistry": true,
+        "moduleCborBytes": 15561,
+        "combinedCpu": 3006534197,
+        "combinedMemory": 5249022
+      },
+      {
+        "mode": 3,
+        "maximumRegistry": true,
+        "moduleCborBytes": 15666,
+        "combinedCpu": 2912395420,
+        "combinedMemory": 5477974
+      }
+    ],
+    "specialized": [
+      {
+        "mode": 1,
+        "maximumRegistry": false,
+        "moduleCborBytes": 15651,
+        "combinedCpu": 1428537573,
+        "combinedMemory": 2882978
+      },
+      {
+        "mode": 2,
+        "maximumRegistry": false,
+        "moduleCborBytes": 15651,
+        "combinedCpu": 1486673556,
+        "combinedMemory": 2901899
+      },
+      {
+        "mode": 3,
+        "maximumRegistry": false,
+        "moduleCborBytes": 15771,
+        "combinedCpu": 1654168203,
+        "combinedMemory": 3159896
+      },
+      {
+        "mode": 1,
+        "maximumRegistry": true,
+        "moduleCborBytes": 15651,
+        "combinedCpu": 2558097197,
+        "combinedMemory": 5174002
+      },
+      {
+        "mode": 2,
+        "maximumRegistry": true,
+        "moduleCborBytes": 15651,
+        "combinedCpu": 2998838326,
+        "combinedMemory": 5222351
+      },
+      {
+        "mode": 3,
+        "maximumRegistry": true,
+        "moduleCborBytes": 15771,
+        "combinedCpu": 2904795549,
+        "combinedMemory": 5451903
+      }
+    ],
+    "candidate": [
+      {
+        "mode": 1,
+        "maximumRegistry": false,
+        "moduleCborBytes": 15451,
+        "combinedCpu": 1428537573,
+        "combinedMemory": 2882978
+      },
+      {
+        "mode": 2,
+        "maximumRegistry": false,
+        "moduleCborBytes": 15451,
+        "combinedCpu": 1486673556,
+        "combinedMemory": 2901899
+      },
+      {
+        "mode": 3,
+        "maximumRegistry": false,
+        "moduleCborBytes": 15548,
+        "combinedCpu": 1654168203,
+        "combinedMemory": 3159896
+      },
+      {
+        "mode": 1,
+        "maximumRegistry": true,
+        "moduleCborBytes": 15451,
+        "combinedCpu": 2558097197,
+        "combinedMemory": 5174002
+      },
+      {
+        "mode": 2,
+        "maximumRegistry": true,
+        "moduleCborBytes": 15451,
+        "combinedCpu": 2998838326,
+        "combinedMemory": 5222351
+      },
+      {
+        "mode": 3,
+        "maximumRegistry": true,
+        "moduleCborBytes": 15548,
+        "combinedCpu": 2904795549,
+        "combinedMemory": 5451903
+      }
+    ]
+  },
+  "measurementNote": "Synthetic one-input transfer contexts, three-key or sixteen-key registry. Combined asset/core/module execution. Applied module CBOR bytes are not a paid-fee measurement.",
+  "checkCommand": "./gradlew check",
+  "scratchCheckResults": {
+    "root": {
+      "tests": 557,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0
+    },
+    "backend": {
+      "tests": 4,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0
+    },
+    "toolchain": {
+      "tests": 1,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0
+    }
+  },
+  "liveQualification": false,
+  "sourceFiles": [
+    "src/main/java/com/bloxbean/cardano/kavach/auth/browser/BrowserModule.java",
+    "src/main/java/com/bloxbean/cardano/kavach/auth/browser/BrowserLifecycleLib.java",
+    "src/main/java/com/bloxbean/cardano/kavach/auth/policy/PolicyModule.java",
+    "src/main/java/com/bloxbean/cardano/kavach/auth/policy/PolicyLifecycleLib.java"
+  ],
+  "adopted": false,
+  "equivalenceArgument": [
+    "Reward dispatcher routes only Spend and TransferWholeUtxo to authorize; all remaining operations route to mutate.",
+    "For either transfer the previous current path required full configuration validation, selected spend approval and empty configPossession. Candidate performs these exact three checks directly after unchanged state, purpose, envelope and receipt authentication.",
+    "Lifecycle helper transfer branches become unreachable through validator entrypoints; removal does not alter supported mutation branches.",
+    "No cached configuration validity or reduced defensive-role check is assumed. Added compiled tests reject invalid defensive configuration despite valid transfer evidence."
+  ],
+  "compatibilityBlocker": "Historical unfinished mixed accounts have .setup sink-only records; finishMixedSetup rederives the precommitted final PolicyModule from current artifacts. New module bytes break that rederivation. Retained exact historical final artifacts and an authenticated durable setup manifest are prerequisites to adoption."
+}

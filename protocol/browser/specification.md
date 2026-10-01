@@ -60,3 +60,7 @@ These are deliberately bounded profiles, not general CIP-8 support. Real wallet 
 and compatibility testing must precede naming a wallet/version as supported. The SDK's
 `BrowserAuthorization` checks detached signatures or the planned required-signers set;
 it does not imply that the final transaction actually contains verified witnesses.
+
+Dashboard publication, minimum-ADA funding, reference repair and address-compatibility
+requirements are specified separately in [deployment economics](deployment-economics.md).
+They do not change the signed wire profile.
