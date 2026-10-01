@@ -274,10 +274,15 @@ final class DemoService {
             String requiredFor = genesisOnly ? "genesis only"
                     : Arrays.equals(hash, state.coreBinding().stateValidator()) ? "state changes"
                     : Arrays.equals(hash, state.coreBinding().assetValidator()) ? "transfers" : "transfers and state changes";
+            String label = genesisOnly ? "Account identity (NFT) policy"
+                    : Arrays.equals(hash, state.coreBinding().stateValidator()) ? "Account state validator"
+                    : Arrays.equals(hash, state.coreBinding().checkpoint()) ? "Authorization checkpoint"
+                    : Arrays.equals(hash, state.coreBinding().assetValidator()) ? "Account funds validator"
+                    : "Signing module";
             var status = new LinkedHashMap<String, Object>();
             status.putAll(Map.of("scriptHash", hex(hash), "available", present.isPresent(),
                     "hosting", present.map(u -> holder.equals(u.getAddress()) ? "legacy" : "publisher").orElse("missing"),
-                    "activeRequired", !genesisOnly, "requiredFor", requiredFor));
+                    "activeRequired", !genesisOnly, "requiredFor", requiredFor, "label", label));
             if (present.isPresent()) {
                 var output = present.get();
                 status.put("transactionHash", output.getTxHash());
@@ -296,6 +301,15 @@ final class DemoService {
             referenceStatus.add(status);
         }
         value.put("references", referenceStatus);
+        // Display-only figures for permanently locked deposits. The checkpoint and the installed
+        // signing module must be registered for the account to operate; earlier replaced modules
+        // also kept their registration deposit, so this is a lower bound, never a refund promise.
+        var parameters = backend.getEpochService().getProtocolParameters();
+        require(parameters.isSuccessful(), "DevKit protocol parameters unavailable");
+        value.put("deposits", Map.of(
+                "stateReserve", lovelace(restored.input()).toString(),
+                "registrationDeposit", new BigInteger(parameters.getValue().getKeyDeposit()).toString(),
+                "registeredScripts", 2));
         value.put("balance", amounts.getOrDefault("lovelace", BigInteger.ZERO).toString());
         value.put(
                 "assets",

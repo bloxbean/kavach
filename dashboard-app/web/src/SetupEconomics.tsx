@@ -1,44 +1,63 @@
 import { ada, type Plan } from './api';
 
-/** Separates spent fees from hosted capital and collateral before wallet signatures. */
+/** Separates claimable deposits, permanently locked reserves, spent fees and collateral before wallet signatures. */
 export function SetupEconomics({ plan }: { plan: Plan }) {
   const costs = plan.costs;
   return <>
     {costs && <section className="workflow-setup" aria-label="Complete setup funding estimate">
-      <h3>Complete setup funding estimate</h3>
+      <h3>What this setup will cost</h3>
       <p>{costs.setupTransactions} transactions · {costs.referenceCount} reference scripts</p>
       <dl className="economics-breakdown">
-        <dt>Publisher-owned reference capital</dt><dd>{ada(costs.referenceCapital)} ADA</dd>
-        <dt>Permanently locked account state reserve</dt><dd>{ada(costs.stateReserve)} ADA</dd>
-        <dt>Registration reserve · withdrawal unsupported</dt><dd>{ada(costs.registrationReserve)} ADA</dd>
-        <dt>Estimated network fee allowance</dt><dd>{ada(costs.feeAllowance)} ADA</dd>
-        <dt>Collateral reserve · not a successful transaction charge</dt><dd>{ada(costs.collateralReserve)} ADA</dd>
-        <dt>Total funding estimate</dt><dd>{ada(costs.totalFundingEstimate)} ADA</dd>
+        <dt>Reference script deposits · claimable later by the publisher wallet</dt><dd>{ada(costs.referenceCapital)} ADA</dd>
+        <dt>Account state reserve · permanently locked</dt><dd>{ada(costs.stateReserve)} ADA</dd>
+        <dt>Stake registration deposits · permanently locked, withdrawal unsupported</dt><dd>{ada(costs.registrationReserve)} ADA</dd>
+        <dt>Network fees · spent (estimate)</dt><dd>{ada(costs.feeAllowance)} ADA</dd>
+        <dt>Collateral · stays in your wallet, not a successful transaction charge</dt><dd>{ada(costs.collateralReserve)} ADA</dd>
+        <dt><strong>Total ADA needed in the wallet</strong></dt><dd><strong>{ada(costs.totalFundingEstimate)} ADA</strong></dd>
       </dl>
-      <p>These estimates apply to this setup and publisher. Each final transaction shows its actual fee before signing. The funding estimate excludes the reserved identity seed and includes the selected collateral output. Setup needs three separate plain ADA outputs: identity seed, collateral of at least 5 ADA, and setup funding. Funding checks cannot reserve your wallet’s outputs or prevent ledger parameters changing. Finish one setup at a time per fee wallet; concurrent requests can consume its reserved seed or collateral.</p>
-      <p>Reference capital belongs to this publisher wallet, separately from Kavach authority and recovery:</p><code className="workflow-key">{costs.publisherAddress}</code>
-      {costs.hostingAddress && <><p>Separate vault holding address:</p><code className="workflow-key">{costs.hostingAddress}</code><p>New hosted capital is a separate script-address reserve, unavailable to ordinary wallet coin selection. Explicit Kavach reclamation requires the publisher’s signature; it does not spend account assets.</p></>}
-      <p>Removing reference outputs can interrupt account operations until matching scripts are republished. Losing the publisher key can lose this capital even if you recover the Kavach account. Reclamation pays applicable network and reference-script fees. Historical locked references cannot be reclaimed.</p>
-      {!costs.hostingAddress && <p>Historical key-address hosting requires a wallet or tool that supports reference outputs. Ordinary wallet coin selection can remove those historical outputs and interrupt operations.</p>}
-      <p>Keep the backend running until genesis confirms. Pre-genesis setup cannot yet resume after a backend restart; already published capital and paid fees remain. Save your locator after genesis.</p>
+      <p><strong>Who can claim the reference deposits:</strong> only this publisher wallet, which pays for them. Kavach account
+        keys, co-signers and recovery guardians can’t claim them:</p><code className="workflow-key">{costs.publisherAddress}</code>
+      {costs.hostingAddress && <><p>The deposits are held at this separate vault address, so ordinary wallet spending can’t use them
+        by accident. Claiming one needs the publisher wallet’s signature and never spends account funds:</p>
+        <code className="workflow-key">{costs.hostingAddress}</code></>}
+      <p><strong>When:</strong> any time after setup. Claiming a deposit removes a script the account uses, so the account pauses
+        until that script is republished. If the publisher key is lost, its deposits are lost too, even if you recover your Kavach
+        account. A claim pays its own network and reference-script fees. Historical locked references can’t be claimed.</p>
+      {!costs.hostingAddress && <p>These deposits use the older key-address hosting. Claiming them needs a wallet or tool that
+        supports reference outputs, and ordinary wallet coin selection can spend them by accident, which pauses the account.</p>}
+      <p className="field-note">This estimate is for this setup and publisher; each transaction shows its actual fee before you
+        sign. It excludes the reserved identity seed and includes the selected collateral. The wallet needs three separate plain
+        ADA outputs: the identity seed, collateral of at least 5 ADA, and setup funding. Funding checks can’t reserve your wallet’s
+        outputs or stop ledger parameters changing, so finish one setup at a time per wallet. Keep the backend running until the
+        account is created: pre-genesis setup cannot yet resume after a restart, and already paid deposits and fees stay where
+        they are. Save your locator once the account exists.</p>
     </section>}
     {plan.publication && <section className="workflow-setup" aria-label="Reference publication capital">
-      <h3>This reference publication</h3><p>{ada(plan.publication.capital)} ADA publisher-owned capital, separate from the network fee.</p>
-      <code className="workflow-key">{plan.publication.scriptHash}</code>
-      <p>Publisher wallet:</p><code className="workflow-key">{plan.publication.publisherAddress}</code>
-      {plan.publication.hosting === 'vault' && <><p>Separate vault holding address:</p><code className="workflow-key">{plan.publication.hostingAddress}</code><p>Capital is isolated from ordinary wallet coin selection. Use explicit Kavach reclamation with the publisher wallet to remove this output.</p></>}
-      <p>The publisher can intentionally remove this script copy. Publication grants no account authority. Keep an active reference available or publish an identical replacement before reclaiming capital. Applicable network and reference-script fees still apply; real-wallet compatibility is not established.</p>
+      <h3>This reference script deposit</h3>
+      <p><strong>{ada(plan.publication.capital)} ADA</strong> deposit, separate from the network fee. It stays claimable by the
+        publisher wallet below.</p>
+      <p>Script:</p><code className="workflow-key">{plan.publication.scriptHash}</code>
+      <p>Publisher wallet (the only wallet that can claim it):</p><code className="workflow-key">{plan.publication.publisherAddress}</code>
+      {plan.publication.hosting === 'vault' && <><p>Held at this separate vault address, out of reach of ordinary wallet spending:</p>
+        <code className="workflow-key">{plan.publication.hostingAddress}</code></>}
+      <p>Publication grants no account authority. The publisher can later claim this deposit, which removes this copy of the
+        script; keep a copy available or republish one before claiming. Network and reference-script fees still apply, and
+        real-wallet compatibility is not established.</p>
     </section>}
     {plan.reclamation && <section className="workflow-setup" aria-label="Reference reclamation review">
-      <h3>Reclaim this reference output</h3>
-      <p>Selected output: <code className="workflow-key">{plan.reclamation.transactionHash}#{plan.reclamation.outputIndex}</code></p>
-      <p>Hosted script: <code className="workflow-key">{plan.reclamation.scriptHash}</code></p>
-      <p>Vault holding address:</p><code className="workflow-key">{plan.reclamation.hostingAddress}</code>
-      <p>Return destination · publisher wallet:</p><code className="workflow-key">{plan.reclamation.publisherAddress}</code>
-      <p><strong>Returned ADA capital: {ada(plan.reclamation.returnedCapital)} ADA</strong></p>
-      {!!plan.reclamation.returnedAssets?.length && <><p>Native assets also returned to the same publisher:</p><ul>{plan.reclamation.returnedAssets.map(asset => <li key={asset.unit}><code className="workflow-key">{asset.unit}</code> · {asset.quantity} units</li>)}</ul></>}
-      <p>The network fee below is funded separately. The publisher wallet must sign this exact transaction. Reclamation grants no account authority and does not return the permanently locked account state reserve.</p>
-      <p>{plan.reclamation.activeRequired === false ? 'Optional genesis-only copy: keep exact script bytes backed up. Supported post-genesis operations do not require this reference.' : 'This removes an active reference. Account operations may stop until an identical script is republished. No replacement is created automatically.'}</p>
+      <h3>Claim back this deposit</h3>
+      <dl className="economics-breakdown">
+        <dt>You get back</dt><dd><strong>{ada(plan.reclamation.returnedCapital)} ADA</strong></dd>
+      </dl>
+      {!!plan.reclamation.returnedAssets?.length && <><p>Native assets also returned to the same publisher wallet:</p><ul>{plan.reclamation.returnedAssets.map(asset => <li key={asset.unit}><code className="workflow-key">{asset.unit}</code> · {asset.quantity} units</li>)}</ul></>}
+      <p>Paid to the publisher wallet, which must sign this exact transaction:</p><code className="workflow-key">{plan.reclamation.publisherAddress}</code>
+      <p>The network fee below is funded separately from the same wallet. This claim grants no account authority and does not
+        return the permanently locked account state reserve.</p>
+      <p>{plan.reclamation.activeRequired === false
+        ? 'Optional genesis-only copy: claiming it won’t affect the account. Keep a backup of its exact script bytes.'
+        : 'This removes an active reference. The account pauses until an identical script is republished. No replacement is created automatically.'}</p>
+      <p className="field-note">Deposit output {plan.reclamation.transactionHash}#{plan.reclamation.outputIndex} · script{' '}
+        {plan.reclamation.scriptHash} · vault {plan.reclamation.hostingAddress}</p>
     </section>}
     {plan.stateFunding && <section className="workflow-setup" aria-label="Permanent account state funding">
       <h3>Permanent account state funding</h3>
@@ -47,11 +66,13 @@ export function SetupEconomics({ plan }: { plan: Plan }) {
         <dt>New locked reserve</dt><dd>{ada(plan.stateFunding.nextReserve)} ADA</dd>
         <dt>Additional sponsor funding</dt><dd>{ada(plan.stateFunding.topUp)} ADA</dd>
       </dl>
-      <p>The fee-paying wallet supplies this top-up, separately from the network fee. Any increase becomes permanently locked in account state; account closure and reserve withdrawal are unsupported. Review this amount before signing.</p>
+      <p>The account’s data grew, so it needs a larger reserve. The fee-paying wallet supplies this top-up, separately from the
+        network fee, and it becomes permanently locked: account closure and reserve withdrawal are unsupported. Review this
+        amount before signing.</p>
     </section>}
     <section className="workflow-setup" aria-label="Transaction network fee">
       <strong>{plan.fee ? `This transaction’s network fee: ${ada(plan.fee)} ADA` : 'Network fee calculated after account approvals'}</strong>
-      <p>{plan.fee ? 'Review this fee before signing the final transaction. Capital and reserves are separate from this charge.' : 'You will see the final fee before the fee-paying wallet signs. Account intent approval is separate from funding approval.'}</p>
+      <p>{plan.fee ? 'Review this fee before signing. Deposits and reserves are separate from this charge.' : 'You will see the final fee before the fee-paying wallet signs. Account intent approval is separate from funding approval.'}</p>
     </section>
   </>;
 }

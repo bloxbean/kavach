@@ -11,6 +11,17 @@ export type ReferenceView = {
     publisherKeyHash?: string;
     capital?: string;
     reclaimable?: boolean;
+    /** Human-readable script role, such as "Signing module". */
+    label?: string;
+};
+/** Display-only figures for ADA set aside on the ledger that cannot be withdrawn. */
+export type AccountDeposits = {
+    /** Lovelace held with the account state output; permanently locked. */
+    stateReserve: string;
+    /** Ledger stake-registration deposit per registered script, in lovelace. */
+    registrationDeposit: string;
+    /** Scripts that must stay registered for the account to operate (a lower bound). */
+    registeredScripts: number;
 };
 export type AccountView = {
     locator: string;
@@ -42,6 +53,7 @@ export type AccountView = {
     };
     assets: { unit: string; quantity: string }[];
     references?: ReferenceView[];
+    deposits?: AccountDeposits;
 };
 export type SetupCosts = {
     referenceCapital: string;

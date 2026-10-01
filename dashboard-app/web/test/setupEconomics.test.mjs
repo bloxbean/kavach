@@ -20,10 +20,12 @@ test('quote separates ownership, irreversible reserve, collateral and actual fee
     totalFundingEstimate: '45123456', publisherAddress: 'publisher-wallet', referenceCount: 6,
     setupTransactions: 10 }, fee: '1122225' });
   for (const expected of ['20.123456 ADA', '4.00 ADA', '45.123456 ADA', '1.122225 ADA',
-    'Publisher-owned', 'Permanently locked', 'withdrawal unsupported',
+    'claimable later by the publisher wallet', 'permanently locked', 'withdrawal unsupported',
     'not a successful transaction charge', '10 transactions', '6 reference scripts',
-    'publisher-wallet', 'Pre-genesis setup cannot yet resume', 'excludes the reserved identity seed',
-    'supports reference outputs', 'reference-script fees', 'Ordinary wallet coin selection']) assert.ok(html.includes(expected), expected);
+    'publisher-wallet', 'only this publisher wallet', 'recovery guardians can’t claim them',
+    'any time after setup', 'account pauses', 'publisher key is lost',
+    'pre-genesis setup cannot yet resume', 'excludes the reserved identity seed',
+    'supports reference outputs', 'reference-script fees', 'ordinary wallet coin selection']) assert.ok(html.includes(expected), expected);
   assert.ok(!html.includes('<details'), 'Costs and fee must be visible before signing');
 });
 
@@ -35,27 +37,28 @@ test('unknown fee is not zero and exact repair capital stays separate', () => {
   assert.ok(!html.includes('network fee: 0'));
 });
 
-const referenceSource = await readFile(new URL('../src/ReferenceAvailability.tsx', import.meta.url), 'utf8');
-const referenceCompiled = ts.transpileModule(referenceSource, { compilerOptions: {
+const depositsSource = await readFile(new URL('../src/DepositsPanel.tsx', import.meta.url), 'utf8');
+const depositsCompiled = ts.transpileModule(depositsSource, { compilerOptions: {
   jsx: ts.JsxEmit.React, target: ts.ScriptTarget.ES2022, module: ts.ModuleKind.ESNext,
 } }).outputText.replace("'./api'", JSON.stringify(new URL('../src/api.ts', import.meta.url).href));
-const { ReferenceAvailability } = await import(`data:text/javascript;base64,${Buffer.from(
-  `import React from ${JSON.stringify(import.meta.resolve('react'))};\n${referenceCompiled}`
+const { DepositsPanel } = await import(`data:text/javascript;base64,${Buffer.from(
+  `import React from ${JSON.stringify(import.meta.resolve('react'))};\n${depositsCompiled}`
 ).toString('base64')}`);
+const renderDeposits = (references, deposits) => renderToStaticMarkup(React.createElement(DepositsPanel,
+  { references, deposits, busy: false, onRepair: () => assert.fail('Rendering cannot publish a script'), onReclaim: () => assert.fail('Rendering cannot reclaim') }));
 
 test('missing genesis-only copy never asks for paid repair, while active scripts do', () => {
-  const renderReferences = references => renderToStaticMarkup(React.createElement(ReferenceAvailability,
-    { references, busy: false, onRepair: () => assert.fail('Rendering cannot publish a script'), onReclaim: () => assert.fail('Rendering cannot reclaim') }));
-  const optional = renderReferences([{ scriptHash: 'nft', available: false, hosting: 'missing',
+  const optional = renderDeposits([{ scriptHash: 'nft', available: false, hosting: 'missing',
     activeRequired: false, requiredFor: 'genesis only' }]);
-  assert.ok(optional.includes('Optional genesis-only copy'));
-  assert.ok(optional.includes('exact script bytes backed up'));
-  assert.ok(!optional.includes('publication required'));
+  assert.ok(optional.includes('Not needed after account creation'));
+  assert.ok(optional.includes('exact script bytes'));
+  assert.ok(!optional.includes('Missing'));
   assert.ok(!optional.includes('<button'));
-  const active = renderReferences([{ scriptHash: 'asset', available: false, hosting: 'missing',
+  const active = renderDeposits([{ scriptHash: 'asset', available: false, hosting: 'missing',
     activeRequired: true, requiredFor: 'transfers' }]);
-  assert.ok(active.includes('Missing · publication required'));
-  assert.ok(active.includes('Repair reference'));
+  assert.ok(active.includes('Missing · account paused until republished'));
+  assert.ok(active.includes('>Republish</button>'));
+  assert.ok(active.includes('role="alert"'), 'A paused account must be flagged prominently');
 });
 
 test('datum growth requires visible permanent sponsor top-up disclosure before signing', () => {
@@ -81,16 +84,40 @@ test('vault reclaim review displays exact output, full return and distinct holdi
   assert.ok(!html.includes('<details'));
 });
 
-test('vault and historical hosting remain distinct and only available vaults offer reclaim', () => {
-  const html = renderToStaticMarkup(React.createElement(ReferenceAvailability, {
-    references: [
-      {scriptHash: 'vault-script', hosting: 'vault', available: true, reclaimable: true, activeRequired: false,
-       transactionHash: 'vault-output', outputIndex: 0, hostingAddress: 'vault-holding', publisherAddress: 'owner-wallet', capital: '3000000'},
-      {scriptHash: 'legacy-script', hosting: 'legacy', available: true, activeRequired: true},
-      {scriptHash: 'key-script', hosting: 'publisher', available: true, activeRequired: true},
-    ], busy: false, onRepair: () => {}, onReclaim: () => {},
-  }));
-  assert.equal((html.match(/Reclaim reference/g) || []).length, 1);
-  for (const expected of ['Optional genesis-only copy', 'vault-holding', 'owner-wallet', 'vault-output#0',
-    '3.00 ADA', 'historical locked reference', 'historical key hosted']) assert.ok(html.includes(expected), expected);
+test('vault and historical hosting remain distinct and only available vaults offer a claim', () => {
+  const html = renderDeposits([
+    {scriptHash: 'vault-script', hosting: 'vault', available: true, reclaimable: true, activeRequired: false, label: 'Account identity (NFT) policy',
+     transactionHash: 'vault-output', outputIndex: 0, hostingAddress: 'vault-holding', publisherAddress: 'owner-wallet', capital: '3000000'},
+    {scriptHash: 'other-vault', hosting: 'vault', available: true, reclaimable: false, activeRequired: true, capital: '1000000'},
+    {scriptHash: 'legacy-script', hosting: 'legacy', available: true, activeRequired: true, capital: '80000000'},
+    {scriptHash: 'key-script', hosting: 'publisher', available: true, activeRequired: true, capital: '26000000'},
+  ], { stateReserve: '2762710', registrationDeposit: '2000000', registeredScripts: 2 });
+  assert.equal((html.match(/>Claim<\/button>/g) || []).length, 1);
+  for (const expected of ['Account identity (NFT) policy', 'owner-wallet', 'vault-output#0', '3.00 ADA',
+    'Claimable by the publisher wallet', 'Locked permanently (older setup)', 'publisher’s wallet address (older setup)',
+    'Held in a vault for a different account', 'this dashboard can’t claim them']) assert.ok(html.includes(expected), expected);
+});
+
+test('deposit summary states who can claim, when, and every permanently locked amount', () => {
+  const html = renderDeposits([
+    {scriptHash: 'a'.repeat(56), hosting: 'vault', available: true, reclaimable: true, activeRequired: true, label: 'Signing module',
+     transactionHash: 'b'.repeat(64), outputIndex: 1, hostingAddress: 'vault-holding', publisherAddress: 'owner-wallet', capital: '64530000'},
+    {scriptHash: 'c'.repeat(56), hosting: 'vault', available: true, reclaimable: true, activeRequired: true, label: 'Account state validator',
+     transactionHash: 'd'.repeat(64), outputIndex: 0, hostingAddress: 'vault-holding', publisherAddress: 'owner-wallet', capital: '35090000'},
+    {scriptHash: 'e'.repeat(56), hosting: 'legacy', available: true, activeRequired: true, capital: '80000000'},
+  ], { stateReserve: '2762710', registrationDeposit: '2000000', registeredScripts: 2 });
+  for (const expected of ['99.62 ADA', '86.76271 ADA', '2.76271 ADA', '4.00 ADA', '80.00 ADA',
+    'Only the wallet that paid to publish these scripts', 'owner-wallet',
+    'recovery guardians can’t claim these deposits', 'never moves the ADA or tokens in your account',
+    'Any time. There is no waiting period.', 'account pauses until that script is published again',
+    'Account state reserve', 'Stake registration deposits', '2 × 2.00 ADA', 'Older reference copies',
+    'publisher wallet’s key is lost']) assert.ok(html.includes(expected), expected);
+  assert.equal((html.match(/owner-wallet/g) || []).length, 1, 'Each publisher wallet is listed once');
+  assert.equal((html.match(/>Claim<\/button>/g) || []).length, 2);
+});
+
+test('locked amounts are never shown as zero when the backend did not report them', () => {
+  const html = renderDeposits([{scriptHash: 'x', hosting: 'missing', available: false, activeRequired: true}]);
+  assert.ok(html.includes('Unknown'));
+  assert.ok(html.includes('Refresh the account to load its locked reserve amounts'));
 });

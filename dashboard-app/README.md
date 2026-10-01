@@ -107,13 +107,20 @@ address separately from the publisher wallet. Losing that publisher key can stra
 capital even if the Kavach account is recovered. Vault hosting grants no account authority;
 ordinary account operations do not require the publisher's signature.
 
-Security distinguishes publisher vaults, historical key-hosted outputs and permanently
+The **Deposits** section on the Security page totals what the publisher wallet can claim back
+and what is locked permanently (the account state reserve, at least two stake-registration
+deposits and any historical locked copies). It states who can claim (only the publisher
+wallet, never account keys, co-signers or guardians) and when (any time, with no waiting
+period; claiming a script the account still uses pauses the account until it is republished).
+Each reference row shows its role, deposit and status, with **Claim** or **Republish** where
+applicable. It distinguishes publisher vaults, historical key-hosted outputs and permanently
 locked historical outputs. Existing deposits are not moved by this update. Historical locked
 references remain unreclaimable. Historical key-hosted references retain their old ownership
 and ordinary wallet-selection risk; the new vault reclamation action does not spend them.
 
-For an available vault output choose **Reclaim reference**, connect its publisher wallet and
-acknowledge removal of the selected copy. Review the exact transaction hash/output index,
+For an available vault output choose **Claim**, connect its publisher wallet and acknowledge
+that the account pauses until the script is republished (or, for the optional NFT-policy copy,
+that it is removed). Review the exact transaction hash/output index,
 hosted script, vault address, full returned capital, publisher return address and final fee.
 The dashboard returns the selected capital separately from fees, funded using plain wallet
 outputs with separate collateral. Reclamation requires the publisher's signature and pays
@@ -125,7 +132,7 @@ outputs for a restored account only. Reclaiming an orphaned publication from int
 pre-genesis setup is not exposed through this screen; preserve its public deployment
 artifacts, locator and output reference for the [exact-outpoint API/SDK flow](../protocol/reference-vault/specification.md#development-dashboard-api), which does not require live account state.
 
-**Repair reference** republishes a missing active script from its retained exact bytes into
+**Republish** (the *Repair reference* action) republishes a missing active script from its retained exact bytes into
 the connected publisher's vault; this publisher may differ from the original. Review its
 capital and fee, sign and wait for confirmation, then refresh the account and prepare a fresh
 operation. This does not change the account address or recover the previous publisher's

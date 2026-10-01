@@ -1,7 +1,7 @@
 import { RewardSinks } from "./RewardSinks";
 import { requestAction } from "./requestAction";
 import { referenceReclaim } from "./referenceReclaim";
-import { ReferenceAvailability } from "./ReferenceAvailability";
+import { DepositsPanel } from "./DepositsPanel";
 import { ApprovalWizard } from "./ApprovalWizard";
 import { policiesAfterSignerRemoval } from "./signerPolicies";
 import { CreationSigners, emptyCreationSigners } from "./CreationSigners";
@@ -1213,8 +1213,9 @@ export default function App() {
                                 </section>
                             )}
                             {account?.references && (
-                                <ReferenceAvailability
+                                <DepositsPanel
                                     references={account.references}
+                                    deposits={account.deposits}
                                     busy={busy}
                                     onRepair={(scriptHash) => {
                                         open("Repair reference");
@@ -1468,7 +1469,11 @@ export default function App() {
                     {plan?.title ||
                         (modal === "Rotate keys" && ["3", "4"].includes(form.mode)
                             ? "Update keys and policies"
-                            : modal)}
+                            : modal === "Reclaim reference"
+                              ? "Claim back a deposit"
+                              : modal === "Repair reference"
+                                ? "Republish a missing script"
+                                : modal)}
                 </h2>
                 {notice && (modal === "Connect wallet" || modal === "Receive") && (
                     <div className="notice" role="alert">
@@ -1748,18 +1753,20 @@ export default function App() {
                                         that transaction.
                                     </p>
                                     <p>
-                                        Review the complete funding estimate before publishing: reference
-                                        capital is held at a separate publisher-controlled script address; the
-                                        account state reserve stays permanently locked. Registration
-                                        withdrawals are unsupported. Fees are separate and collateral is
-                                        reserved, not charged for a successful transaction.
+                                        <strong>Where your ADA goes.</strong> Setup sets aside two kinds of
+                                        deposit. Reference script deposits (most of the total) can be claimed
+                                        back later, but only by this fee wallet, which publishes them. The
+                                        account state reserve and stake registration deposits are locked
+                                        permanently. Network fees are spent. Collateral stays in your wallet
+                                        and is only used if a transaction fails validation. You’ll see the
+                                        full estimate before anything is published.
                                     </p>
                                     <p>
-                                        Explicitly reclaiming an active reference can interrupt account
-                                        operations until an identical script is republished. New vault outputs
-                                        are isolated from ordinary wallet coin selection. Kavach recovery does
-                                        not recover a lost publisher wallet key. Historical locked references
-                                        remain locked.
+                                        Claiming a reference deposit back pauses the account until that script
+                                        is republished. Deposits sit in a separate vault, so ordinary wallet
+                                        spending can’t use them by accident. Recovering your Kavach account does
+                                        not restore a lost fee-wallet key, and deposits locked by older setups
+                                        stay locked.
                                     </p>
                                     <p>
                                         Keep this backend running until genesis confirms. Pre-genesis progress
@@ -1868,9 +1875,9 @@ export default function App() {
                             <>
                                 <p>
                                     {modal === "Reclaim reference"
-                                        ? "Reclaim one selected publisher-vault output. Connect its publisher wallet. This returns hosted capital and does not change account authority. Fees and collateral come from separate plain wallet funds."
+                                        ? "Return this reference script deposit to the wallet that published it. Connect that publisher wallet to continue; no other wallet can claim it. Your account keys and funds are not involved."
                                         : modal === "Repair reference"
-                                          ? "Publish an identical missing script using the connected fee wallet. This does not change the account address or authority. Review capital and fees before signing; then refresh your account and prepare a fresh operation."
+                                          ? "Publish an identical copy of this missing script from the connected wallet. That wallet pays the deposit and fee, and becomes the only wallet that can claim the new deposit. The account’s address, funds and keys don’t change. Refresh the account afterwards."
                                           : modal === "Freeze account"
                                             ? "Once confirmed, ordinary spending is disabled. Your independent unfreeze authority can restore access."
                                             : modal === "Cancel recovery"
@@ -1878,42 +1885,25 @@ export default function App() {
                                               : "The current policy determines which authorities must approve this action."}
                                 </p>
                                 {modal === "Reclaim reference" && reclaim && (
-                                    <section
-                                        className="workflow-setup"
-                                        aria-label="Confirm reference removal"
-                                    >
-                                        <p>
-                                            Selected output:{" "}
-                                            <code className="workflow-key">
-                                                {reclaim.transactionHash}#{reclaim.outputIndex}
-                                            </code>
-                                        </p>
-                                        <p>
-                                            Hosted script:{" "}
-                                            <code className="workflow-key">{reclaim.scriptHash}</code>
-                                        </p>
-                                        <p>
-                                            Vault:{" "}
-                                            <code className="workflow-key">{reclaim.hostingAddress}</code>
-                                        </p>
-                                        <p>
-                                            Publisher:{" "}
-                                            <code className="workflow-key">{reclaim.publisherAddress}</code>
-                                        </p>
-                                        {reclaim.capital && (
-                                            <p>
-                                                Capital to return: {ada(reclaim.capital)} ADA. Review the
-                                                exact return destination and final fee in the next step.
-                                            </p>
-                                        )}
+                                    <section className="workflow-setup" aria-label="Confirm deposit claim">
+                                        <dl className="economics-breakdown">
+                                            <dt>You get back</dt>
+                                            <dd>{reclaim.capital ? `${ada(reclaim.capital)} ADA` : "Shown in the next step"}</dd>
+                                            <dt>Script</dt>
+                                            <dd>{reclaim.label || "Reference script"}</dd>
+                                        </dl>
+                                        <p>Paid to, and must be signed by, the publisher wallet:</p>
+                                        <code className="workflow-key">{reclaim.publisherAddress}</code>
                                         <p>
                                             {reclaim.activeRequired === false
-                                                ? "This is an optional genesis-only copy; supported post-genesis operations do not require it. Keep its exact script bytes backed up."
-                                                : "Removing this active reference may stop account operations until an identical script is republished. Other copies may also become unavailable."}
+                                                ? "This copy is only needed to create the account, so claiming it won’t affect the account. Keep a backup of its exact script bytes."
+                                                : "Your account uses this script. After the claim, the account can’t make transactions until the script is republished (anyone can republish it). Your address, funds and keys stay the same. Nothing is republished automatically."}
                                         </p>
-                                        <p>
-                                            Account recovery does not restore the publisher wallet key.
-                                            Nothing is republished automatically.
+                                        <p className="field-note">
+                                            Deposit output {reclaim.transactionHash}#{reclaim.outputIndex} in vault{" "}
+                                            {reclaim.hostingAddress}. The next step shows the exact amount, destination
+                                            and network fee before you sign. Recovering your Kavach account does not
+                                            restore a lost publisher wallet key.
                                         </p>
                                         <label className="checkbox-field">
                                             <input
@@ -1922,8 +1912,9 @@ export default function App() {
                                                 onChange={(e) => setReclaimAcknowledged(e.target.checked)}
                                             />
                                             <span>
-                                                I understand this removes the selected reference copy and that
-                                                removing an active copy may stop account operations.
+                                                {reclaim.activeRequired === false
+                                                    ? "I understand this removes this copy of the script from the ledger."
+                                                    : "I understand the account will pause until this script is republished."}
                                             </span>
                                         </label>
                                     </section>
